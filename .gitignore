@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+*.m~
+*Subject*.mat
+*.snakemake
+
 # C extensions
 *.so
 

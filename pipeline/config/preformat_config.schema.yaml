@@ -1,0 +1,36 @@
+$schema: ""
+description: An experimental configuration sheet
+properties:
+  rawdatadir:
+    type: string
+    description: directory of patients with predefined format
+  centers:
+    type: array
+    description: list of centers subdirectory of rawdatadir to analyze
+  patient:
+    type: string
+    description: (optional) patient to run within this directory only
+
+required:
+  - rawdatadir
+
+#$schema: ""
+#description: An experimental configuration sheet
+#properties:
+#  rawdatadir:
+#    type: string
+#    description: directory of patients with predefined format
+#  outputdatadir:
+#    type: string
+#    description: directory of where to save all output data for neuroimaging preprocessing
+#  outputplotsdir:
+#    type: string
+#    description: directory to output summary plots
+#  patients:
+#    type: array
+#    description: list of patients to run within this directory only
+#
+#required:
+#  - rawdatadir
+#  - outputdatadir
+#  - patients
