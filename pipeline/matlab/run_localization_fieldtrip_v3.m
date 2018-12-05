@@ -4,6 +4,10 @@
 addpath("/home/adam2392/Documents/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Documents/MATLAB/spm12");
+
+
+addpath("../../.lib/fieldtrip-20181108");
+
 ft_defaults
 
 % neuroimaging output data dir
