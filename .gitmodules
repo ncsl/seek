@@ -1,0 +1,3 @@
+[submodule "img_pipe"]
+	path = img_pipe
+	url = https://github.com/ChangLabUcsf/img_pipe.git
