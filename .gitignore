@@ -6,6 +6,7 @@ __pycache__/
 *.m~
 *Subject*.mat
 *.snakemake
+.idea*
 
 # C extensions
 *.so
