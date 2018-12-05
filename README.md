@@ -44,17 +44,17 @@ There are a couple of tools that you need to install in your system before every
 
     conda create -n <envname>
     conda activate <envname>
-    conda install --file environment_py3.yaml
+    conda env create -f environment_py3.yaml
+    # conda install --file environment_py3.yaml
     cd pipeline/
     snakemake -n    
 
     # optionally separate install
     conda config --add channels bioconda
     conda config --add channels conda-forge
-    conda install numpy scipy pandas 
-    conda install nibabel snakemake
-    conda env export > environment_py3.yml
-    <!-- conda env create -f environment_py3.yml -->
+    conda install numpy scipy pandas nibabel snakemake
+    conda env export > environment_py3.yaml
+    # conda env create -f environment_py3.yaml 
 
 # Running Your Own Image Patients
 

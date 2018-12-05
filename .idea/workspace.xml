@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f7fbd9d0-646b-45b2-90b0-a98f015470ed" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pipeline/matlab/run_localization_fieldtrip_v3.m" beforeDir="false" afterPath="$PROJECT_DIR$/pipeline/matlab/run_localization_fieldtrip_v3.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/environment_py3.yml" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -13,7 +12,29 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf />
+    <leaf>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/environment_py3.yaml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="250">
+              <caret line="35" column="14" selection-start-line="35" selection-start-column="14" selection-end-line="35" selection-end-column="14" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/README.md">
+          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+            <state split_layout="SPLIT">
+              <first_editor relative-caret-position="371">
+                <caret line="56" column="44" selection-start-line="56" selection-start-column="44" selection-end-line="56" selection-end-column="44" />
+              </first_editor>
+              <second_editor />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -50,13 +71,14 @@
         <option value="$PROJECT_DIR$/pipeline/config/preformat_config.schema.yaml" />
         <option value="$PROJECT_DIR$/pipeline/Snakefile" />
         <option value="$PROJECT_DIR$/pipeline/matlab/run_localization_fieldtrip_v3.m" />
+        <option value="$PROJECT_DIR$/environment_py3.yaml" />
         <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="369" />
-    <option name="y" value="86" />
+    <option name="y" value="747" />
     <option name="width" value="1203" />
     <option name="height" value="866" />
   </component>
@@ -76,7 +98,7 @@
             <path>
               <item name="neuroimg_pipeline" type="b2602c69:ProjectViewProjectNode" />
               <item name="neuroimg_pipeline" type="462c0819:PsiDirectoryNode" />
-              <item name="pipeline" type="462c0819:PsiDirectoryNode" />
+              <item name="docs" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -125,9 +147,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="369" y="86" width="1203" height="866" extended-state="0" />
+    <frame x="369" y="747" width="1203" height="866" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19982773" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2031115" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -350,20 +373,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/img_pipe/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor />
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/img_pipe/requirements.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/img_pipe/environment_py35.yml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/img_pipe/README.md" />
+    <entry file="file://$PROJECT_DIR$/img_pipe/requirements.txt" />
+    <entry file="file://$PROJECT_DIR$/img_pipe/environment_py35.yml" />
     <entry file="file://$PROJECT_DIR$/pipeline/config/localconfig.yaml">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -374,11 +386,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/environment_py3.yaml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="250">
+          <caret line="35" column="14" selection-start-line="35" selection-start-column="14" selection-end-line="35" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
-          <first_editor relative-caret-position="825">
-            <caret line="55" column="18" selection-start-line="55" selection-start-column="18" selection-end-line="55" selection-end-column="18" />
+          <first_editor relative-caret-position="371">
+            <caret line="56" column="44" selection-start-line="56" selection-start-column="44" selection-end-line="56" selection-end-column="44" />
           </first_editor>
           <second_editor />
         </state>
