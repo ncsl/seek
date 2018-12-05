@@ -6,6 +6,17 @@ Date: 10/4/18
 This repo describes Sarma lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT, DTI 
 and iEEG data (ECoG, or SEEG). 
 
+<!-- MarkdownTOC -->
+
+- Setup and Installation
+- Running Your Own Image Patients
+    - Docker and Singularity
+- Pipeline Description
+- Localizing Electrodes Process
+        - Pipeline Process Visualized
+
+<!-- /MarkdownTOC -->
+
 # Setup and Installation
 There are a couple of tools that you need to install in your system before everything is working. Preferably this is done via Docker, or Singularity, but if not, then:
 
