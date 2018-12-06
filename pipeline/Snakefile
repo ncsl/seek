@@ -111,11 +111,11 @@ rule all:
                                                "CT_IN_T1.nii"),
                                          patient_id=config['patients']),
         # mapping matrix for CT to T1
-        # MAPPING_FILE=expand(os.path.join(config['finaloutput_datadir'],
-        #                                 "{patient_id}",
-        #                                  "coregistration",
-        #                                 "fsl_ct-to-t1_omat.RAS.RO.txt"),
-        #                             patient_id=config['patients']),
+        MAPPING_FILE=expand(os.path.join(config['finaloutput_datadir'],
+                                        "{patient_id}",
+                                         "coregistration",
+                                        "fsl_ct-to-t1_omat.RAS.RO.txt"),
+                                    patient_id=config['patients']),
         # label in source lut volume
         label_volume_file = expand(os.path.join(config['finaloutput_datadir'],
                                                  "{patient_id}",
@@ -240,11 +240,11 @@ rule reorient_raw_coordinate_system:
         ras_ct_std_volume = os.path.join(config['finaloutput_datadir'],
                                          "{patient_id}",
                                          "converted_coord_system",
-                                         "T1.RAS.RO.nii.gz"),
+                                         "CT.RAS.RO.nii.gz"),
         ras_mri_std_volume = os.path.join(config['finaloutput_datadir'],
                                           "{patient_id}",
                                           "converted_coord_system",
-                                          "CT.RAS.RO.nii.gz"),
+                                          "T1.RAS.RO.nii.gz"),
     shell:
         # reorient to a standardized format
         "fslreorient2std {input.ras_ct_volume} {output.ras_ct_std_volume};"
