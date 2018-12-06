@@ -1,13 +1,11 @@
 % REFERENCE: http://www.fieldtriptoolbox.org/tutorial/human_ecog
-
 %% Setup Paths and Directories for Registration Results and Raw EEG Data
 addpath("/home/adam2392/Documents/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Documents/MATLAB/spm12");
+% addpath("../../.lib/fieldtrip-20181108");
 
-
-addpath("../../.lib/fieldtrip-20181108");
-
+% run setup of global variables to make tool GUI work
 ft_defaults
 
 % neuroimaging output data dir
@@ -20,11 +18,18 @@ RESULTS_DIR = '/home/adam2392/hdd/data/neuroimaging/freesurfer_output/outputfile
 RECORD_DATADIR = '/home/adam2392/hdd/data/rawdata';
 % RECORD_DATADIR = '/Users/adam2392/Downloads/tngpipeline/';
 
+% filepath to your raw data (the header of the edf file has the channel
+% labels and stuff)
+rawdatafilepath = fullfile(RECORD_DATADIR, 'cleveland/', subjID, '/seeg/edf/', strcat(subjID, '_ictal.edf'))
+
 % subj id to analyze
 subjID = 'la03';
 
 % results directory
 SUBJDIR = fullfile(RESULTS_DIR, subjID);
+
+% output filepath for your electrode localization
+elec_coords_filepath = [subjID '_elec_f.mat'];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CHOOSE EITHER COREGISTERED CT FILE, OR ORIGINAL CT IMAGE FILE.
@@ -41,14 +46,16 @@ t1_img = ft_read_mri(fullfile(SUBJDIR, t1imgfile));
 % read in CT in original format
 ct_img = ft_read_mri(fullfile(SUBJDIR, ctimgfile));
 
-%% Quality Check
+%% Electrode Placement - Runs GUI
+hdr = ft_read_header(rawdatafilepath);
 
-%% Electrode Placement
-hdr = ft_read_header(fullfile(RECORD_DATADIR, 'cleveland/', subjID, '/seeg/edf/', strcat(subjID, '_ictal.edf')));
-
+% configuration for your GUI to read
 cfg         = [];
 cfg.channel = hdr.label;
 elecf = ft_electrodeplacement(cfg, ct_img);
 
+% print out the structure that stores your electrode contact points - xyz
 elecf
-save([subjID '_elec_f.mat'], 'elecf');
+
+% save it into .mat file - name it accordingly
+save(elec_coords_filepath, 'elecf');

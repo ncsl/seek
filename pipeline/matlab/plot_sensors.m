@@ -1,9 +1,10 @@
 % REFERENCE: http://www.fieldtriptoolbox.org/tutorial/human_ecog
-
 %% Setup Paths and Directories for Registration Results and Raw EEG Data
 addpath("/home/adam2392/Documents/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Documents/MATLAB/spm12");
+
+% run global vars setup
 ft_defaults
 
 % neuroimaging output data dir
@@ -22,10 +23,10 @@ subjID = 'la03';
 % results directory
 SUBJDIR = fullfile(RESULTS_DIR, subjID);
 
-FSDIR = '/Users/adam2392/Downloads/';
-
-% filepaths
+% filepaths to your localized electrodes - change accoridngly
 elecfile = fullfile(strcat(subjID, '_elecint1_f.mat'));
+
+% filepath to your CT image and your T1 image
 ctimgfile = fullfile(strcat('CT.nii.gz'))
 t1imgfile = fullfile(strcat('T1.nii.gz'))
 
@@ -43,11 +44,17 @@ t1_img = ft_read_mri(fullfile(SUBJDIR, t1imgfile));
 % read in CT in original format
 ct_img = ft_read_mri(fullfile(SUBJDIR, ctimgfile));
 
+% create figure and maximize to your screen 
 fig = figure('units','normalized','outerposition',[0 0 1 1]);
+
+% plot orthogonal views of T1 image anatomy and your electrodes coords
 ft_plot_ortho(t1_img.anatomy, 'transform', t1_img.transform, 'style', 'intersect');
 ft_plot_sens(elec_f, 'label', 'on', 'fontcolor', 'w');
 
+% outputfilename prefix for each of the figures
 outputfilename = fullfile(figdir, strcat(subjID, '_sensors'));
+
+%% Save Figures To Quality Check
 % first save 3d screenshot
 toSave3DFigFile = strcat(outputfilename, '_3d.png');
 saveas(fig, toSave3DFigFile);
