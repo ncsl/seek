@@ -56,6 +56,11 @@ There are a couple of tools that you need to install in your system before every
     conda env export > environment_py3.yaml
     # conda env create -f environment_py3.yaml 
 
+6. Update all submodules
+
+
+    git submodule update --init --recursive
+
 # Running Your Own Image Patients
 
 1. Setup data directory for your patient in FreeSurfer format

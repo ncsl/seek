@@ -4,3 +4,6 @@
 [submodule "ndreg"]
 	path = ndreg
 	url = https://github.com/neurodata/ndreg.git
+[submodule "image_lddmm_tensorflow"]
+	path = image_lddmm_tensorflow
+	url = https://github.com/dtward/image_lddmm_tensorflow.git
