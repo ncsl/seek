@@ -1,0 +1,38 @@
+version: '3.6'
+
+services:
+   # Build commands for main neuroimaging app
+  freesurfer:
+     build:
+       context: .
+       dockerfile: ./freesurfer/Dockerfile
+     image: eztrackv2/freesurfer
+     depends_on:
+       - fsl
+#     volumes:
+#       - .:/app
+     restart: always
+     # for running a shell command to start the server with public port opened up
+     command: /start
+
+  # Build commands for FSL
+  fsl:
+     build:
+       context: .
+       dockerfile: ./fsl/Dockerfile
+     image: eztrackv2/fsl
+     restart: always
+     # env_file:
+     #   - ./.envs/.local/.postgres
+
+  # Build commands for flask service to fetch external data
+  mrtrix3:
+     build:
+       context: .
+       dockerfile: ./mrtrix3/Dockerfile
+     image: eztrackv2/mrtrix3
+     restart: always
+     # env_file:
+     #   - ./.envs/.local/.flask
+     #   - ./.envs/.local/.postgres
+     command: /start_worker
