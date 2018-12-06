@@ -1,14 +1,12 @@
-import numpy as np
 import os
 import os.path
-
 import tempfile
-from typing import List, Optional
+from typing import List
 from zipfile import ZipFile
 
-from neuroimg.base.objects import Hemisphere
+import numpy as np
 
-from neuroimg.base.objects import pial_to_verts_and_triangs, read_cortical_region_mapping, \
+from neuroimg.base.objects.neuroimaging.baseneuroimage import pial_to_verts_and_triangs, read_cortical_region_mapping, \
     Hemisphere, RegionIndexMapping
 
 SUBCORTICAL_REG_INDS = [8, 10, 11, 12, 13, 16, 17, 18, 26, 47, 49, 50, 51, 52, 53, 54, 58]

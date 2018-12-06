@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from edp.base.utils.math_utils import normalize_weights
-from edp.base.utils.data_structures_utils import reg_dict, formal_repr, sort_dict, labels_to_inds
+from neuroimg.base.utils.data_structures_utils import reg_dict, formal_repr, sort_dict, labels_to_inds
+from neuroimg.base.utils.math_utils import normalize_weights
 
 
 class ConnectivityH5Field(object):

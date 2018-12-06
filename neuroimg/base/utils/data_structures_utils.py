@@ -1,13 +1,15 @@
 # Data structure manipulations and conversions
 
-import re
-import numpy as np
 import json
+import re
 from collections import OrderedDict
 from copy import deepcopy
-from neuroimg.base.utils.log_error import raise_value_error, raise_import_error, initialize_logger
-from neuroimg.base.config.config import CalculusConfig
 from datetime import date, datetime
+
+import numpy as np
+
+from neuroimg.base.config.config import CalculusConfig
+from neuroimg.base.utils.log_error import raise_value_error, raise_import_error, initialize_logger
 
 logger = initialize_logger(__name__)
 

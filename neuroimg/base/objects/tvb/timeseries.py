@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy
 
-from edp.base.utils.log_error import initialize_logger
+from neuroimg.base.utils.log_error import initialize_logger
 
 
 class TimeseriesDimensions(Enum):
@@ -12,9 +12,6 @@ class TimeseriesDimensions(Enum):
     SPACE = "space"
     STATE_VARIABLES = "state_variables"
     SAMPLES = "samples"
-
-
-# used if a simulation
 
 
 class PossibleStateVariables(Enum):

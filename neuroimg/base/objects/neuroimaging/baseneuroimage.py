@@ -21,9 +21,11 @@ SUBCORTICAL_REG_INDS = [8, 10, 11, 12, 13, 16, 17, 18, 26, 47, 49, 50, 51, 52, 5
 FS_LUT_LH_SHIFT = 1000
 FS_LUT_RH_SHIFT = 2000
 
+
 class Hemisphere(enum.Enum):
     rh = 'rh'
     lh = 'lh'
+
 
 class RegionIndexMapping:
     """
@@ -171,4 +173,3 @@ class ColorLut:
             self.g = table[table.dtype.names[4]]
             self.b = table[table.dtype.names[5]]
             self.a = table[table.dtype.names[6]]
-

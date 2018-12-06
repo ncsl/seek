@@ -1,4 +1,3 @@
-
 class Volume(object):
     origin = []
     voxel_size = -1

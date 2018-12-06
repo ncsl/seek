@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from edp.base.utils.data_structures_utils import formal_repr, sort_dict
+from neuroimg.base.utils.data_structures_utils import formal_repr, sort_dict
 
 
 class SurfaceH5Field(object):

@@ -1,8 +1,8 @@
 # File writing/reading and manipulations
 
+import glob
 import os
 from datetime import datetime
-import glob
 
 
 def ensure_unique_file(parent_folder, filename):

@@ -1,12 +1,14 @@
-import numpy as np
 import os
 import os.path
 import sys
 import time
 
+import numpy as np
+
 sys.path.append('../../../')
 
-from neuroimg.base.objects import GetSurface, RegionIndexMapping, StructuralDataset
+from neuroimg.base.objects.neuroimaging.neuroimage_object import GetSurface, StructuralDataset
+from neuroimg.base.objects.neuroimaging.baseneuroimage import RegionIndexMapping
 
 '''
 Main creation file

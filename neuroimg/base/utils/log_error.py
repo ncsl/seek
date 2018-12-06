@@ -1,9 +1,10 @@
 # Logs and errors
 
+import logging
 import os
 import sys
-import logging
 from logging.handlers import TimedRotatingFileHandler
+
 from neuroimg.base.config.config import OutputConfig
 
 
