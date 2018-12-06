@@ -1,3 +1,6 @@
 [submodule "img_pipe"]
 	path = img_pipe
 	url = https://github.com/ChangLabUcsf/img_pipe.git
+[submodule "ndreg"]
+	path = ndreg
+	url = https://github.com/neurodata/ndreg.git

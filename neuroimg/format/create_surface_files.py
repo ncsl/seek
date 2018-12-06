@@ -1,9 +1,8 @@
+import numpy as np
 import os
 import os.path
 import sys
 import time
-
-import numpy as np
 
 sys.path.append('../../../')
 

@@ -1,8 +1,7 @@
 import logging
-import os
-
 import nibabel as nb
 import numpy as np
+import os
 
 
 def label_volume_centers(label_volume, output_tsv):

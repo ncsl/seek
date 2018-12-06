@@ -69,7 +69,7 @@ If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
 """
 
 configfile: "./config/localconfig.yaml"
-snakemake.utils.validate(config, "../config/preformat_config.schema.yaml")
+snakemake.utils.validate(config, "./config/preformat_config.schema.yaml")
 
 # get the environment variable for freesurfer - for use in getting access to lut's
 FREESURFER_HOME = os.getenv("FREESURFER_HOME") or ''
