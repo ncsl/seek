@@ -95,6 +95,13 @@ output_registration_file = os.path.join(RESECTION_VOLUME_DIR,
 # First rule
 rule all:
     input:
+        POSTMRI_IMG_MGZ_norm = expand(os.path.join(RESECTION_VOLUME_DIR,
+                                             "postT1_normalize.mgz"),
+                                        patient_id=config['patients']),
+        PREMRI_IMG_MGZ_norm = expand(os.path.join(RESECTION_VOLUME_DIR,
+                                            "preT1_normalize.mgz"),
+                                        patient_id=config['patients']),
+
         # coregistered CT to T1 image
         # CT_IN_T1_NIFTI_IMG=expand(os.path.join(RESECTION_VOLUME_DIR,
         #                                  "CT_IN_T1.RAS.RO.nii.gz"),
@@ -230,6 +237,22 @@ rule create_subcortical_volume:
 
         "cp -r {params.subj_dir}/{params.patient}/aseg2srf/ {params.new_FREESURFER_HOME}/aseg2srf; \
         touch {output.subcort_success_flag_file}; "
+
+rule normalize_image:
+    input:
+        POSTMRI_NIFTI_IMG_MGZ = os.path.join(RESECTION_VOLUME_DIR,
+                                             "postT1.mgz"),
+        PREMRI_NIFTI_IMG_MGZ = os.path.join(RESECTION_VOLUME_DIR,
+                                            "preT1.mgz"),
+    output:
+        POSTMRI_IMG_MGZ_norm = os.path.join(RESECTION_VOLUME_DIR,
+                                             "postT1_normalize.mgz"),
+        PREMRI_IMG_MGZ_norm = os.path.join(RESECTION_VOLUME_DIR,
+                                            "preT1_normalize.mgz"),
+    shell:
+        "mri_normalize {input.PREMRI_NIFTI_IMG_MGZ} {output.PREMRI_IMG_MGZ_norm} -conform;"
+        "mri_normalize {input.POSTMRI_NIFTI_IMG_MGZ} {output.POSTMRI_IMG_MGZ_norm} -conform;"
+
 
 """
 Rule to convert nifti to MNI space image volumes.
