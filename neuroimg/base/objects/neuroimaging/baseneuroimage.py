@@ -1,12 +1,12 @@
 import enum
 import os
+import numpy as np
 import re
 import subprocess
 import tempfile
 from typing import List, Optional
 
 import nibabel
-import numpy as np
 
 """
 Stores the base classes for neuroimaging interaction.
@@ -27,7 +27,7 @@ class Hemisphere(enum.Enum):
     lh = 'lh'
 
 
-class RegionIndexMapping:
+class RegionIndexMapping(object):
     """
     Class wrapper for a region index mapping.
 
@@ -54,6 +54,76 @@ class RegionIndexMapping:
 
     def source_to_target(self, index):
         return self.src_to_trg.get(index, self.unknown_ind)
+
+
+class RegionIndexMappingLobe(object):
+    """
+    Class wrapper for a region index mapping to lobes.
+
+    This allows mapping of each index of source file to an index in lobe file.
+    """
+
+    def __init__(self, orig_annot_file: os.PathLike, lobe_annot_file: os.PathLike, hemisphere: Hemisphere):
+        # read in the region mapping for each index in annotation file
+        region_mapping, _, region_names = nibabel.freesurfer.io.read_annot(orig_annot_file)
+        region_mapping[region_mapping == -1] = 0  # Unknown regions in hemispheres
+
+        # read in the lobe names corresponding to each index in the annotation file
+        lobe_mapping, _, lobe_names = nibabel.freesurfer.io.read_annot(lobe_annot_file)
+        lobe_mapping[lobe_mapping == -1] = 0
+
+        region_to_lobe_dict = {}
+
+        # get an index for each unique region name
+        reginds = []
+        for idx, regname in np.unique(region_names):
+            regind = np.where(region_names == regname)[0]
+            reginds.append(regind)
+
+        # get corresponding lobes names for those indices
+        for regind in reginds:
+            # get corresponding index in lobe names for this
+            lobeind = lobe_mapping[regind]
+            lobename = lobe_names[lobeind]
+
+            region_to_lobe_dict[region_names[regind]] = lobename
+
+        self.src_to_trg = region_to_lobe_dict
+
+    def source_to_target(self, index):
+        return self.src_to_trg.get(index, self.unknown_ind)
+
+
+
+class ColorLut(object):
+    """
+    Class wrapper for the color lookup table.
+
+    each column represents:
+    id, name, R, G, B, A, shortname
+    """
+
+    def __init__(self, filename: os.PathLike):
+        table = np.genfromtxt(os.fspath(filename), encoding="latin1", dtype=None)
+        if len(table.dtype) == 6:
+            # id name R G B A
+            self.inds = table[table.dtype.names[0]]
+            self.names = table[table.dtype.names[1]].astype('U')
+            self.r = table[table.dtype.names[2]]
+            self.g = table[table.dtype.names[3]]
+            self.b = table[table.dtype.names[4]]
+            self.a = table[table.dtype.names[5]]
+            self.shortnames = np.zeros(len(self.names), dtype='U')
+
+        elif len(table.dtype) == 7:
+            # id shortname name R G B A
+            self.inds = table[table.dtype.names[0]]
+            self.shortnames = table[table.dtype.names[1]].astype('U')
+            self.names = table[table.dtype.names[2]].astype('U')
+            self.r = table[table.dtype.names[3]]
+            self.g = table[table.dtype.names[4]]
+            self.b = table[table.dtype.names[5]]
+            self.a = table[table.dtype.names[6]]
 
 
 def pial_to_verts_and_triangs(pial_surf) -> (np.ndarray, np.ndarray):
@@ -128,8 +198,8 @@ def read_cortical_region_mapping(label_direc: os.PathLike, hemisphere: Hemispher
     """
     filename = os.path.join(label_direc, hemisphere.value + ".aparc.annot")
     region_mapping, _, _ = nibabel.freesurfer.io.read_annot(filename)
-
-    region_mapping[region_mapping == -1] = 0  # Unknown regions in hemispheres
+    region_mapping = region_mapping - 1
+    region_mapping[region_mapping == -2] = 0  # Unknown regions in hemispheres
 
     # $FREESURFER_HOME/FreeSurferColorLUT.txt describes the shift
     if hemisphere == Hemisphere.lh:
@@ -141,35 +211,3 @@ def read_cortical_region_mapping(label_direc: os.PathLike, hemisphere: Hemispher
     region_mapping = fs_to_conn_fun(region_mapping)
 
     return region_mapping
-
-
-class ColorLut:
-    """
-    Class wrapper for the color lookup table.
-
-    each column represents:
-    id, name, R, G, B, A, shortname
-    """
-
-    def __init__(self, filename: os.PathLike):
-        table = np.genfromtxt(os.fspath(filename), dtype=None)
-
-        if len(table.dtype) == 6:
-            # id name R G B A
-            self.inds = table[table.dtype.names[0]]
-            self.names = table[table.dtype.names[1]].astype('U')
-            self.r = table[table.dtype.names[2]]
-            self.g = table[table.dtype.names[3]]
-            self.b = table[table.dtype.names[4]]
-            self.a = table[table.dtype.names[5]]
-            self.shortnames = np.zeros(len(self.names), dtype='U')
-
-        elif len(table.dtype) == 7:
-            # id shortname name R G B A
-            self.inds = table[table.dtype.names[0]]
-            self.shortnames = table[table.dtype.names[1]].astype('U')
-            self.names = table[table.dtype.names[2]].astype('U')
-            self.r = table[table.dtype.names[3]]
-            self.g = table[table.dtype.names[4]]
-            self.b = table[table.dtype.names[5]]
-            self.a = table[table.dtype.names[6]]

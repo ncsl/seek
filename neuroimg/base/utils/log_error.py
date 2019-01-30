@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Logs and errors
 
 import logging

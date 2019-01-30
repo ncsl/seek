@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Data structure manipulations and conversions
 
 import json

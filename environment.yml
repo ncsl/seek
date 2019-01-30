@@ -23,6 +23,7 @@ dependencies:
   - chardet=3.0.4=py37_1003
   - configargparse=0.13.0=py_1
   - cryptography=2.3.1=py37hdffb7b8_0
+  - cycler=0.10.0=py_1
   - decorator=4.3.0=py_0
   - docutils=0.14=py37_1001
   - dropbox=9.2.0=py_0
@@ -45,15 +46,19 @@ dependencies:
   - jmespath=0.9.3=py_1
   - jpeg=9c=h470a237_1
   - jsonschema=3.0.0a3=py37_1000
+  - kiwisolver=1.0.1=py37h2d50403_2
   - libpng=1.6.36=ha92aebf_0
   - libprotobuf=3.6.1=hd28b015_0
   - libtiff=4.0.10=he6b73bb_0
   - markupsafe=1.1.0=py37h470a237_0
+  - matplotlib=3.0.2=py37_1
+  - matplotlib-base=3.0.2=py37hb2d221d_1
   - multidict=4.5.1=py37h470a237_0
   - networkx=2.2=py_1
   - nibabel=2.3.1=pyh24bf2e0_0
-  - openssl=1.0.2p=h470a237_1
+  - openssl=1.0.2p=h470a237_2
   - paramiko=2.4.2=py37_1000
+  - patsy=0.5.1=py_0
   - prettytable=0.7.2=py_2
   - protobuf=3.6.1=py37hfc679d8_1
   - psutil=5.4.8=py37h470a237_0
@@ -64,6 +69,7 @@ dependencies:
   - pygraphviz=1.5=py37h470a237_0
   - pynacl=1.3.0=py37h470a237_0
   - pyopenssl=18.0.0=py37_1000
+  - pyparsing=2.3.0=py_0
   - pyrsistent=0.14.7=py37h470a237_0
   - pysftp=0.2.9=py_1
   - pysocks=1.6.8=py37_1002
@@ -74,7 +80,10 @@ dependencies:
   - requests=2.20.1=py37_1000
   - rsa=3.4.2=py_1
   - s3transfer=0.1.13=py37_1001
+  - seaborn=0.9.0=py_0
   - smmap2=2.0.5=py_0
+  - statsmodels=0.9.0=py37h7eb728f_0
+  - tornado=5.1.1=py37h470a237_0
   - urllib3=1.23=py37_1001
   - wrapt=1.10.11=py37h470a237_1
   - xmlrunner=1.7.7=py_0
@@ -108,5 +117,28 @@ dependencies:
   - wheel=0.32.3=py37_0
   - xz=5.2.4=h1de35cc_4
   - zlib=1.2.11=h1de35cc_3
-prefix: /Users/adam2392/anaconda2/envs/neuroimgpipe
+  - pip:
+    - appnope==0.1.0
+    - backcall==0.1.0
+    - cloudpickle==0.6.1
+    - dask==1.0.0
+    - ipykernel==5.1.0
+    - ipython==7.2.0
+    - ipython-genutils==0.2.0
+    - jedi==0.13.1
+    - jupyter-client==5.2.4
+    - jupyter-core==4.4.0
+    - parso==0.3.1
+    - pexpect==4.6.0
+    - pickleshare==0.7.5
+    - pillow==5.3.0
+    - prompt-toolkit==2.0.7
+    - ptyprocess==0.6.0
+    - pygments==2.3.0
+    - pywavelets==1.0.1
+    - pyzmq==17.1.2
+    - scikit-image==0.14.1
+    - toolz==0.9.0
+    - traitlets==4.3.2
+    - wcwidth==0.1.7
 

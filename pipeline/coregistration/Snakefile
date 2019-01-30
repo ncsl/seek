@@ -1,0 +1,239 @@
+import snakemake
+import os
+
+
+"""
+export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
+
+A snakemake file for running reconstructions on the neuroimaging data.
+
+snakemake --dag | dot -Tpdf > dag_neuroimaging_pipeline_coregistration.pdf
+
+"""
+configfile: "../config/localconfig.yaml"
+snakemake.utils.validate(config, "../config/preformat_config.schema.yaml")
+
+# get the environment variable for freesurfer - for use in getting access to lut's
+FREESURFER_HOME = os.getenv("FREESURFER_HOME") or ''
+MRTRIX3_HOME = os.getenv("MRTRIX3_HOME") or ''
+HOME_DIR="../../"
+SCRIPTS_UTIL_DIR = "../neuroimg/format/"
+ATLAS=['dk', 'destrieux']
+
+''' USER DEFINED DIRECTORIES TO STORE FINAL DATA IN ORGANIZED SUBFOLDERS '''
+FS_PATIENT_OUTPUT_DIR = os.path.join(config['fs_outputdatadir'],
+                                     "{patient_id}")
+
+PATIENT_OUTPUT_DIR = os.path.join(config['finaloutput_datadir'],
+                                        "{patient_id}")
+
+COREGISTRATION_OUTPUT_DIR = os.path.join(config['finaloutput_datadir'],
+                                         "{patient_id}",
+                                         "coregistration")
+
+NATIVESPACE_OUTPUT_DIR = os.path.join(PATIENT_OUTPUT_DIR,
+                                      "nativespace-transform")
+
+
+parc = "aparc.a2009s"
+aa = "aparc+aseg"
+sval = "pial"
+hemispheres = ['lh', 'rh']
+resamp_target = "fsaverage5"
+
+# print(config['patients'])
+
+subworkflow reconstruction_workflow:
+    workdir:
+        "../"
+    snakefile:
+        "../reconstruction/Snakefile"
+    configfile:
+        "../config/localconfig.yaml"
+
+# First rule
+rule all:
+    input:
+        # FLIRT FSL OUTPUT COREGISTRATION
+        CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                               "CT_IN_T1.nii.gz"),
+                                         patient_id=config['patients']),
+        # mapping matrix for CT to T1
+        MAPPING_FILE=expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "fsl_ct-to-t1_omat.txt"),
+                                    patient_id=config['patients']),
+
+        # OUTPUT REGISTRATION FILES FROM ROBUST_REGISTER
+        OUTPUT_ROBUST_REGISTRATION_FILE = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "CT_in_pre_T1_robustregistration.mgz"),
+                                         patient_id=config['patients']),
+        MAPPING_ROBUSTFS_FILE =  expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                                "robustfs_ct-to-t1_omat.txt"),
+                                            patient_id=config['patients']),
+
+        # LDMM OUTPUT COREGISTRATION FILE
+        LDDMM_MAPPED_FILE=expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "ldmm_ct-to-pre-t1_omat.txt"),
+                                    patient_id=config['patients']),
+
+        # MAPPED BRAIN MASK TO CT SPACE
+        brainmask_inct_file = expand(os.path.join(config['finaloutput_datadir'],
+                                                     "{patient_id}",
+                                                     "nativespace-transform",
+                                                     "brainmask_native_inct.nii.gz"),
+                                    patient_id=config['patients']),
+    shell:
+        "echo 'done'"
+
+
+"""
+Rule for coregistering .nifit images -> .nifti for T1 space
+
+E.g. useful for CT, and DTI images to be coregistered
+"""
+rule coregistert1_ct_to_pre:
+    input:
+        # PREMRI_NIFTI_IMG_MGZ = os.path.join(COREGISTRATION_OUTPUT_DIR,
+        #                                     "preT1_normalize.mgz"),
+        PREMRI_NIFTI_IMG_MGZ = os.path.join(PATIENT_OUTPUT_DIR,
+                                            "T1.nii.gz"),
+        CT_NIFTI_IMG_MGZ = os.path.join(PATIENT_OUTPUT_DIR,
+                                             "CT.nii.gz"),
+    output:
+        # mapped image from CT -> MRI
+        CT_IN_PRE_NIFTI_IMG_ORIGgz = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                                      "CT_IN_T1.nii.gz"),
+        # mapping matrix for post to pre in T1
+        MAPPING_FILE_ORIG = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                    "fsl_ct-to-t1_omat.txt"),
+    shell:
+        "flirt -in {input.CT_NIFTI_IMG_MGZ} \
+                            -ref {input.PREMRI_NIFTI_IMG_MGZ} \
+                            -omat {output.MAPPING_FILE_ORIG} \
+                            -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
+
+
+"""
+Rule to map the brain mask over to the CT space.
+"""
+rule map_brainmask_to_ct:
+    input:
+        brainmask_file = os.path.join(config['finaloutput_datadir'],
+                                                     "{patient_id}",
+                                                     "nativespace-transform",
+                                                     "brainmask_native.nii.gz"),
+        CT_NIFTI_IMG = os.path.join(config['finaloutput_datadir'],
+                                                                   "{patient_id}",
+                                                                   "CT.nii.gz"),
+    output:
+        # mapping matrix for post to pre in T1
+        MAPPING_FILE = os.path.join(config['finaloutput_datadir'],
+                                                     "{patient_id}",
+                                                     "nativespace-transform",
+                                    "fsl_brainmask_to_ct_omat.txt"),
+        brainmask_inct_file = os.path.join(config['finaloutput_datadir'],
+                                                     "{patient_id}",
+                                                     "nativespace-transform",
+                                                     "brainmask_native_inct.nii.gz"),
+    shell:
+        "flirt -in {input.brainmask_file} \
+                            -ref {input.CT_NIFTI_IMG} \
+                            -omat {output.MAPPING_FILE} \
+                            -out {output.brainmask_inct_file};"
+
+
+"""
+Rule for robust registration of two volumes within two volumes
+"""
+rule robust_registration_ct_to_pre:
+    input:
+        PREMRI_NIFTI_IMG_MGZ = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                     "preT1_normalize.mgz"),
+        CT_NIFTI_IMG_MGZ = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                     "CT_normalize.mgz"),
+    output:
+        # mapping matrix from CT -> MRI
+        output_registration_file = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                                "robustfs_ct-to-t1_omat.txt"),
+        # mapped image from CT -> MRI
+        output_registration_image = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                                 "CT_in_pre_T1_robustregistration.mgz"),
+        weights_file = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                                "CT_in_pre_T1_outlierweights.mgz")
+    shell:
+        "mri_robust_register --mov {input.CT_NIFTI_IMG_MGZ} \
+                            --dst {input.PREMRI_NIFTI_IMG_MGZ} \
+                            --lta {output.output_registration_file} \
+                            --mapmovhdr {output.output_registration_image} \
+                            -weights {output.weights_file} \
+                            --satit \
+                            --iscale;"
+
+"""
+Rule for running lddmm algorithm script using tensorflow
+"""
+rule lddmm_registration_ct_to_pre:
+    input:
+        PREMRI_NIFTI_IMG_MGZ = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                            "preT1_normalize.mgz"),
+        POSTMRI_NIFTI_IMG_MGZ = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                             "CT_normalize.mgz"),
+    output:
+        # mapping matrix from CT -> MRI
+        LDDMM_MAPPED_FILE=os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "ldmm_ct-to-pre-t1_omat.txt"),
+        # mapped image from CT -> MRI
+        output_registration_image = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "CT_in_pre_T1_lddmm.mgz"),
+    shell:
+        "echo 'need to implement.';"
+
+rule convert_coordinate_system:
+    input:
+        raw_ct_file = os.path.join(PATIENT_OUTPUT_DIR,
+                                         "CT.nii.gz"),
+        raw_mri_file = os.path.join(PATIENT_OUTPUT_DIR,
+                                          "T1.nii.gz"),
+        mgz_mri_file = os.path.join(PATIENT_OUTPUT_DIR,
+                                        "T1.mgz"),
+        desikan_orig_file=os.path.join(PATIENT_OUTPUT_DIR,
+                               "aparc.a2009s+aseg.mgz"),
+        destrieux_orig_file = os.path.join(PATIENT_OUTPUT_DIR,
+                                   "aparc.a2009s+aseg.mgz"),
+        talairach_transform_file = os.path.join(PATIENT_OUTPUT_DIR,
+                                        "transforms/talairach.xfm"),
+    output:
+        ras_label_volume=os.path.join(config['finaloutput_datadir'],
+                                        "{patient_id}",
+                                      "converted_coord_system",
+                                        "label_{atlas}.RAS.nii.gz"),
+        tal_label_volume = os.path.join(config['finaloutput_datadir'],
+                                        "{patient_id}",
+                                        "converted_coord_system",
+                                        "label_{atlas}.TAL.nii.gz"),
+        ras_std_label_volume=os.path.join(config['finaloutput_datadir'],
+                                "{patient_id}",
+                                "converted_coord_system",
+                                "label_{atlas}.RAS.RO.nii.gz"),
+        tal_std_label_volume = os.path.join(config['finaloutput_datadir'],
+                                        "{patient_id}",
+                                        "converted_coord_system",
+                                        "label_{atlas}.TAL.RO.nii.gz"),
+    run:
+        if wildcards.atlas == "dk":
+            shell("echo 'Running on desikan atlas!';")
+            "echo 'mri_convert -rt nearest --out_orientation RAS {input.desikan_orig_file} \
+                                                            {output.ras_label_volume}';"
+            shell("mri_convert -rt nearest --out_orientation RAS {input.desikan_orig_file} \
+                                                            {output.ras_label_volume};")
+            shell("mri_convert {input.desikan_orig_file} --apply_transform {input.talairach_transform_file} -oc 0 0 0 {output.tal_label_volume};")
+
+        elif wildcards.atlas == "destrieux":
+            shell("echo 'Running on destrieux atlas!'")
+            shell("mri_convert -rt nearest --out_orientation RAS {input.destrieux_orig_file} \
+                                                            {output.ras_label_volume};")
+            shell("mri_convert {input.destrieux_orig_file} --apply_transform {input.talairach_transform_file} -oc 0 0 0 {output.tal_label_volume};")
+
+        shell("fslreorient2std  {output.ras_label_volume} {output.ras_std_label_volume};")
+        shell("fslreorient2std {output.tal_label_volume} {output.tal_std_label_volume};")
+

@@ -1,15 +1,13 @@
 # define directories that we work with
 rawdatadir:
   "/home/adam2392/hdd/data/neuroimaging/raw"
-   # "/Users/adam2392/Downloads/neuroimaging/"
-
+# "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/raw/"
 finaloutput_datadir:
   "/home/adam2392/hdd/data/neuroimaging/freesurfer_output/outputfiles/"
-
+#  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/freesurfer_output/outputfiles/"
 fs_outputdatadir:
  "/home/adam2392/hdd/data/neuroimaging/freesurfer_output/"
-  # "/Users/adam2392/Downloads/neuroimaging/freesurfer_output/"
-
+# "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/freesurfer_output/"
 outputplotsdir:
  "/home/adam2392/hdd/data/neuroimaging/freesurfer_output/figures/"
   # "/Users/adam2392/Downloads/neuroimaging/freesurfer_output/figures/"
@@ -23,16 +21,16 @@ patients:
 #        'la14',
    'la03',
 #   'la04',
-#   'la05',
-#   'la06',
-#   'la07',
-#    'la08',
+   'la05',
+   'la06',
+   'la07',
+    'la08',
 #    'la09',
-#    'la10',
-#    'la11',
-#    'la12',
-#    'la13',
-#    'la15',
+    'la10',
+    'la11',
+    'la12',
+    'la13',
+    'la15',
 #    'la16',
 #    'la21',
 #    'la22',
@@ -59,4 +57,7 @@ patients:
 #   'nl18',
 #   'nl19',
 #  'nl20'
+#   'nl21',
+#   'nl22',
+#   'nl23'
 ]

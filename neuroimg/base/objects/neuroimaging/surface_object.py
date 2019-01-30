@@ -10,55 +10,6 @@ from neuroimg.base.objects.neuroimaging.baseneuroimage import pial_to_verts_and_
     Hemisphere, RegionIndexMapping
 
 SUBCORTICAL_REG_INDS = [8, 10, 11, 12, 13, 16, 17, 18, 26, 47, 49, 50, 51, 52, 53, 54, 58]
-FS_LUT_LH_SHIFT = 1000
-FS_LUT_RH_SHIFT = 2000
-
-
-class StructuralDataset:
-    def __init__(self,
-                 orientations: np.ndarray,
-                 areas: np.ndarray,
-                 centers: np.ndarray,
-                 cortical: np.ndarray,
-                 names: List[str]):
-        nregions = len(names)
-
-        # make some assertions on the shape
-        assert orientations.shape == (nregions, 3)
-        assert areas.shape == (nregions,)
-        assert centers.shape == (nregions, 3)
-        assert cortical.shape == (nregions,)
-
-        # assign these to class attributes
-        self.orientations = orientations
-        self.areas = areas
-        self.centers = centers
-        self.cortical = cortical
-        self.names = names
-
-    def save_to_txt_zip(self, filename: os.PathLike):
-        # create a temporary direcotry
-        tmpdir = tempfile.TemporaryDirectory()
-
-        file_areas = os.path.join(tmpdir.name, 'areas.txt')
-        file_orientations = os.path.join(tmpdir.name, 'average_orientations.txt')
-        file_centres = os.path.join(tmpdir.name, 'centres.txt')
-        file_cortical = os.path.join(tmpdir.name, 'cortical.txt')
-
-        np.savetxt(file_areas, self.areas, fmt='%.2f')
-        np.savetxt(file_orientations, self.orientations, fmt='%.2f %.2f %.2f')
-        np.savetxt(file_cortical, self.cortical, fmt='%d')
-
-        with open(file_centres, 'w') as f:
-            for i, name in enumerate(self.names):
-                f.write('%s %.4f %.4f %.4f\n' % (name, self.centers[i, 0], self.centers[i, 1], self.centers[i, 2]))
-
-        with ZipFile(filename, 'w') as zip_file:
-            zip_file.write(file_areas, os.path.basename(file_areas))
-            zip_file.write(file_orientations, os.path.basename(file_orientations))
-            zip_file.write(file_centres, os.path.basename(file_centres))
-            zip_file.write(file_cortical, os.path.basename(file_cortical))
-
 
 class Surface:
     """

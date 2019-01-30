@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from neuroimg.base.config.config import GenericConfig, FiguresConfig, \
     CalculusConfig, InputConfig, OutputConfig
 

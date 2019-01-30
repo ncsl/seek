@@ -1,0 +1,55 @@
+import snakemake
+import os
+
+configfile: "./config/localconfig.yaml"
+snakemake.utils.validate(config, "./config/preformat_config.schema.yaml")
+
+# get the environment variable for freesurfer - for use in getting access to lut's
+FREESURFER_HOME = os.getenv("FREESURFER_HOME") or ''
+MRTRIX3_HOME = os.getenv("MRTRIX3_HOME") or ''
+HOME_DIR="../../"
+SCRIPTS_UTIL_DIR = "../../neuroimg/format/"
+ATLAS=['dk', 'destrieux']
+
+''' USER DEFINED DIRECTORIES TO STORE FINAL DATA IN ORGANIZED SUBFOLDERS '''
+FS_PATIENT_OUTPUT_DIR = os.path.join(config['fs_outputdatadir'],
+                                     "{patient_id}")
+PATIENT_OUTPUT_DIR = os.path.join(config['finaloutput_datadir'],
+                                        "{patient_id}")
+COREGISTRATION_OUTPUT_DIR = os.path.join(config['finaloutput_datadir'],
+                                         "{patient_id}",
+                                         "coregistration")
+TVB_OUTPUT_DIR = os.path.join(config['finaloutput_datadir'],
+                                                "{patient_id}",
+                                                "tvb")
+
+# First rule
+rule all:
+    input:
+        contacts_plot_in_t1_file = os.path.join(),
+        contacts_pairwise_dist_plot = os.path.join(),
+        regions_pairwise_dist_plot = expand(os.path.join(),
+                                            atlas=ATLAS),
+
+        surface_rendering_with_contacts_file = os.path.join(),
+    shell:
+        "echo 'done'"
+
+"""
+Rule to plot:
+- parcellated nodes in space with the surface shown transparently
+- surface shown transparent with different regions colored
+- parcellated nodes in space with the contacts.xyz (centers) plotted
+"""
+rule plot_results:
+    input:
+        output_file=expand(os.path.join(
+                        config['fs_outputdatadir'],
+                        config['finaloutput_datadir'],
+                        "{patient_id}",
+                        "tvb/connectivity.zip"), patient_id=config['patients']),
+    output:
+        node_figure =
+        surface_figure =
+        channels_figure =
+    shell:

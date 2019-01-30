@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+import argparse
 import os
 import os.path
 import sys
@@ -5,10 +8,11 @@ import time
 
 import numpy as np
 
-sys.path.append('../../../')
+sys.path.append('../../')
 
-from neuroimg.base.objects.neuroimaging.neuroimage_object import GetSurface, StructuralDataset
 from neuroimg.base.objects.neuroimaging.baseneuroimage import RegionIndexMapping
+from neuroimg.base.objects.neuroimaging.surface_object import GetSurface
+from neuroimg.base.objects.neuroimaging.dataset import StructuralDataset
 
 '''
 Main creation file
@@ -96,7 +100,7 @@ def create_surface_main(cort_surf_direc: os.PathLike,
         surf_cort.remap(remap_dict)
 
     else:
-        # Add the region to weights and tract lengths
+        # extract the names of each region index from target lut
         names = region_index_mapping.trg_table.names
 
     dataset = StructuralDataset(orientations, areas, centers, cortical, names)
@@ -112,11 +116,25 @@ def create_surface_main(cort_surf_direc: os.PathLike,
 
 
 if __name__ == '__main__':
-    subject_dir, source_lut, target_lut, struct_zip_file, out_surfaces_dir = sys.argv[1:]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('subject_dir', help="The result directory of the dataset")
+    parser.add_argument('subcort_dir', help="The directory with the subcortical surfaces files.")
+    parser.add_argument('source_lut', help="Figure directory to save resulting figures.")
+    parser.add_argument('target_lut', help="The output model computed filename.")
+    parser.add_argument('struct_zip_file', help="The output meta data filename")
+    parser.add_argument('out_surfaces_dir', help='The output path for the figure name to be saved.')
+    args = parser.parse_args()
+    # extract arguments from parser
+    subject_dir = args.subject_dir
+    source_lut = args.source_lut
+    target_lut = args.target_lut
+    struct_zip_file = args.struct_zip_file
+    out_surfaces_dir = args.out_surfaces_dir
+    subcort_surf_direc = args.subcort_dir
 
     # directories to the cortical and subcortical data
     cort_surf_direc = os.path.join(subject_dir, "surf")
-    subcort_surf_direc = os.path.join(subject_dir, "aseg2srf")
+    # subcort_surf_direc = os.path.join(subject_dir, "aseg2srf")
     label_direc = os.path.join(subject_dir, 'label')
     include_unknown = True
 

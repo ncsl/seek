@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import logging
 import os
 
@@ -77,3 +79,14 @@ def build_fs_label_name_map(lut_path):
                 val, name, _, _, _, _ = line.strip().split()
                 lut[int(val)] = name
     return lut
+
+def transform(coords, src_img, dest_img, transform_mat):
+    import subprocess
+    coords_str = " ".join([str(x) for x in coords])
+
+    cp = subprocess.run("echo %s | img2imgcoord -mm -src %s -dest %s -xfm %s" \
+                            % (coords_str, src_img, dest_img, transform_mat),
+                        shell=True, stdout=subprocess.PIPE)
+    transformed_coords_str = cp.stdout.decode('ascii').strip().split('\n')[-1]
+    return np.array([float(x) for x in transformed_coords_str.split(" ") if x])
+
