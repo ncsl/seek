@@ -1,7 +1,8 @@
 % REFERENCE: http://www.fieldtriptoolbox.org/tutorial/human_ecog
 %% Setup Paths and Directories for Registration Results and Raw EEG Data
-addpath("/home/adam2392/Documents/Dropbox/fieldtrip-20181108");
-addpath("/Users/adam2392/Dropbox/fieldtrip-20181108");
+addpath("/home/adam2392/Documents/Dropbox/fieldtrip-20190129/");
+% addpath("/Users/adam2392/Dropbox/fieldtrip-20181108");
+addpath("/Users/adam2392/Dropbox/fieldtrip-20190129");
 addpath("/Users/adam2392/Documents/MATLAB/spm12");
 % addpath("../../.lib/fieldtrip-20181108");
 
@@ -18,12 +19,16 @@ RESULTS_DIR = '/home/adam2392/hdd/data/neuroimaging/freesurfer_output/outputfile
 RECORD_DATADIR = '/home/adam2392/hdd/data/rawdata';
 % RECORD_DATADIR = '/Users/adam2392/Downloads/tngpipeline/';
 
+% subj id to analyze
+subjID = 'umf004';
+center = 'umf';
+modality = 'ieeg';
+dataset_id = strcat('SEIZURE.edf')
+dataset_id = strcat('Seizure.edf')
+
 % filepath to your raw data (the header of the edf file has the channel
 % labels and stuff)
-rawdatafilepath = fullfile(RECORD_DATADIR, 'cleveland/', subjID, '/seeg/edf/', strcat(subjID, '_ictal.edf'))
-
-% subj id to analyze
-subjID = 'la03';
+rawdatafilepath = fullfile(RECORD_DATADIR, center, subjID, modality, 'edf', dataset_id)
 
 % results directory
 SUBJDIR = fullfile(RESULTS_DIR, subjID);

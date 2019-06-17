@@ -1,36 +1,33 @@
 # define directories that we work with
 rawdatadir:
+#  "~/sarmalab/contact_localization_proj/rawdata"
   "/home/adam2392/hdd/data/neuroimaging/raw"
+#  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/raw/"
 # "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/raw/"
-finaloutput_datadir:
-  "/home/adam2392/hdd/data/neuroimaging/freesurfer_output/outputfiles/"
-#  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/freesurfer_output/outputfiles/"
 fs_outputdatadir:
+#  "~/sarmalab/contact_localization_proj/fs_outputdata"
  "/home/adam2392/hdd/data/neuroimaging/freesurfer_output/"
+#  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/freesurfer_output/"
 # "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/freesurfer_output/"
-outputplotsdir:
- "/home/adam2392/hdd/data/neuroimaging/freesurfer_output/figures/"
-  # "/Users/adam2392/Downloads/neuroimaging/freesurfer_output/figures/"
-
 # define list of files to run this for
 patients:
   [
 #    'la02',
 #    'la17',
 #    'la23',
-#        'la14',
-   'la03',
+#    'la14',
+#   'la03',
 #   'la04',
-   'la05',
-   'la06',
-   'la07',
-    'la08',
+#   'la05',
+#   'la06',
+#   'la07',
+#    'la08',
 #    'la09',
-    'la10',
-    'la11',
-    'la12',
-    'la13',
-    'la15',
+#    'la10',
+#    'la11',
+#    'la12',
+#    'la13',
+#    'la15',
 #    'la16',
 #    'la21',
 #    'la22',
@@ -56,8 +53,13 @@ patients:
 #   'nl17',
 #   'nl18',
 #   'nl19',
-#  'nl20'
+#  'nl20',
 #   'nl21',
 #   'nl22',
-#   'nl23'
+#   'nl23',
+#    'umf001',
+    'umf002',
+#    'umf003',
+#    'umf004',
+#    'umf005',
 ]

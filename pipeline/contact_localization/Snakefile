@@ -48,9 +48,12 @@ rule all:
         # clustered_center_points = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
         #                                '{patient_id}_elec.mat'),
         #                                  patient_id = config['patients']),
-        clustered_center_points_flirt = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                                     '{patient_id}_native_flirt_elec_xyz.txt'),
-                                            patient_id = config['patients']),
+        # clustered_center_points_flirt = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
+        #                                              '{patient_id}_native_flirt_elec_xyz.txt'),
+        #                                     patient_id = config['patients']),
+        clustered_center_voxels = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                               '{patient_id}_clusteredelec_voxels.mat'),
+                                                patient_id = config['patients']),
         # clustered_center_points_robustreg = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
         #                                                      '{patient_id}_native_robustreg_elec_xyz.mat'),
         #                                         patient_id = config['patients']),
@@ -75,24 +78,35 @@ rule run_clustering_algorithm_on_CTimg:
                                                                    "{patient_id}",
                                                                    "CT.nii.gz"),
                                                       patient_id=config['patients'])),
-        brainmask_inct_file = reconstruction_workflow(expand(os.path.join(config['finaloutput_datadir'],
+        brainmask_inct_file = coregistration_workflow(expand(os.path.join(config['finaloutput_datadir'],
                                                                      "{patient_id}",
                                                                      "nativespace-transform",
-                                                                     "brainmask_native_inct.mgz"),
+                                                                     "brainmask_native_inct.nii.gz"),
                                                 patient_id=config['patients'])),
         # list of channel points (at least 2 per electrode)
+        # electrode_initialization_file = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                                     # '{patient_id}_elec_initialize.mat'),
+
         electrode_initialization_file = os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                                     '{patient_id}_elec_initialize.mat'),
+                                             '{patient_id}_elecxyz.txt'),
+        chanxyz_file = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                             '{patient_id}_elecxyz.txt'),
     output:
         clustered_center_points = os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                                     '{patient_id}_elec_xyz.mat'),
+                                                     '{patient_id}_clusteredelec_xyz.mat'),
         clustered_center_voxels = os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                               '{patient_id}_elec_voxels.mat'),
+                                               '{patient_id}_clusteredelec_voxels.mat'),
         binarized_ct_volume = os.path.join(COREGISTRATION_OUTPUT_DIR,
                                            "{patient_id}_binarized_ct.nii.gz")
     shell:
         "echo 'RUNNING CLUSTERING ALGORITHM';"
-        ""
+        "python ./electrode_clustering.py {input.CT_NIFTI_IMG} " \
+                            "{input.brainmask_inct_file} " \
+                            "{input.electrode_initialization_file} " \
+                            "{input.chanxyz_file} " \
+                            "{output.clustered_center_points} " \
+                            "{output.clustered_center_voxels} " \
+                            "{output.binarized_ct_volume};"
 
 rule convert_coords_to_native_T1:
     input:
@@ -166,7 +180,7 @@ rule convert_coords_to_conformed_space:
                                     "CT.nii.gz")),
         MRI_NIFTI_IMG = reconstruction_workflow(os.path.join(config['finaloutput_datadir'],
                                      "{patient_id}",
-                                     "T1.nii.gz")),
+                                     "T1.nii")),
         CONFORM_MRI_NIFTI_IMG = os.path.join(config['finaloutput_datadir'],
                                                                      "{patient_id}",
                                                                      "T1.conform.nii.gz")

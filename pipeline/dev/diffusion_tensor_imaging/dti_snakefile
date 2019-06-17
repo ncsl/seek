@@ -1,0 +1,162 @@
+import snakemake
+import os
+
+"""
+export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
+
+A snakemake file for running reconstructions on the neuroimaging data.
+
+snakemake --dag | dot -Tpdf > dag_neuroimaging_dtipipeline.pdf
+
+If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
+"""
+
+configfile: "../config/config.yaml"
+snakemake.utils.validate(config, "../config/preformat_config.schema.yaml")
+
+# get the environment variable for freesurfer - for use in getting access to lut's
+FREESURFER_HOME = os.getenv("FREESURFER_HOME") or ''
+MRTRIX3_HOME = os.getenv("MRTRIX3_HOME") or ''
+HOME_DIR = "../../../"
+SCRIPTS_UTIL_DIR = "../../../neuroimg/format/"
+ATLAS = ['dk']
+
+parc = "aparc.a2009s"
+aa = "aparc+aseg"
+sval = "pial"
+hemispheres = ['lh', 'rh']
+resamp_target = "fsaverage5"
+
+# depends on reconstruction of T1 MRI scans
+subworkflow reconstruction_workflow:
+    workdir:
+        "../"
+    snakefile:
+        "../Snakefile"
+    configfile:
+        "../config/localconfig.yaml"
+
+# First rule
+rule all:
+    input:
+        # output_dk_voxel_file = expand(os.path.join(config["finaloutput_datadir"],
+        #                                            "{patient_id}", "voxel",
+        #                                "voxels_in_T1_volume_dk.txt"),
+        #                                 patient_id=config['patients']),
+        # output_destrieux_voxel_file = expand(os.path.join(config["finaloutput_datadir"],
+        #                                            "{patient_id}", "voxel",
+        #                                             "voxels_in_T1_volume_destrieux.txt"),
+        #                               patient_id=config['patients']),
+        # master output file
+        output_file = expand(os.path.join(config['finaloutput_datadir'],
+                                          "{patient_id}",
+                                          "tvb/connectivity.zip"), patient_id=config['patients']),
+    shell:
+        "echo 'done'"
+
+"""
+Rule for converting .dicom -> .nifti
+
+Assumes user has premri and postct with DTI being optional, as this is not standard clinical procedure
+in the USA.
+"""
+rule dicom_to_nifti:
+    params:
+        DTI_FOLDER = os.path.join(config['rawdatadir'],
+                                  "{patient_id}", "dti"),
+    output:
+        DTI_NIFTI_IMG = os.path.join(config['fs_outputdatadir'],
+                             "{patient_id}_DTI.nii.gz")
+    shell:
+        "echo {params};"
+        "mrconvert {params.DTI_FOLDER} {output.DTI_NIFTI_IMG};"
+
+
+rule preprocess_dwi:
+    input:
+        DTI_IMG = os.path.join(config['fs_outputdatadir'],
+                             "{patient_id}_DTI.nii.gz"),
+    output:
+        preprocessed_dwi_file = os.path.join("{patient_id}.raw.mif"),
+    shell:
+        "cp {input.DTI_IMG} {output.preprocessed_dwi_file};"
+
+rule extract_brain_mask_volume:
+    input:
+        preprocessed_dwi_file = os.path.join("{patient_id}.raw.mif"),
+    params:
+
+    output:
+        brainmask_volume = os.path.join("{patient_id}_mask.mif"),
+    shell:
+        "dwi2mask -force $< $@ $(dwi_log);"
+
+rule estimate_dwi_response_func:
+    input:
+        preprocessed_dwi_file = os.path.join("{patient_id}.raw.mif"),
+    params:
+
+    output:
+        dwi_response_func = os.path.join("{patient_id}_response.txt"),
+    shell:
+        "dwi2response -nthreads $(nthread) -force tournier $< $@ $(dwi_log);"
+
+rule estimate_FOD:
+    input:
+        preprocessed_dwi_file = os.path.join("{patient_id}.raw.mif"),
+        dwi_response_func = os.path.join("{patient_id}_response.txt"),
+    params:
+
+    output:
+        dwifod_file = os.path.join("{patient_id}_fod.mif"),
+    shell:
+        "dwi2fod csd $^ $@ -force -nthreads $(nthread) $(dwi_log);"
+
+rule generate_tracks:
+    input:
+        dwifod_file = os.path.join("{patient_id}_fod.mif"),
+        brainmask_volume = os.path.join("{patient_id}_mask.mif"),
+    params:
+
+    output:
+        tracksfile = os.path.join("{patient_id}.all.tck"),
+    shell:
+        "tckgen $< $@ " \
+                "-mask $(sd)/dwi/mask.mif " \
+                "-seed_image $(sd)/dwi/mask.mif " \
+                "-number $(ntrack) " \
+                "-force -nthreads $(nthread) $(dwi_log);"
+
+rule subsample_tracks:
+    input:
+        tracksfile = os.path.join("{patient_id}.all.tck"),
+    params:
+
+    output:
+        subsampled_tracksfile = os.path.join("{patient_id}.100k.tck"),
+    shell:
+        "tckedit -number 100K $< $@ $(dwi_log);"
+
+rule count_tracks:
+    input:
+        tracksfile = os.path.join("{patient_id}.all.tck"),
+    params:
+
+    output:
+        trackcountsfile = os.path.join("{patient_id}_triu_counts.txt"),
+    shell:
+        "tck2connectome $^ $@ -force -nthreads $(nthread) $(dwi_log);"
+
+
+rule average_track_lengths:
+    input:
+        tracksfile = os.path.join("{patient_id}.all.tck"),
+    params:
+
+    output:
+        tracklengthsfile = os.path.join("{patient_id}_triu_lengths.txt"),
+    shell:
+        "tck2connectome $^ $@ -scale_length -stat_edge mean -force -nthreads $(nthread) $(dwi_log);"
+
+
+
