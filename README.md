@@ -18,9 +18,9 @@ and iEEG data (ECoG, or SEEG).
 <!-- /MarkdownTOC -->
 
 # Features
-- [ ] Keep FS style directory, but instead add directories there if necessary. Remove fat code that simply copies and pastes data files
+- [x] Keep FS style directory, but instead add directories there if necessary. Remove fat code that simply copies and pastes data files
 - [ ] Add Travis.CI testing
-- [ ] Convert pipeline into running on the FS directory structure
+- [x] Convert pipeline into running on the FS directory structure
 - [ ] Add support for MRICloud running using R-script. Possibly convert to Python script.
 - [ ] Create Python pipeline for running everything, or submit PR to Chang Lab's to run SEEG.
 - [ ] Create unit and integration tests using pytest that test: pipeline in both snakemake and Python
@@ -32,12 +32,13 @@ There are a couple of tools that you need to install in your system before every
 Follow links and tutorials on each respective tool to install. Preferably this is done via Docker, or Singularity, but if not, then:
 
 0. Anaconda and Python3.6+ 
-    * Conda (https://conda.io/docs/user-guide/install/index.html)
+    * Conda (https://docs.anaconda.com/anaconda/install/)
     * This is mainly necessary to run img_pipe (ECoG localization with Chang Lab repo), snakemake, and any Python wrapper code
     
     i. Conda env
     
-
+    
+        # probably doesn't work
         conda create -n <envname>
         conda activate <envname>
         conda env create -f environment.yml
@@ -63,29 +64,46 @@ Follow links and tutorials on each respective tool to install. Preferably this i
         
 1. Reconstruction
     * Freesurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall)
-    * MRICloud (cloud based soln; just send images here) (https://mricloud.org/)
     * This step is necessary to generate a parcellation and surface reconstruction of the patient's brain. The general requirements is just a 
     Linux, or OSX computer with enough RAM. Currently, this repo is designed to work with FreeSurfer.
     
 2. Coregistration
-    * NDReg (https://github.com/neurodata/ndreg)
     * FSL Flirt (https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation/)
-    * This step is necessary to map different imaging sessions together. Specifically, for this pipeline, we need it 
+    * This step is necessary to map different imaging sessions together. Specifically, for this pipeline, we need it to map CT images to T1 MRI
+    * Note that as of 2019, installation still requires Python2, which should come in any Linux distribution.
+        
+            python2 <run_installer>
     
 3. Utility
     * MRTrix3 (https://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
 
-4. SPM, 
+4. SPM 
     * SPM install (preferably 12): https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
 
 5. Contact-Localization Software (FieldTripToolbox, Img_Pipe, MATLAB)
     * FieldTripToolbox (http://www.fieldtriptoolbox.org/download/)
     * Img_Pipe from the Chang Lab at UCSF will come as a submodule in this git repo. This heavily handles ECoG data only.
-  
+ 
+6. (Optional) Cloud Reconstruction (MRICLOUD):
+    * MRICloud (cloud based soln; just send images here) (https://mricloud.org/)
+    * the nice thing is that this usually works even when FS fails (e.g. the T1 MRI image isn't good enough quality, or there is a major lesion, etc.).
+
+7. (Optional) ACPC Auto Detection:
+    * https://www.nitrc.org/projects/art/
+    
+8. (Optional) Nonlinear Registration NDREG:
+    * NDReg (https://github.com/neurodata/ndreg)
 
 # Running Your Own Image Patients
 
-1. Setup data directory for your patient in FreeSurfer format:
+0. Setup your raw data directory for your patient to be read in:
+    
+    * /patient_id/ 
+        - /premri/
+        - /postct/
+        - /dti/ (optional)
+
+1. (Optional) Setup data directory for your patient in FreeSurfer format:
 
     * /patient_id = The subject directory for data ran through FS (e.g. "umf001")
         - /mri/ = Includes the mri-derived image transformations, including the original mri image volume.
@@ -112,6 +130,27 @@ data directories of your data. This is under pipeline/config/localconfig.yaml
         
             snakemake -n # dry run
             snakemake # real run
+            
+4. Reconstruction
+
+        cd pipeline/reconstruction
+        snakemake -n
+        snakemake
+
+5. Coregistration
+
+        cd pipeline/coregistration
+        snakemake -n
+        snakemake
+        
+6. Contact Localization
+
+        
+        cd pipeline/contact_localization/matlab
+        matlab
+        <open run_localization_fieldtrip_v3.m>
+        <change directories and variables>
+        <run GUI>        
 
 ## Docker and Singularity
 1. Freesurfer with FSL
@@ -124,7 +163,7 @@ TBD
 # Pipeline Description
 At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry, regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
 
-0. ACPC Alignment:
+0. (Optional) ACPC Alignment:
     
         acpcdetect -v -center-AC -output-orient LIP -no-tilt-correction -i ./T1.nii 
 

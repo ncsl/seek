@@ -784,7 +784,7 @@ def atlas_and_mask(final_centroids_xyz, PATIENT_OUTPUT_DIR):
     elecmatrix = []
     for elec in final_centroids_xyz:
         for chan in final_centroids_xyz[elec]:
-            label = [chan, 'stereo', 'depth']
+            label = [[chan], ['stereo'], ['depth']]
             eleclabels.append(label)
             elecmatrix.append(final_centroids_xyz[elec][chan])
     mat = {'eleclabels': eleclabels, 'elecmatrix': elecmatrix}
@@ -806,7 +806,55 @@ def atlas_and_mask(final_centroids_xyz, PATIENT_OUTPUT_DIR):
     dktname = os.path.join(elecs_dir, '%s_clustered_elec_xyz_DKT' % (patid))
     scipy.io.savemat(dktname, temp)
 
+    elec_labels_destriuex = wm_and_brainmask(final_centroids_xyz, destriuexname, PATIENT_OUTPUT_DIR)
+    elec_labels_DKT = wm_and_brainmask(final_centroids_xyz, dktname, PATIENT_OUTPUT_DIR)
+
     return elec_labels_destriuex, elec_labels_DKT
+
+def wm_and_brainmask(final_centroids_xyz, elecfile, PATIENT_OUTPUT_DIR):
+    """
+    Apply white matter and brainmask labels to final centroid output and save
+    in .mat files
+    :param final_centroids_xyz:
+    :param elecfile:
+    :param PATIENT_OUTPUT_DIR:
+    :return elec_labels:
+    """
+    dat = scipy.io.loadmat(elecfile)
+    elecmatrix = dat['elecmatrix']
+    anatomy_orig = dat['anatomy']
+    eleclabels = dat['eleclabels']
+
+    # Load white matter and brain masks
+    wmpath = os.path.join(PATIENT_OUTPUT_DIR, 'CT', 'wm_ct.nii.gz')
+    bmpath = os.path.join(PATIENT_OUTPUT_DIR, 'CT', 'brainmask_native_inct.nii.gz')
+    wm_img = nb.load(wmpath)
+    wm_dat = wm_img.get_data()
+    bm_img = nb.load(bmpath)
+    bm_dat = bm_img.get_data()
+
+    affine = npl.inv(bm_img.affine)
+
+    wm_label = np.zeros(anatomy_orig.shape[0], dtype=bool)
+    bm_label = np.zeros(anatomy_orig.shape[0], dtype=bool)
+    anatomy = np.zeros((anatomy_orig.shape[0], anatomy_orig.shape[1] + 2), dtype=object)
+    for i, label in enumerate(anatomy_orig):
+        chan = str(label[0][0]).strip()
+        for elec in final_centroids_xyz:
+            if chan in final_centroids_xyz[elec].keys():
+                pt = apply_affine(affine, final_centroids_xyz[elec][chan])
+                wm_label[i] = wm_dat[int(pt[0]), int(pt[1]), int(pt[2])] > 0
+                bm_label[i] = bm_dat[int(pt[0]), int(pt[1]), int(pt[2])] > 0
+    anatomy[:, 0:anatomy_orig.shape[1]] = anatomy_orig
+    anatomy[:, anatomy_orig.shape[1]] = wm_label
+    anatomy[:, anatomy_orig.shape[1] + 1] = bm_label
+
+    save_dict = {'elecmatrix': elecmatrix, 'anatomy': anatomy, 'eleclabels': eleclabels}
+    scipy.io.savemat(elecfile, save_dict)
+
+    elec_labels = anatomy
+
+    return elec_labels
 
 
 # <<<<<<< HEAD
