@@ -92,6 +92,12 @@ rule all:
     input:
         outsuccess_file=expand(os.path.join(config['fs_outputdatadir'],
                                 "{patient_id}_recon_success.txt"),  patient_id=config['patients']),
+        brainmask_nifti = expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
+                               "brainmask.nii.gz"),  patient_id=config['patients']),
+        lhpial = expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "surf", "ascii",
+                            "lh.pial.asc"),  patient_id=config['patients']),
+        rhpial = expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "surf", "ascii",
+                            "rh.pial.asc"),  patient_id=config['patients']),
     shell:
         "echo 'done'"
 
