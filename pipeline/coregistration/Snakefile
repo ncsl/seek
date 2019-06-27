@@ -25,18 +25,17 @@ FS_PATIENT_OUTPUT_DIR = os.path.join(config['fs_outputdatadir'],
 
 COREGISTRATION_OUTPUT_DIR = os.path.join(config['fs_outputdatadir'],
                                          "{patient_id}",
-                                         "coregistration")
+                                         "CT")
 
 parc = "aparc.a2009s"
 aa = "aparc+aseg"
 sval = "pial"
 hemispheres = ['lh', 'rh']
 resamp_target = "fsaverage5"
-# print(config['patients'])
 
 subworkflow reconstruction_workflow:
     workdir:
-        "../"
+        "../reconstruction/"
     snakefile:
         "../reconstruction/Snakefile"
     configfile:
@@ -47,30 +46,17 @@ rule all:
     input:
         # FLIRT FSL OUTPUT COREGISTRATION
         CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                               "CT_IN_T1.nii.gz"),
+                                               "rCT.nii.gz"),
                                          patient_id=config['patients']),
         # mapping matrix for CT to T1
         MAPPING_FILE=expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
                                         "fsl_ct-to-t1_omat.txt"),
                                     patient_id=config['patients']),
 
-        # OUTPUT REGISTRATION FILES FROM ROBUST_REGISTER
-        OUTPUT_ROBUST_REGISTRATION_FILE = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                        "CT_in_pre_T1_robustregistration.mgz"),
-                                         patient_id=config['patients']),
-        MAPPING_ROBUSTFS_FILE =  expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                                "robustfs_ct-to-t1_omat.txt"),
-                                            patient_id=config['patients']),
-
-        # LDMM OUTPUT COREGISTRATION FILE
-        # LDDMM_MAPPED_FILE=expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
-        #                                 "ldmm_ct-to-pre-t1_omat.txt"),
-        #                             patient_id=config['patients']),
-
         # MAPPED BRAIN MASK TO CT SPACE
-        # brainmask_inct_file = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
-        #                                              "brainmask_inct.nii.gz"),
-        #                             patient_id=config['patients']),
+        brainmask_inct_file = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                                     "brainmask_inct.nii.gz"),
+                                    patient_id=config['patients']),
     shell:
         "echo 'done'"
 
@@ -89,7 +75,7 @@ rule coregistert1_ct_to_pre:
     output:
         # mapped image from CT -> MRI
         CT_IN_PRE_NIFTI_IMG_ORIGgz = os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                                      "CT_IN_T1.nii.gz"),
+                                                      "rCT.nii.gz"),
         # mapping matrix for post to pre in T1
         MAPPING_FILE_ORIG = os.path.join(COREGISTRATION_OUTPUT_DIR,
                                     "fsl_ct-to-t1_omat.txt"),
@@ -100,6 +86,23 @@ rule coregistert1_ct_to_pre:
                             -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
 
 
+
+"""
+Rule for converting brainmask image volume to Nifti
+"""
+rule convert_brainmask_to_nifti:
+    input:
+        outsuccess_file = os.path.join(config['fs_outputdatadir'],
+                               "{patient_id}_recon_success.txt")
+    params:
+        brainmask_mgz = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
+                                     "brainmask.mgz")
+    output:
+        brainmask_nifti = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
+                                       "brainmask.nii.gz")
+    shell:
+        "mri_convert {params.brainmask_mgz} {output.brainmask_nifti};"
+
 """
 Rule to map the brain mask over to the CT space.
 """
@@ -108,7 +111,7 @@ rule map_brainmask_to_ct:
         brainmask_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
                                                      "brainmask.nii.gz"),
         CT_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "CT",
-                                                                   "CT.nii.gz"),
+                                                            "CT.nii"),
     output:
         # mapping matrix for post to pre in T1
         MAPPING_FILE = os.path.join(COREGISTRATION_OUTPUT_DIR,
@@ -136,6 +139,81 @@ rule convert_to_mgz:
     shell:
         "mrconvert {input.PREMRI_NIFTI_IMG_ORIG} {output.PREMRI_NIFTI_IMG_MGZ};"
         "mrconvert {input.CT_NIFTI_IMG_ORIG} {output.CT_NIFTI_IMG_MGZ};"
+
+
+"""
+Rule for running NDREG algorithm script using tensorflow
+"""
+rule ndreg_registration_ct_to_pre:
+    input:
+        PREMRI_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                            "T1.nii"),
+        CT_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                             "CT.nii.gz"),
+    params:
+        outputdir = os.path.join(COREGISTRATION_OUTPUT_DIR),
+
+    output:
+        # mapping matrix from CT -> MRI
+        LDDMM_MAPPED_FILE=os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "ndreg_ct-to-pre-t1_omat.txt"),
+        # mapped image from CT -> MRI
+        output_registration_image = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "CT_in_pre_T1_ndreg.nii.gz"),
+    shell:
+        "python run_ndreg.py " \
+                "{input.PREMRI_NIFTI_IMG} " \
+                "{input.CT_NIFTI_IMG} " \
+                "{output.mapping_file} " \
+                "{output.output_registration_image} " \
+                "{params.outputdir};"
+
+
+rule convert_coordinate_system:
+    input:
+        raw_ct_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                         "CT.nii.gz"),
+        raw_mri_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                          "T1.nii"),
+        mgz_mri_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                        "T1.mgz"),
+        desikan_orig_file=os.path.join(FS_PATIENT_OUTPUT_DIR,
+                               "aparc.a2009s+aseg.mgz"),
+        destrieux_orig_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                   "aparc.a2009s+aseg.mgz"),
+        talairach_transform_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                        "transforms/talairach.xfm"),
+    output:
+        ras_label_volume=os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                      "converted_coord_system",
+                                        "label_{atlas}.RAS.nii.gz"),
+        tal_label_volume = os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                        "converted_coord_system",
+                                        "label_{atlas}.TAL.nii.gz"),
+        ras_std_label_volume=os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                "converted_coord_system",
+                                "label_{atlas}.RAS.RO.nii.gz"),
+        tal_std_label_volume = os.path.join(FS_PATIENT_OUTPUT_DIR,
+                                        "converted_coord_system",
+                                        "label_{atlas}.TAL.RO.nii.gz"),
+    run:
+        if wildcards.atlas == "dk":
+            shell("echo 'Running on desikan atlas!';")
+            "echo 'mri_convert -rt nearest --out_orientation RAS {input.desikan_orig_file} \
+                                                            {output.ras_label_volume}';"
+            shell("mri_convert -rt nearest --out_orientation RAS {input.desikan_orig_file} \
+                                                            {output.ras_label_volume};")
+            shell("mri_convert {input.desikan_orig_file} --apply_transform {input.talairach_transform_file} -oc 0 0 0 {output.tal_label_volume};")
+
+        elif wildcards.atlas == "destrieux":
+            shell("echo 'Running on destrieux atlas!'")
+            shell("mri_convert -rt nearest --out_orientation RAS {input.destrieux_orig_file} \
+                                                            {output.ras_label_volume};")
+            shell("mri_convert {input.destrieux_orig_file} --apply_transform {input.talairach_transform_file} -oc 0 0 0 {output.tal_label_volume};")
+
+        shell("fslreorient2std  {output.ras_label_volume} {output.ras_std_label_volume};")
+        shell("fslreorient2std {output.tal_label_volume} {output.tal_std_label_volume};")
+
 
 
 """
@@ -186,80 +264,3 @@ rule lddmm_registration_ct_to_pre:
                 "{input.PREMRI_NIFTI_IMG} " \
                 "{input.CT_NIFTI_IMG} " \
                 "{output.output_registration_image};"
-
-"""
-Rule for running NDREG algorithm script using tensorflow
-"""
-rule ndreg_registration_ct_to_pre:
-    input:
-        PREMRI_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR,
-                                            "T1.nii"),
-        CT_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR,
-                                             "CT.nii.gz"),
-    params:
-        outputdir = os.path.join(COREGISTRATION_OUTPUT_DIR),
-
-    output:
-        # mapping matrix from CT -> MRI
-        LDDMM_MAPPED_FILE=os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                        "ndreg_ct-to-pre-t1_omat.txt"),
-        # mapped image from CT -> MRI
-        output_registration_image = os.path.join(COREGISTRATION_OUTPUT_DIR,
-                                        "CT_in_pre_T1_ndreg.nii.gz"),
-    shell:
-        "python run_ndreg.py " \
-                "{input.PREMRI_NIFTI_IMG} " \
-                "{input.CT_NIFTI_IMG} " \
-                "{output.mapping_file} " \
-                "{output.output_registration_image} " \
-                "{params.outputdir};"
-
-
-rule convert_coordinate_system:
-    input:
-        raw_ct_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
-                                         "CT.nii.gz"),
-        raw_mri_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
-                                          "T1.nii"),
-        mgz_mri_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
-                                        "T1.mgz"),
-        desikan_orig_file=os.path.join(FS_PATIENT_OUTPUT_DIR,
-                               "aparc.a2009s+aseg.mgz"),
-        destrieux_orig_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
-                                   "aparc.a2009s+aseg.mgz"),
-        talairach_transform_file = os.path.join(FS_PATIENT_OUTPUT_DIR,
-                                        "transforms/talairach.xfm"),
-    output:
-        ras_label_volume=os.path.join(config['finaloutput_datadir'],
-                                        "{patient_id}",
-                                      "converted_coord_system",
-                                        "label_{atlas}.RAS.nii.gz"),
-        tal_label_volume = os.path.join(config['finaloutput_datadir'],
-                                        "{patient_id}",
-                                        "converted_coord_system",
-                                        "label_{atlas}.TAL.nii.gz"),
-        ras_std_label_volume=os.path.join(config['finaloutput_datadir'],
-                                "{patient_id}",
-                                "converted_coord_system",
-                                "label_{atlas}.RAS.RO.nii.gz"),
-        tal_std_label_volume = os.path.join(config['finaloutput_datadir'],
-                                        "{patient_id}",
-                                        "converted_coord_system",
-                                        "label_{atlas}.TAL.RO.nii.gz"),
-    run:
-        if wildcards.atlas == "dk":
-            shell("echo 'Running on desikan atlas!';")
-            "echo 'mri_convert -rt nearest --out_orientation RAS {input.desikan_orig_file} \
-                                                            {output.ras_label_volume}';"
-            shell("mri_convert -rt nearest --out_orientation RAS {input.desikan_orig_file} \
-                                                            {output.ras_label_volume};")
-            shell("mri_convert {input.desikan_orig_file} --apply_transform {input.talairach_transform_file} -oc 0 0 0 {output.tal_label_volume};")
-
-        elif wildcards.atlas == "destrieux":
-            shell("echo 'Running on destrieux atlas!'")
-            shell("mri_convert -rt nearest --out_orientation RAS {input.destrieux_orig_file} \
-                                                            {output.ras_label_volume};")
-            shell("mri_convert {input.destrieux_orig_file} --apply_transform {input.talairach_transform_file} -oc 0 0 0 {output.tal_label_volume};")
-
-        shell("fslreorient2std  {output.ras_label_volume} {output.ras_std_label_volume};")
-        shell("fslreorient2std {output.tal_label_volume} {output.tal_std_label_volume};")
