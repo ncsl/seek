@@ -179,11 +179,13 @@ rule reconstruction:
             SUBJECTS_DIR={params.SUBJECTS_DIR};"
         "recon-all " \
             # "-i {input.MRI_MGZ_IMG} " \
-            "-subjid {params.patient} -all "\
+            "-subjid {params.patient} " \
+            "-all "\
             "-parallel -openmp 4;"
         "touch {output.outsuccess_file}"
 
 """
+Can comment the recon-all (above) if you just want to click the CT files 
 Rule for converting the pial surfaces to ascii data, so that it is readable by python/matlab.
 """
 rule convert_pial_surface_files_ascii:
