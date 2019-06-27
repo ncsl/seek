@@ -14,14 +14,18 @@ fs_outputdatadir:
 # define list of files to run this for
 patients:
   [
-    #'efri06',
-    ##'efri07',
-    'efri10',
-    #'efri12',
-    #'efri13',
-    #'efri15',
-    'efri16'
-    #'efri17',
-    #'efri18',
-    #'efri21'
+    'efri10'
   ]
+#patients:
+#  [
+#    'efri06',
+#    # 'efri07',
+##    'efri10',
+#    'efri12',
+#    'efri13',
+#    'efri15',
+##    'efri16'
+#    'efri17',
+#    'efri18',
+#    'efri21'
+#  ]

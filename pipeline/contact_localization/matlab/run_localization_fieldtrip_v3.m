@@ -31,6 +31,7 @@ center = 'efri';         % e.g. cc, efri, nih, etc.
 %dataset_id = strcat('SEIZURE.edf')
 %dataset_id = strcat('Seizure.edf')
 data_id= [upper(subjID) '_WAR_SES1_Setup.mat'];
+
 %Here reading from saved setup files
 %% Initialize Variablees and Parameters
 % run setup of global variables to make tool GUI work
