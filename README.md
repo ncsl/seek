@@ -41,7 +41,7 @@ Follow links and tutorials on each respective tool to install. Preferably this i
         # probably doesn't work
         conda create -n <envname>
         conda activate <envname>
-        conda env create -f environment.yml
+        conda env create -f environment.yml python=3.6
         # conda install --file environment.yml
         cd pipeline/
         snakemake -n    
@@ -226,7 +226,9 @@ At a high level, this pipeline is taking neuroimaging data of a patient to produ
 
     TBD
 
-# Localizing Electrodes Process
+# Localizing Electrodes Process 
+For NCSL specific Readme, check out: [link](docs/contact_localization/localizingelectrodes_instructions.pdf)
+For general-purpose Readme, check out: [link](docs/contact_localization/localizingelectrodes_instructions.pdf)
 
 1. Use matlab script to get Voxel/MM coords in CT space
 

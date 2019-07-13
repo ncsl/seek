@@ -57,6 +57,10 @@ rule all:
         brainmask_inct_file = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
                                                      "brainmask_inct.nii.gz"),
                                     patient_id=config['patients']),
+
+        wm_inct_outputfile_nifti = expand(os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "wm_in_ct.nii"), patient_id=config['patients']),
+
     shell:
         "echo 'done'"
 
@@ -112,6 +116,9 @@ rule map_brainmask_to_ct:
                                                      "brainmask.nii.gz"),
         CT_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "CT",
                                                             "CT.nii"),
+        # mapping matrix for post to pre in T1
+        MAPPING_FILE_ORIG = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                         "fsl_ct-to-t1_omat.txt"),
     output:
         # mapping matrix for post to pre in T1
         MAPPING_FILE = os.path.join(COREGISTRATION_OUTPUT_DIR,
@@ -123,7 +130,32 @@ rule map_brainmask_to_ct:
                             -ref {input.CT_NIFTI_IMG} \
                             -omat {output.MAPPING_FILE} \
                             -out {output.brainmask_inct_file};"
+        # "applyxfm4D {input.brainmask_file} {input.CT_NIFTI_IMG} {output.brainmask_inct_file} {input.MAPPING_FILE_ORIG};"
 
+rule map_wm_to_ct:
+    input:
+        wm_output_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
+                                      "wm.mgz"),
+        CT_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "CT",
+                                                            "CT.nii"),
+    output:
+        wm_output_file_nifti  = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
+                              "wm.nii.gz"),
+        # mapping matrix for post to pre in T1
+        MAPPING_FILE = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                            "fsl_wm_to_ct_omat.txt"),
+        wm_inct_outputfile = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "wm_in_ct.nii.gz"),
+        wm_inct_outputfile_nifti = os.path.join(COREGISTRATION_OUTPUT_DIR,
+                                        "wm_in_ct.nii")
+    shell:
+        "mri_convert {input.wm_output_file} {output.wm_output_file_nifti};"
+        "flirt -in {output.wm_output_file_nifti} \
+                    -ref {input.CT_NIFTI_IMG} \
+                    -omat {output.MAPPING_FILE} \
+                    -out {output.wm_inct_outputfile};"
+        "mri_convert {output.wm_inct_outputfile} {output.wm_inct_outputfile_nifti};"
+# "applyxfm4D {input.wm_output_file} {input.CT_NIFTI_IMG} {output.wm_inct_outputfile} {input.MAPPING_FILE_ORIG};"
 
 rule convert_to_mgz:
     input:
