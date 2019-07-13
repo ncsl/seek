@@ -1,4 +1,3 @@
-import snakemake
 import os
 
 
