@@ -1,5 +1,6 @@
-import snakemake
 import os
+
+import snakemake
 
 """
 TODO: 
