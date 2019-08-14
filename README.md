@@ -230,14 +230,35 @@ At a high level, this pipeline is taking neuroimaging data of a patient to produ
 For NCSL specific Readme, check out: [link](docs/contact_localization/localizingelectrodes_instructions.pdf)
 For general-purpose Readme, check out: [link](docs/contact_localization/localizingelectrodes_instructions.pdf)
 
-1. Use matlab script to get Voxel/MM coords in CT space
+To only localize contacts using fieldtrip toolbox GUI, or img_pipe GUI, then follow these instructions:
+1.	Install SPM (preferably 12): https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
+2.	Install FieldTripToolbox: (http://www.fieldtriptoolbox.org/download/)
+3.	(Optional) Install Img_Pipe from the Chang Lab at UCSF will come as a submodule in this git repo. This heavily handles ECoG data only.
 
+## Running Localization GUI
+This assumes you have already ran reconstruction on your T1 MRI and have preprocessed the CT image and downloaded the 
+necessary files.
+
+1. Use matlab script to get Voxel/MM coords in CT space
+    
+    
+    <open matlab>
+    <edit pipeline/contact_localization/matlab/run_localization_fieldtrip.m configuration to add path of your fieldtrip toolbox>
+    <run pipeline/contact_localization/matlab/run_localization_fieldtrip.m>
+    <click through contacts as in demo>
+    
 2. Apply coregistration transform matrix to coords to map to your MRI space.
+
+    TBD
 
 3. (optional) Apply additional affine transformations to make sure your now T1 coordinates
 are in an appropriate coordinate system and/or space, so that when using coords with atlas labels,
 surface files and other T1-extracted image volumes, the coords are in the same 
 language.
+
+    TBD
+
+
 
 ### Pipeline Process Visualized
 [DAG of Pipeline in Snakemake](./pipeline/dag_neuroimaging_pipeline.pdf)
