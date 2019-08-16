@@ -61,7 +61,7 @@ Follow links and tutorials on each respective tool to install. Preferably this i
 
         git submodule update --init --recursive 
         
-        
+## Modules to Install     
 1. Reconstruction
     * Freesurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall)
     * This step is necessary to generate a parcellation and surface reconstruction of the patient's brain. The general requirements is just a 
@@ -153,12 +153,10 @@ data directories of your data. This is under pipeline/config/localconfig.yaml
         <run GUI>        
 
 ## Docker and Singularity
+TBD
 1. Freesurfer with FSL
 2. MRTrix3
 3. NDReG
-
-TODO: Make sure SPM, FieldTripToolbox are imported as well
-TBD
 
 # Pipeline Description
 At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry, regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
@@ -196,12 +194,9 @@ At a high level, this pipeline is taking neuroimaging data of a patient to produ
 
 3. (Manual Step): Determines the locations (xyz) of the electrode channels in T1 MRI space (pipeline/contact_localization).
     
-    This requires the user to first have preprocessed the T1 MRI, and the CT scans. Then
-    the user must run coregistration, of which there are many options. Remember that coregistration
-    is applying some deformation transformation on your input image (CT), such that it closely matches
-    your reference image (T1 MRI). Once, coregistration is complete, the user should run:
+    This requires the user to first have preprocessed the CT scans (and optionally the T1 MRI). 
            
-        matlab ./matlab/run_localization_fieldtrip_v3.m
+        matlab ./pipeline/contact_localization/matlab/run_localization_fieldtrip.m
         
     This will run an ~10-15 minute process to have users determine how to localize the channels. Note that
     you will need the corresponding implantation map (i.e. PPT, some image drawn up by clinician, or the implantation knowledge).
@@ -232,6 +227,15 @@ For general-purpose Readme, check out: [link](docs/contact_localization/localizi
 
 1. Use matlab script to get Voxel/MM coords in CT space
 
+    This requires the user to first have preprocessed the CT scans (and optionally the T1 MRI). 
+           
+        matlab ./pipeline/contact_localization/matlab/run_localization_fieldtrip.m
+        
+    This will run an ~10-15 minute process to have users determine how to localize the channels. Note that
+    you will need the corresponding implantation map (i.e. PPT, some image drawn up by clinician, or the implantation knowledge).
+    Deep channels (i.e. A1, B1, B'1, etc.) are usually in the brain, while the last channels of
+    an electrode are near the skull. 
+    
 2. Apply coregistration transform matrix to coords to map to your MRI space.
 
 3. (optional) Apply additional affine transformations to make sure your now T1 coordinates
