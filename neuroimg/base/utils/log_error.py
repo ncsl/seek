@@ -23,30 +23,26 @@ def initialize_logger(name, target_folder=OutputConfig().FOLDER_LOGS):
     logger.setLevel(logging.CRITICAL)
 
     formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+        "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    )
 
     ch = logging.StreamHandler(sys.stdout)
     ch.setFormatter(formatter)
     ch.setLevel(logging.CRITICAL)
 
     fh = TimedRotatingFileHandler(
-        os.path.join(
-            target_folder,
-            'logs.log'),
-        when="d",
-        interval=1,
-        backupCount=2)
+        os.path.join(target_folder, "logs.log"), when="d", interval=1, backupCount=2
+    )
     fh.setFormatter(formatter)
     fh.setLevel(logging.CRITICAL)
 
     # Log errors separately, to have them easy to inspect
     fhe = TimedRotatingFileHandler(
-        os.path.join(
-            target_folder,
-            'log_errors.log'),
+        os.path.join(target_folder, "log_errors.log"),
         when="d",
         interval=1,
-        backupCount=2)
+        backupCount=2,
+    )
     fhe.setFormatter(formatter)
     fhe.setLevel(logging.ERROR)
 

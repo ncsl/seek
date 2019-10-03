@@ -1,6 +1,7 @@
 import numpy as np
 
-class FSCorticalStats():
+
+class FSCorticalStats:
     """
 
     # StructName NumVert SurfArea GrayVol ThickAvg ThickStd MeanCurv GausCurv FoldInd CurvInd
@@ -15,7 +16,7 @@ class FSCorticalStats():
 
     @property
     def names(self):
-        return self.table[self.table.dtype.names[0]].astype('U')
+        return self.table[self.table.dtype.names[0]].astype("U")
 
     @property
     def surfareas(self):
@@ -25,7 +26,8 @@ class FSCorticalStats():
     def volumes(self):
         return self.table[self.table.dtype.names[3]]
 
-class FSSegmentationStats():
+
+class FSSegmentationStats:
     """
      Index SegId NVoxels Volume_mm3 StructName normMean normStdDev normMin normMax normRange
     """
@@ -48,4 +50,4 @@ class FSSegmentationStats():
 
     @property
     def names(self):
-        return self.table[self.table.dtype.names[3]].astype('U')
+        return self.table[self.table.dtype.names[3]].astype("U")

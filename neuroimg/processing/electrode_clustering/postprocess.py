@@ -5,10 +5,16 @@ from scipy.stats import norm
 from sklearn.decomposition import PCA
 
 
-class PostProcessor():
+class PostProcessor:
     @classmethod
-    def process_abnormal_clusters(self, clusters, elec_in_brain, cylindrical_filter_clusters, sparse_elec_labels,
-                                  qtile=0.875):
+    def process_abnormal_clusters(
+        self,
+        clusters,
+        elec_in_brain,
+        cylindrical_filter_clusters,
+        sparse_elec_labels,
+        qtile=0.875,
+    ):
         """
         Truncates the clusters closest to the skull, which tend to be oversized, and
         separates clusters that appear to have grouped two contacts together. The cluster is filtered
@@ -37,7 +43,9 @@ class PostProcessor():
         for electrode in clusters_in_cylinder_by_elec:
             cluster_labels_per_electrode[electrode] = []
             for cluster_id in clusters:
-                a = map(tuple, clusters[cluster_id])  # Need to do this to convert to set and intersect in O(1)
+                a = map(
+                    tuple, clusters[cluster_id]
+                )  # Need to do this to convert to set and intersect in O(1)
                 b = map(tuple, clusters_in_cylinder_by_elec[electrode])
                 intxn = list(set(a) & set(b))
                 if len(intxn) > 0:
@@ -110,9 +118,13 @@ class PostProcessor():
                         z1 = npl.norm(np.divide((point - first_contact), np.sqrt(var)))
                         z2 = npl.norm(np.divide((point - second_contact), np.sqrt(var)))
                         if norm.cdf(z1) <= qtile:
-                            unmerged_clusters[electrode][max_cluster_id + 1].append(point)
+                            unmerged_clusters[electrode][max_cluster_id + 1].append(
+                                point
+                            )
                         if norm.cdf(z2) <= qtile:
-                            unmerged_clusters[electrode][max_cluster_id + 2].append(point)
+                            unmerged_clusters[electrode][max_cluster_id + 2].append(
+                                point
+                            )
                     max_cluster_id += 2
 
         # Update cluster dictionary
@@ -124,7 +136,9 @@ class PostProcessor():
             # add the corresponding unmerged cluster id's
             if electrode in unmerged_clusters.keys():
                 for cluster_id in unmerged_clusters[electrode]:
-                    result[electrode][cluster_id] = unmerged_clusters[electrode][cluster_id]
+                    result[electrode][cluster_id] = unmerged_clusters[electrode][
+                        cluster_id
+                    ]
 
         relabeled_clusters = {}
         for electrode in result:
@@ -164,7 +178,11 @@ class PostProcessor():
         :param: p2: second point to compute qaudrisection points.
         :return: three points which quadrisect the line segment formed by p1 and p2
         """
-        return (1 / 4) * p1 + (3 / 4) * p2, self.fill_one_point(p1, p2), (3 / 4) * p1 + (1 / 4) * p2
+        return (
+            (1 / 4) * p1 + (3 / 4) * p2,
+            self.fill_one_point(p1, p2),
+            (3 / 4) * p1 + (1 / 4) * p2,
+        )
 
     @classmethod
     def shift_downstream_labels(self, electrode_name, idx, shift_factor, chan_dict):
@@ -227,21 +245,29 @@ class PostProcessor():
         for electrode in centroid_dict:
             result[electrode] = {}
             pca.fit(np.array(list(centroid_dict[electrode].values())))
-            centroids_pca = pca.transform(np.array(list(centroid_dict[electrode].values())))
+            centroids_pca = pca.transform(
+                np.array(list(centroid_dict[electrode].values()))
+            )
             centroids_new = pca.inverse_transform(centroids_pca)
             sorted_idxs = np.argsort(centroids_new[:, 0])
-            sorted_orig_ids = np.array(list(centroid_dict[electrode].keys()))[sorted_idxs]
+            sorted_orig_ids = np.array(list(centroid_dict[electrode].keys()))[
+                sorted_idxs
+            ]
             # Left side of the brain
             assert len(sorted_idxs) == len(centroid_dict[electrode].keys())
             if electrode[-1] == "'":
                 for i, chan in enumerate(sorted_idxs):
                     new_id = electrode + str(i + 1)
-                    result[electrode][new_id] = centroid_dict[electrode][sorted_orig_ids[i]]
+                    result[electrode][new_id] = centroid_dict[electrode][
+                        sorted_orig_ids[i]
+                    ]
             # Right side of the brain
             else:
                 for i, chan in enumerate(sorted_idxs):
                     new_id = electrode + str(len(sorted_orig_ids) - i)
-                    result[electrode][new_id] = centroid_dict[electrode][sorted_orig_ids[i]]
+                    result[electrode][new_id] = centroid_dict[electrode][
+                        sorted_orig_ids[i]
+                    ]
         return result
 
     @classmethod
@@ -269,36 +295,50 @@ class PostProcessor():
                 # Hyperparameters: What distance to consider having skipped
                 # one, two, or three channels
                 # Need to fill in one channel
-                if dists[electrode][chan] > gap_tolerance and dists[electrode][chan] <= 2 * gap_tolerance:
-                    midpt = self.fill_one_point(final_centroids[electrode][chan_list[i]],
-                                                final_centroids[electrode][chan_list[i + 1]])
+                if (
+                    dists[electrode][chan] > gap_tolerance
+                    and dists[electrode][chan] <= 2 * gap_tolerance
+                ):
+                    midpt = self.fill_one_point(
+                        final_centroids[electrode][chan_list[i]],
+                        final_centroids[electrode][chan_list[i + 1]],
+                    )
                     midpt_idx = i + 1
                     midpt_id = electrode + str(i + 1)
                     # Shift downstream labels by one
                     shift = 1
-                    final_centroids[electrode] = self.shift_downstream_labels(electrode, midpt_idx, shift,
-                                                                              final_centroids[electrode])
+                    final_centroids[electrode] = self.shift_downstream_labels(
+                        electrode, midpt_idx, shift, final_centroids[electrode]
+                    )
                     # Insert midpoint into dictionary
                     final_centroids[electrode][midpt_id] = midpt
 
                 # Need to fill in two channels
-                elif dists[electrode][chan] > 2 * gap_tolerance and dists[electrode][chan] <= 3 * gap_tolerance:
-                    pt1, pt2 = self.fill_two_points(final_centroids[electrode][chan_list[i]],
-                                                    final_centroids[electrode][chan_list[i + 1]])
+                elif (
+                    dists[electrode][chan] > 2 * gap_tolerance
+                    and dists[electrode][chan] <= 3 * gap_tolerance
+                ):
+                    pt1, pt2 = self.fill_two_points(
+                        final_centroids[electrode][chan_list[i]],
+                        final_centroids[electrode][chan_list[i + 1]],
+                    )
                     pt1_idx = i + 1
                     pt2_idx = i + 2
                     pt1_id = electrode + str(i + 1)
                     pt2_id = electrode + str(i + 2)
                     # Shift downstream labels by two
                     shift = 2
-                    final_centroids[electrode] = self.shift_downstream_labels(electrode, pt1_idx, shift,
-                                                                              final_centroids[electrode])
+                    final_centroids[electrode] = self.shift_downstream_labels(
+                        electrode, pt1_idx, shift, final_centroids[electrode]
+                    )
                     final_centroids[electrode][pt1_id] = pt1
                     final_centroids[electrode][pt2_id] = pt2
                 # Need to fill in three channels
                 elif dists[electrode][chan] > 3 * gap_tolerance:
-                    pt1, pt2, pt3 = self.fill_three_points(final_centroids[electrode][chan_list[i]],
-                                                           final_centroids[electrode][chan_list[i + 1]])
+                    pt1, pt2, pt3 = self.fill_three_points(
+                        final_centroids[electrode][chan_list[i]],
+                        final_centroids[electrode][chan_list[i + 1]],
+                    )
                     # Shift downstream labels by three
                     pt1_idx = i + 1
                     pt2_idx = i + 2
@@ -307,8 +347,9 @@ class PostProcessor():
                     pt2_id = electrode + str(i + 2)
                     pt3_id = electrode + str(i + 3)
                     shift = 3
-                    final_centroids[electrode] = self.shift_downstream_labels(electrode, pt1_idx, shift,
-                                                                              final_centroids[electrode])
+                    final_centroids[electrode] = self.shift_downstream_labels(
+                        electrode, pt1_idx, shift, final_centroids[electrode]
+                    )
                     final_centroids[electrode][pt1_id] = pt1
                     final_centroids[electrode][pt2_id] = pt2
                     final_centroids[electrode][pt3_id] = pt3
@@ -334,6 +375,8 @@ class PostProcessor():
         for electrode in final_centroids_voxels.keys():
             final_centroids_xyz[electrode] = {}
             for chan in final_centroids_voxels[electrode]:
-                final_centroids_xyz[electrode][chan] = apply_affine(affine, final_centroids_voxels[electrode][chan])
+                final_centroids_xyz[electrode][chan] = apply_affine(
+                    affine, final_centroids_voxels[electrode][chan]
+                )
 
         return final_centroids_xyz

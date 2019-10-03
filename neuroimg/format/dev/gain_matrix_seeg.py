@@ -9,8 +9,14 @@ import numpy as np
 SIGMA = 1.0
 
 
-def gain_matrix_dipole(vertices: np.ndarray, orientations: np.ndarray, areas: np.ndarray, region_mapping: np.ndarray,
-                       nregions: int, sensors: np.ndarray):
+def gain_matrix_dipole(
+    vertices: np.ndarray,
+    orientations: np.ndarray,
+    areas: np.ndarray,
+    region_mapping: np.ndarray,
+    nregions: int,
+    sensors: np.ndarray,
+):
     """
 
     Parameters
@@ -39,13 +45,20 @@ def gain_matrix_dipole(vertices: np.ndarray, orientations: np.ndarray, areas: np
     for sens_ind in range(nsens):
         a = sensors[sens_ind, :] - vertices
         na = np.sqrt(np.sum(a ** 2, axis=1))
-        gain_mtx_vert[sens_ind, :] = areas * (np.sum(orientations * a, axis=1) / na ** 3) / (4.0 * np.pi * SIGMA)
+        gain_mtx_vert[sens_ind, :] = (
+            areas * (np.sum(orientations * a, axis=1) / na ** 3) / (4.0 * np.pi * SIGMA)
+        )
 
     return gain_mtx_vert @ reg_map_mtx
 
 
-def gain_matrix_inv_square(vertices: np.ndarray, areas: np.ndarray, region_mapping: np.ndarray,
-                           nregions: int, sensors: np.ndarray):
+def gain_matrix_inv_square(
+    vertices: np.ndarray,
+    areas: np.ndarray,
+    region_mapping: np.ndarray,
+    nregions: int,
+    sensors: np.ndarray,
+):
     nverts = vertices.shape[0]
     nsens = sensors.shape[0]
 
@@ -78,29 +91,33 @@ def compute_vertex_areas(vertices, triangles):
     vertex_areas = np.zeros((vertices.shape[0]))
     for triang, vertices in enumerate(triangles):
         for i in range(3):
-            vertex_areas[vertices[i]] += 1. / 3. * triangle_areas[triang]
+            vertex_areas[vertices[i]] += 1.0 / 3.0 * triangle_areas[triang]
 
     return vertex_areas
 
 
 def read_surf(directory: os.PathLike, use_subcort):
-    reg_map_cort = np.genfromtxt((os.path.join(directory, "region_mapping_cort.txt")), dtype=int)
-    reg_map_subc = np.genfromtxt((os.path.join(directory, "region_mapping_subcort.txt")), dtype=int)
+    reg_map_cort = np.genfromtxt(
+        (os.path.join(directory, "region_mapping_cort.txt")), dtype=int
+    )
+    reg_map_subc = np.genfromtxt(
+        (os.path.join(directory, "region_mapping_subcort.txt")), dtype=int
+    )
 
     with zipfile.ZipFile(os.path.join(directory, "surface_cort.zip")) as zip:
-        with zip.open('vertices.txt') as fhandle:
+        with zip.open("vertices.txt") as fhandle:
             verts_cort = np.genfromtxt(fhandle)
-        with zip.open('normals.txt') as fhandle:
+        with zip.open("normals.txt") as fhandle:
             normals_cort = np.genfromtxt(fhandle)
-        with zip.open('triangles.txt') as fhandle:
+        with zip.open("triangles.txt") as fhandle:
             triangles_cort = np.genfromtxt(fhandle, dtype=int)
 
     with zipfile.ZipFile(os.path.join(directory, "surface_subcort.zip")) as zip:
-        with zip.open('vertices.txt') as fhandle:
+        with zip.open("vertices.txt") as fhandle:
             verts_subc = np.genfromtxt(fhandle)
-        with zip.open('normals.txt') as fhandle:
+        with zip.open("normals.txt") as fhandle:
             normals_subc = np.genfromtxt(fhandle)
-        with zip.open('triangles.txt') as fhandle:
+        with zip.open("triangles.txt") as fhandle:
             triangles_subc = np.genfromtxt(fhandle, dtype=int)
 
     vert_areas_cort = compute_vertex_areas(verts_cort, triangles_cort)
@@ -119,13 +136,13 @@ def read_surf(directory: os.PathLike, use_subcort):
 
 def read_regions(zip_name: os.PathLike, use_subcort):
     with zipfile.ZipFile(zip_name) as zip:
-        with zip.open('centres.txt') as fhandle:
+        with zip.open("centres.txt") as fhandle:
             verts = np.genfromtxt(fhandle, usecols=[1, 2, 3])
-        with zip.open('areas.txt') as fhandle:
+        with zip.open("areas.txt") as fhandle:
             areas = np.genfromtxt(fhandle)
-        with zip.open('average_orientations.txt') as fhandle:
+        with zip.open("average_orientations.txt") as fhandle:
             normals = np.genfromtxt(fhandle)
-        with zip.open('cortical.txt') as fhandle:
+        with zip.open("cortical.txt") as fhandle:
             cortical = np.genfromtxt(fhandle, dtype=int).astype(bool)
     regmap = np.arange(0, verts.shape[0])
 
@@ -137,7 +154,7 @@ def read_regions(zip_name: os.PathLike, use_subcort):
 
 def get_nregions(zip_name):
     with zipfile.ZipFile(zip_name) as zip:
-        with zip.open('centres.txt') as fhandle:
+        with zip.open("centres.txt") as fhandle:
             num_lines = sum(1 for line in fhandle.readlines() if line.strip())
     return num_lines
 
@@ -146,38 +163,53 @@ def main():
     parser = argparse.ArgumentParser(description="Generate SEEG gain matrix.")
 
     # Defaults are not given on purpose to force the user to think about what is needed.
-    parser.add_argument('--mode', type=str, choices=['surface', 'region'], required=True)
-    parser.add_argument('--formula', type=str, choices=['dipole', 'inv_square'], required=True)
-    parser.add_argument('--surf_dir', help="Directory with surfaces and region mapping. Required if mode is 'surface'.")
+    parser.add_argument(
+        "--mode", type=str, choices=["surface", "region"], required=True
+    )
+    parser.add_argument(
+        "--formula", type=str, choices=["dipole", "inv_square"], required=True
+    )
+    parser.add_argument(
+        "--surf_dir",
+        help="Directory with surfaces and region mapping. Required if mode is 'surface'.",
+    )
 
     use_subcort_parser = parser.add_mutually_exclusive_group(required=True)
-    use_subcort_parser.add_argument('--use_subcort', dest='use_subcort', action='store_true')
-    use_subcort_parser.add_argument('--no_use_subcort', dest='use_subcort', action='store_false')
+    use_subcort_parser.add_argument(
+        "--use_subcort", dest="use_subcort", action="store_true"
+    )
+    use_subcort_parser.add_argument(
+        "--no_use_subcort", dest="use_subcort", action="store_false"
+    )
 
-    parser.add_argument('tvb_zipfile', help="Path to the TVB zipfile.")
-    parser.add_argument('sensors_file', help="Path to the sensors file.")
-    parser.add_argument('gain_matrix', help="Path to the gain matrix in numpy format to be generated.")
+    parser.add_argument("tvb_zipfile", help="Path to the TVB zipfile.")
+    parser.add_argument("sensors_file", help="Path to the sensors file.")
+    parser.add_argument(
+        "gain_matrix", help="Path to the gain matrix in numpy format to be generated."
+    )
 
     args = parser.parse_args()
-    if args.mode == 'surface' and args.surf_dir is None:
+    if args.mode == "surface" and args.surf_dir is None:
         parser.error("--surf_dir is required if mode is 'surface'")
 
     nregions = get_nregions(args.tvb_zipfile)
 
-    if args.mode == 'surface':
+    if args.mode == "surface":
         verts, normals, areas, regmap = read_surf(args.surf_dir, args.use_subcort)
-    elif args.mode == 'region':
+    elif args.mode == "region":
         verts, normals, areas, regmap = read_regions(args.tvb_zipfile, args.use_subcort)
 
     sensors_pos = np.genfromtxt(args.sensors_file, usecols=[1, 2, 3])
 
-    if args.formula == 'dipole':
-        gain_mtx = gain_matrix_dipole(verts, normals, areas, regmap, nregions, sensors_pos)
-    elif args.formula == 'inv_square':
+    if args.formula == "dipole":
+        gain_mtx = gain_matrix_dipole(
+            verts, normals, areas, regmap, nregions, sensors_pos
+        )
+    elif args.formula == "inv_square":
         gain_mtx = gain_matrix_inv_square(verts, areas, regmap, nregions, sensors_pos)
 
     np.savetxt(args.gain_matrix, gain_mtx)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

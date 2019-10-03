@@ -22,21 +22,32 @@ def read_label_coords(elecfile):
 
 
 def save_as_matfile(elecmat, eleccoords_ras, outputcoordsfile):
-    elecmatrix_orig = elecmat['elecmatrix']
-    elec_labels_orig = elecmat['anatomy']
-    elecmontage = elecmat['eleclabels']
+    elecmatrix_orig = elecmat["elecmatrix"]
+    elec_labels_orig = elecmat["anatomy"]
+    elecmontage = elecmat["eleclabels"]
 
-    scipy.io.savemat(outputcoordsfile, {'elecmatrix': elecmatrix_orig,
-                                        'anatomy': elec_labels_orig,
-                                        'eleclabels': elecmontage,
-                                        'elecmatrix_ras': eleccoords_ras})
+    scipy.io.savemat(
+        outputcoordsfile,
+        {
+            "elecmatrix": elecmatrix_orig,
+            "anatomy": elec_labels_orig,
+            "eleclabels": elecmontage,
+            "elecmatrix_ras": eleccoords_ras,
+        },
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('mri_nifti_img', help="Brain MRI image space.")
-    parser.add_argument('elec_coords_file', help="The output datafile with all the electrode points clustered.")
-    parser.add_argument('outputcoordsfile', help="The output datafile for electrodes mapped to correct coords.")
+    parser.add_argument("mri_nifti_img", help="Brain MRI image space.")
+    parser.add_argument(
+        "elec_coords_file",
+        help="The output datafile with all the electrode points clustered.",
+    )
+    parser.add_argument(
+        "outputcoordsfile",
+        help="The output datafile for electrodes mapped to correct coords.",
+    )
     args = parser.parse_args()
 
     # extract arguments from parser
@@ -46,7 +57,7 @@ if __name__ == '__main__':
 
     # read in electrodes file
     elecmat = read_label_coords(elec_coords_file)
-    eleccoords = elecmat['elecmatrix']
+    eleccoords = elecmat["elecmatrix"]
 
     # apply affine transformation to get the RAS coordinates of file
     eleccoords_ras = convert_crs_to_ras(eleccoords, mri_nifti_img)

@@ -1,4 +1,12 @@
 # Neuroimaging Pipeline
+[![Build Status](https://travis-ci.com/adam2392/eegio.svg?token=6sshyCajdyLy6EhT8YAq&branch=master)](https://travis-ci.com/adam2392/neuroimg_pipeline)
+[![Coverage Status](./coverage.svg)](./coverage.svg)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+![GitHub](https://img.shields.io/github/license/adam2392/neuroimg_pipeline)
+![GitHub last commit](https://img.shields.io/github/last-commit/adam2392/neuroimg_pipeline)
+<a href="https://codeclimate.com/github/adam2392/neuroimg_pipeline/maintainability"><img src="https://api.codeclimate.com/v1/badges/2c7d5910e89350b967c8/maintainability" /></a>
+![GitHub repo size](https://img.shields.io/github/repo-size/adam2392/neuroimg_pipeline)
+
 By: Adam Li
 
 Date: 10/4/18
@@ -18,9 +26,7 @@ and iEEG data (ECoG, or SEEG).
 <!-- /MarkdownTOC -->
 
 # Features
-- [x] Keep FS style directory, but instead add directories there if necessary. Remove fat code that simply copies and pastes data files
 - [ ] Add Travis.CI testing
-- [x] Convert pipeline into running on the FS directory structure
 - [ ] Add support for MRICloud running using R-script. Possibly convert to Python script.
 - [ ] Create Python pipeline for running everything, or submit PR to Chang Lab's to run SEEG.
 - [ ] Create unit and integration tests using pytest that test: pipeline in both snakemake and Python
@@ -39,25 +45,25 @@ Follow links and tutorials on each respective tool to install. Preferably this i
     
     
         # probably doesn't work
-        conda create -n <envname>
-        conda activate <envname>
-        conda env create -f environment.yml python=3.6
-        # conda install --file environment.yml
-        cd pipeline/
-        snakemake -n    
-    
+        conda create -n neuroimgpipe
+        conda activate neuroimgpipe
+        
         # optionally separate install
         conda config --add channels bioconda
         conda config --add channels conda-forge
-        conda install numpy scipy pandas nibabel snakemake
-        conda install -c conda-forge mne 
+        conda install numpy scipy matplotlib pytest scikit-learn pandas seaborn nibabel mne snakemake ipykernel
         conda install -c flyem-forge/label/upgrade201904 marching_cubes
         conda env export > environment.yml
-        # conda env create -f environment_py3.yaml 
-
+        
+        cd pipeline/
+        snakemake -n    
     
-   ii. Update all submodules
-
+   ii. Install other libraries
+   
+        conda install -c conda-forge pyvtk
+        pip install img-pipe==2019.3.15.2
+    
+   iii. (Optional and outdated) Update all submodules
 
         git submodule update --init --recursive 
         
@@ -256,8 +262,33 @@ language.
 
     TBD
 
+# Documentation
+
+    sphinx-quickstart
+    
+
+# Testing
+Install testing and formatting libs:
+
+    conda install sphinx black pytest pytest-cov coverage 
+    pip install coverage-badge
+
+Run tests
+
+    black neuroimg/*
+    black tests/*
+    pylint ./neuroimg/
+    pre-commit run black --all-files
+    pytest --cov-config=.coveragerc --cov=./neuroimg/ tests/
+    coverage-badge -f -o coverage.svg
+
+Tests is organized into two directories right now: 
+1. eegio/: consists of all unit tests related to various parts of eegio.
+2. api/: consists of various integration tests tha test when eegio should work.
+
+
 ### Pipeline Process Visualized
-[DAG of Pipeline in Snakemake](./pipeline/dag_neuroimaging_pipeline.pdf)
+[DAG of Pipeline in Snakemake](neuroimg/pipeline/dag_neuroimaging_pipeline.pdf)
 
 # References:
 1. Recon-all. FreeSurfer. https://surfer.nmr.mgh.harvard.edu/fswiki/recon-all#References

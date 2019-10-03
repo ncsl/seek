@@ -2,7 +2,12 @@
 
 import numpy as np
 
-from neuroimg.base.utils.data_structures_utils import reg_dict, formal_repr, sort_dict, labels_to_inds
+from neuroimg.base.utils.data_structures_utils import (
+    reg_dict,
+    formal_repr,
+    sort_dict,
+    labels_to_inds,
+)
 from neuroimg.base.utils.math_utils import normalize_weights
 
 
@@ -26,14 +31,24 @@ class Connectivity(object):
     orientations = None
     areas = None
 
-    def __init__(self, file_path, weights, tract_lengths, labels=np.array([]), centres=np.array([]),
-                 hemispheres=np.array([]), orientation=np.array([]), areas=np.array([]),
-                 normalized_weights=np.array([])):
+    def __init__(
+        self,
+        file_path,
+        weights,
+        tract_lengths,
+        labels=np.array([]),
+        centres=np.array([]),
+        hemispheres=np.array([]),
+        orientation=np.array([]),
+        areas=np.array([]),
+        normalized_weights=np.array([]),
+    ):
         self.file_path = file_path
         self.weights = weights
         if len(normalized_weights) == 0:
             normalized_weights = normalize_weights(
-                weights, remove_diagonal=True, ceil=1.0)
+                weights, remove_diagonal=True, ceil=1.0
+            )
         self.normalized_weights = normalized_weights
         self.tract_lengths = tract_lengths
         self.region_labels = labels
@@ -47,14 +62,18 @@ class Connectivity(object):
         return self.centres.shape[0]
 
     def __repr__(self):
-        d = {"f. normalized weights": reg_dict(self.normalized_weights, self.region_labels),
-             "g. weights": reg_dict(self.weights, self.region_labels),
-             "h. tract_lengths": reg_dict(self.tract_lengths, self.region_labels),
-             "a. region_labels": reg_dict(self.region_labels),
-             "b. centres": reg_dict(self.centres, self.region_labels),
-             "c. hemispheres": reg_dict(self.hemispheres, self.region_labels),
-             "d. orientations": reg_dict(self.orientations, self.region_labels),
-             "e. areas": reg_dict(self.areas, self.region_labels)}
+        d = {
+            "f. normalized weights": reg_dict(
+                self.normalized_weights, self.region_labels
+            ),
+            "g. weights": reg_dict(self.weights, self.region_labels),
+            "h. tract_lengths": reg_dict(self.tract_lengths, self.region_labels),
+            "a. region_labels": reg_dict(self.region_labels),
+            "b. centres": reg_dict(self.centres, self.region_labels),
+            "c. hemispheres": reg_dict(self.hemispheres, self.region_labels),
+            "d. orientations": reg_dict(self.orientations, self.region_labels),
+            "e. areas": reg_dict(self.areas, self.region_labels),
+        }
         return formal_repr(self, sort_dict(d))
 
     def __str__(self):

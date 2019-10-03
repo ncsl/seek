@@ -2,10 +2,16 @@ import argparse
 import sys
 import json
 
-sys.path.append('../../')
+sys.path.append("../../")
 
-from neuroimg.base.objects.neuroimaging.fs_stats_objects import FSCorticalStats, FSSegmentationStats
-from neuroimg.base.objects.neuroimaging.baseneuroimage import RegionIndexMapping, ColorLut
+from neuroimg.base.objects.neuroimaging.fs_stats_objects import (
+    FSCorticalStats,
+    FSSegmentationStats,
+)
+from neuroimg.base.objects.neuroimaging.baseneuroimage import (
+    RegionIndexMapping,
+    ColorLut,
+)
 
 
 def create_mrtrixlut_volumes(fslut, mrtrixlut, regionmapping, fsvolumedict):
@@ -13,8 +19,11 @@ def create_mrtrixlut_volumes(fslut, mrtrixlut, regionmapping, fsvolumedict):
 
     for name in fsvolumedict.keys():
         # find name in FS LUT File
-        src_lut_ind = [fslut.inds[ind] for ind, structname in enumerate(fslut.names) \
-                       if name in structname.lower()]
+        src_lut_ind = [
+            fslut.inds[ind]
+            for ind, structname in enumerate(fslut.names)
+            if name in structname.lower()
+        ]
 
         if len(src_lut_ind) == 0:
             src_lut_ind = None
@@ -37,7 +46,7 @@ def create_volume_dict(fsobjs, ordering=[]):
         if ordering:
             currorder = ordering[j]
         else:
-            currorder = ''
+            currorder = ""
 
         for idx, name in enumerate(obj.names):
             volumes[currorder + name] = obj.volumes[idx]
@@ -45,16 +54,27 @@ def create_volume_dict(fsobjs, ordering=[]):
     return volumes
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('lh_atlas_stats', help="The stats file produced for this atlas.")
-    parser.add_argument('rh_atlas_stats', help="The stats file produced for this atlas.")
-    parser.add_argument("subcort_atlas_stats", help="The stats file produced for the subcortical segmentation")
-    parser.add_argument('wm_stats', help="The stats file produced for the white matter detected.")
+    parser.add_argument(
+        "lh_atlas_stats", help="The stats file produced for this atlas."
+    )
+    parser.add_argument(
+        "rh_atlas_stats", help="The stats file produced for this atlas."
+    )
+    parser.add_argument(
+        "subcort_atlas_stats",
+        help="The stats file produced for the subcortical segmentation",
+    )
+    parser.add_argument(
+        "wm_stats", help="The stats file produced for the white matter detected."
+    )
 
-    parser.add_argument('fs_lut', help="Brain parcellation lut for FS.")
-    parser.add_argument('fsl_lut', help="Brain parcellation look up table to map the correct labels.")
-    parser.add_argument('outputfile', help="Output file path to save results.")
+    parser.add_argument("fs_lut", help="Brain parcellation lut for FS.")
+    parser.add_argument(
+        "fsl_lut", help="Brain parcellation look up table to map the correct labels."
+    )
+    parser.add_argument("outputfile", help="Output file path to save results.")
     args = parser.parse_args()
 
     # extract arguments from parser
@@ -82,9 +102,18 @@ if __name__ == '__main__':
     regionmapping = RegionIndexMapping(fslutfile, mrtrixlutfile)
 
     # create volume dictionary for mrtrix labels
-    mrtrixvolumedict = create_mrtrixlut_volumes(fslut, mrtlut, regionmapping, fsvolumedict)
+    mrtrixvolumedict = create_mrtrixlut_volumes(
+        fslut, mrtlut, regionmapping, fsvolumedict
+    )
 
     print(mrtrixvolumedict)
     # save the mrtrixvolumedictionary in mm^3
-    with open(outputvolumefile, 'w', encoding="utf8") as fp:
-        json.dump(mrtrixvolumedict, fp, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
+    with open(outputvolumefile, "w", encoding="utf8") as fp:
+        json.dump(
+            mrtrixvolumedict,
+            fp,
+            indent=4,
+            sort_keys=True,
+            separators=(",", ": "),
+            ensure_ascii=False,
+        )

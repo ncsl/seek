@@ -6,10 +6,33 @@ from zipfile import ZipFile
 
 import numpy as np
 
-from neuroimg.base.objects.neuroimaging.baseneuroimage import pial_to_verts_and_triangs, read_cortical_region_mapping, \
-    Hemisphere, RegionIndexMapping
+from neuroimg.base.objects.neuroimaging.baseneuroimage import (
+    pial_to_verts_and_triangs,
+    read_cortical_region_mapping,
+    Hemisphere,
+    RegionIndexMapping,
+)
 
-SUBCORTICAL_REG_INDS = [8, 10, 11, 12, 13, 16, 17, 18, 26, 47, 49, 50, 51, 52, 53, 54, 58]
+SUBCORTICAL_REG_INDS = [
+    8,
+    10,
+    11,
+    12,
+    13,
+    16,
+    17,
+    18,
+    26,
+    47,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    58,
+]
+
 
 class Surface:
     """
@@ -24,7 +47,9 @@ class Surface:
     5. triangle angles
     """
 
-    def __init__(self, vertices: np.array, triangles: np.array, region_mapping: np.array):
+    def __init__(
+        self, vertices: np.array, triangles: np.array, region_mapping: np.array
+    ):
         assert vertices.ndim == 2
         assert triangles.ndim == 2
         assert region_mapping.ndim == 1
@@ -41,27 +66,40 @@ class Surface:
         self.ntriangs = self.triangles.shape[0]
 
         # compute vertex and edges
-        self.vertex_triangles = Surface.compute_vertex_triangles(self.nverts, self.ntriangs, self.triangles)
-        self.triangle_normals = Surface.compute_triangle_normals(self.triangles, self.vertices)
-        self.triangle_angles = Surface.compute_triangle_angles(self.vertices, self.ntriangs, self.triangles)
-        self.vertex_normals = Surface.compute_vertex_normals(self.nverts, self.vertices, self.vertex_triangles,
-                                                             self.triangles, self.triangle_angles,
-                                                             self.triangle_normals)
-        self.triangle_areas = Surface.compute_triangle_areas(self.vertices, self.triangles)
+        self.vertex_triangles = Surface.compute_vertex_triangles(
+            self.nverts, self.ntriangs, self.triangles
+        )
+        self.triangle_normals = Surface.compute_triangle_normals(
+            self.triangles, self.vertices
+        )
+        self.triangle_angles = Surface.compute_triangle_angles(
+            self.vertices, self.ntriangs, self.triangles
+        )
+        self.vertex_normals = Surface.compute_vertex_normals(
+            self.nverts,
+            self.vertices,
+            self.vertex_triangles,
+            self.triangles,
+            self.triangle_angles,
+            self.triangle_normals,
+        )
+        self.triangle_areas = Surface.compute_triangle_areas(
+            self.vertices, self.triangles
+        )
 
     def save_surf_zip(self, filename):
         tmpdir = tempfile.TemporaryDirectory()
 
         # save vertices, triangles, and vertex normals
-        file_vertices = os.path.join(tmpdir.name, 'vertices.txt')
-        file_triangles = os.path.join(tmpdir.name, 'triangles.txt')
-        file_normals = os.path.join(tmpdir.name, 'normals.txt')
+        file_vertices = os.path.join(tmpdir.name, "vertices.txt")
+        file_triangles = os.path.join(tmpdir.name, "triangles.txt")
+        file_normals = os.path.join(tmpdir.name, "normals.txt")
 
-        np.savetxt(file_vertices, self.vertices, fmt='%.6f %.6f %.6f')
-        np.savetxt(file_triangles, self.triangles, fmt='%d %d %d')
-        np.savetxt(file_normals, self.vertex_normals, fmt='%.6f %.6f %.6f')
+        np.savetxt(file_vertices, self.vertices, fmt="%.6f %.6f %.6f")
+        np.savetxt(file_triangles, self.triangles, fmt="%d %d %d")
+        np.savetxt(file_normals, self.vertex_normals, fmt="%.6f %.6f %.6f")
 
-        with ZipFile(filename, 'w') as zip_file:
+        with ZipFile(filename, "w") as zip_file:
             zip_file.write(file_vertices, os.path.basename(file_vertices))
             zip_file.write(file_triangles, os.path.basename(file_triangles))
             zip_file.write(file_normals, os.path.basename(file_normals))
@@ -114,7 +152,9 @@ class Surface:
         tri_norm = np.cross(tri_u, tri_v)
 
         try:
-            triangle_normals = tri_norm / np.sqrt(np.sum(tri_norm ** 2, axis=1))[:, np.newaxis]
+            triangle_normals = (
+                tri_norm / np.sqrt(np.sum(tri_norm ** 2, axis=1))[:, np.newaxis]
+            )
         except FloatingPointError:
             # TODO: NaN generation would stop execution, however for normals this case could maybe be
             #  handled in a better way.
@@ -144,17 +184,30 @@ class Surface:
             triangle = triangles[tt, :]
             for ta in range(3):
                 ang = np.roll(triangle, -ta)
-                angles[tt, ta] = np.arccos(np.dot(
-                    (verts[ang[1], :] - verts[ang[0], :]) /
-                    np.sqrt(np.sum((verts[ang[1], :] - verts[ang[0], :]) ** 2, axis=0)),
-                    (verts[ang[2], :] - verts[ang[0], :]) /
-                    np.sqrt(np.sum((verts[ang[2], :] - verts[ang[0], :]) ** 2, axis=0))))
+                angles[tt, ta] = np.arccos(
+                    np.dot(
+                        (verts[ang[1], :] - verts[ang[0], :])
+                        / np.sqrt(
+                            np.sum((verts[ang[1], :] - verts[ang[0], :]) ** 2, axis=0)
+                        ),
+                        (verts[ang[2], :] - verts[ang[0], :])
+                        / np.sqrt(
+                            np.sum((verts[ang[2], :] - verts[ang[0], :]) ** 2, axis=0)
+                        ),
+                    )
+                )
 
         return angles
 
     @staticmethod
-    def compute_vertex_normals(number_of_vertices, vertices, vertex_triangles,
-                               triangles, triangle_angles, triangle_normals):
+    def compute_vertex_normals(
+        number_of_vertices,
+        vertices,
+        vertex_triangles,
+        triangles,
+        triangle_angles,
+        triangle_normals,
+    ):
         """
         Estimates vertex normals, based on triangle normals weighted by the
         angle they subtend at each vertex...
@@ -176,9 +229,13 @@ class Surface:
                 angles = triangle_angles[tri_list, :]
                 angles = angles[angle_mask][:, np.newaxis]
                 angle_scaling = angles / np.sum(angles, axis=0)
-                vert_norms[k, :] = np.mean(angle_scaling * triangle_normals[tri_list, :], axis=0)
+                vert_norms[k, :] = np.mean(
+                    angle_scaling * triangle_normals[tri_list, :], axis=0
+                )
                 # Scale by angle subtended.
-                vert_norms[k, :] = vert_norms[k, :] / np.sqrt(np.sum(vert_norms[k, :] ** 2, axis=0))
+                vert_norms[k, :] = vert_norms[k, :] / np.sqrt(
+                    np.sum(vert_norms[k, :] ** 2, axis=0)
+                )
                 # Normalise to unit vectors.
             except (ValueError, FloatingPointError):
                 # If normals are bad, default to position vector
@@ -207,10 +264,13 @@ class Surface:
         return triangle_areas
 
 
-class GetSurface():
+class GetSurface:
     @staticmethod
-    def get_cortical_surfaces(cort_surf_direc: os.PathLike, label_direc: os.PathLike,
-                              region_index_mapping: RegionIndexMapping) -> Surface:
+    def get_cortical_surfaces(
+        cort_surf_direc: os.PathLike,
+        label_direc: os.PathLike,
+        region_index_mapping: RegionIndexMapping,
+    ) -> Surface:
         """
         Computes and formats a cortical Surface object.
 
@@ -220,21 +280,35 @@ class GetSurface():
         :return: Surface
         """
         # compute the vertices and triangles for left/right hemisphere regions
-        verts_l, triangs_l = pial_to_verts_and_triangs(os.path.join(cort_surf_direc, Hemisphere.lh.value + ".pial"))
-        verts_r, triangs_r = pial_to_verts_and_triangs(os.path.join(cort_surf_direc, Hemisphere.rh.value + ".pial"))
+        verts_l, triangs_l = pial_to_verts_and_triangs(
+            os.path.join(cort_surf_direc, Hemisphere.lh.value + ".pial")
+        )
+        verts_r, triangs_r = pial_to_verts_and_triangs(
+            os.path.join(cort_surf_direc, Hemisphere.rh.value + ".pial")
+        )
 
         # get the cortical region mapping for left/right hemispheres
-        region_mapping_l = read_cortical_region_mapping(label_direc, Hemisphere.lh, region_index_mapping)
-        region_mapping_r = read_cortical_region_mapping(label_direc, Hemisphere.rh, region_index_mapping)
+        region_mapping_l = read_cortical_region_mapping(
+            label_direc, Hemisphere.lh, region_index_mapping
+        )
+        region_mapping_r = read_cortical_region_mapping(
+            label_direc, Hemisphere.rh, region_index_mapping
+        )
 
         # construct the surface that is concatenation between the two hemispheres
-        surface = GetSurface.merge_surfaces([Surface(verts_l, triangs_l, region_mapping_l),
-                                             Surface(verts_r, triangs_r, region_mapping_r)])
+        surface = GetSurface.merge_surfaces(
+            [
+                Surface(verts_l, triangs_l, region_mapping_l),
+                Surface(verts_r, triangs_r, region_mapping_r),
+            ]
+        )
 
         return surface
 
     @staticmethod
-    def get_subcortical_surfaces(subcort_surf_direc: os.PathLike, region_index_mapping: RegionIndexMapping) -> Surface:
+    def get_subcortical_surfaces(
+        subcort_surf_direc: os.PathLike, region_index_mapping: RegionIndexMapping
+    ) -> Surface:
         """
         Computes and formats the subcortical Surface.
 
@@ -248,13 +322,21 @@ class GetSurface():
         # loop through all SUBCORTICAL REGION INDICES
         for fs_idx in SUBCORTICAL_REG_INDS:
             conn_idx = region_index_mapping.source_to_target(fs_idx)
-            filename = os.path.join(subcort_surf_direc, 'aseg_%03d.srf' % fs_idx)
-            with open(filename, 'r') as f:
+            filename = os.path.join(subcort_surf_direc, "aseg_%03d.srf" % fs_idx)
+            with open(filename, "r") as f:
                 f.readline()
-                nverts, ntriangs = [int(n) for n in f.readline().strip().split(' ')]
+                nverts, ntriangs = [int(n) for n in f.readline().strip().split(" ")]
 
-            vertices = np.genfromtxt(filename, dtype=float, skip_header=2, skip_footer=ntriangs, usecols=(0, 1, 2))
-            triangles = np.genfromtxt(filename, dtype=int, skip_header=2 + nverts, usecols=(0, 1, 2))
+            vertices = np.genfromtxt(
+                filename,
+                dtype=float,
+                skip_header=2,
+                skip_footer=ntriangs,
+                usecols=(0, 1, 2),
+            )
+            triangles = np.genfromtxt(
+                filename, dtype=int, skip_header=2 + nverts, usecols=(0, 1, 2)
+            )
             region_mapping = conn_idx * np.ones(nverts, dtype=int)
             surfaces.append(Surface(vertices, triangles, region_mapping))
 
@@ -269,15 +351,23 @@ class GetSurface():
         :param surfaces: (list[Surface]) a list of surfaces
         :return: Surface
         """
-        offsets = np.cumsum([0] + [vs.shape[0] for vs in [surf.vertices for surf in surfaces]][:-1])
+        offsets = np.cumsum(
+            [0] + [vs.shape[0] for vs in [surf.vertices for surf in surfaces]][:-1]
+        )
         vertices = np.vstack([surf.vertices for surf in surfaces])
-        triangles = np.vstack([ts + offset for ts, offset in zip([surf.triangles for surf in surfaces], offsets)])
+        triangles = np.vstack(
+            [
+                ts + offset
+                for ts, offset in zip([surf.triangles for surf in surfaces], offsets)
+            ]
+        )
         region_mappings = np.hstack([surf.region_mapping for surf in surfaces])
         return Surface(vertices, triangles, region_mappings)
 
     @staticmethod
-    def compute_region_params(surface: Surface, subcortical: bool = False) \
-            -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+    def compute_region_params(
+        surface: Surface, subcortical: bool = False
+    ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
         """
         Computes the parameters required for each region (regions, areas, orientations, centers)
 
@@ -285,12 +375,19 @@ class GetSurface():
         :param subcortical: (bool) whether or not this surface is subcortical
         :return: (tuple of np.ndarray) the regions, areas, orientations and the volume centers
         """
-        verts, triangs, region_mapping = surface.vertices, surface.triangles, surface.region_mapping
+        verts, triangs, region_mapping = (
+            surface.vertices,
+            surface.triangles,
+            surface.region_mapping,
+        )
 
         regions = np.unique(region_mapping)
-        areas = GetSurface.compute_region_areas(regions, surface.triangle_areas, surface.vertex_triangles,
-                                                region_mapping)
-        orientations = GetSurface.compute_region_orientations(regions, surface.vertex_normals, region_mapping)
+        areas = GetSurface.compute_region_areas(
+            regions, surface.triangle_areas, surface.vertex_triangles, region_mapping
+        )
+        orientations = GetSurface.compute_region_orientations(
+            regions, surface.vertex_normals, region_mapping
+        )
         centers = GetSurface.compute_region_centers(regions, verts, region_mapping)
 
         return regions, areas, orientations, centers
@@ -305,7 +402,9 @@ class GetSurface():
             orient = vertex_normals[region_mapping == k, :]
             if orient.shape[0] > 0:
                 avg_orient = np.mean(orient, axis=0)
-                average_orientation[i, :] = avg_orient / np.sqrt(np.sum(avg_orient ** 2))
+                average_orientation[i, :] = avg_orient / np.sqrt(
+                    np.sum(avg_orient ** 2)
+                )
 
         return average_orientation
 

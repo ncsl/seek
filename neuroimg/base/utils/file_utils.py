@@ -11,8 +11,8 @@ def ensure_unique_file(parent_folder, filename):
     final_path = os.path.join(parent_folder, filename)
     while os.path.exists(final_path):
         filename = raw_input(
-            "\n\nFile %s already exists. Enter a different name: " %
-            final_path)
+            "\n\nFile %s already exists. Enter a different name: " % final_path
+        )
         final_path = os.path.join(parent_folder, filename)
     return final_path
 
@@ -25,8 +25,10 @@ def change_filename_or_overwrite(path, overwrite=True):
 
     parent_folder = os.path.dirname(path)
     while os.path.exists(path):
-        filename = raw_input("\n\nFile %s already exists. Enter a different name or press enter to overwrite file: "
-                             % path)
+        filename = raw_input(
+            "\n\nFile %s already exists. Enter a different name or press enter to overwrite file: "
+            % path
+        )
         if filename == "":
             overwrite = True
             break
@@ -50,21 +52,19 @@ def change_filename_or_overwrite_with_wildcard(path, overwrite=True):
             return path
         else:
             print(
-                "The following files already exist for base paths " +
-                wild_path +
-                " !: ")
+                "The following files already exist for base paths " + wild_path + " !: "
+            )
             for file in existing_files:
                 print(file)
             filename = raw_input(
-                "\n\nEnter a different name or press enter to overwrite files: ")
+                "\n\nEnter a different name or press enter to overwrite files: "
+            )
             if filename == "":
-                return change_filename_or_overwrite_with_wildcard(
-                    path, overwrite=True)
+                return change_filename_or_overwrite_with_wildcard(path, overwrite=True)
             else:
                 parent_folder = os.path.dirname(path)
                 path = os.path.join(parent_folder, filename)
-                return change_filename_or_overwrite_with_wildcard(
-                    path, overwrite)
+                return change_filename_or_overwrite_with_wildcard(path, overwrite)
     else:
         return path
 

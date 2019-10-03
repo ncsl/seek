@@ -7,12 +7,14 @@ import numpy as np
 
 
 class StructuralDataset:
-    def __init__(self,
-                 orientations: np.ndarray,
-                 areas: np.ndarray,
-                 centers: np.ndarray,
-                 cortical: np.ndarray,
-                 names: List[str]):
+    def __init__(
+        self,
+        orientations: np.ndarray,
+        areas: np.ndarray,
+        centers: np.ndarray,
+        cortical: np.ndarray,
+        names: List[str],
+    ):
         nregions = len(names)
 
         # make some assertions on the shape
@@ -32,20 +34,23 @@ class StructuralDataset:
         # create a temporary direcotry
         tmpdir = tempfile.TemporaryDirectory()
 
-        file_areas = os.path.join(tmpdir.name, 'areas.txt')
-        file_orientations = os.path.join(tmpdir.name, 'average_orientations.txt')
-        file_centres = os.path.join(tmpdir.name, 'centres.txt')
-        file_cortical = os.path.join(tmpdir.name, 'cortical.txt')
+        file_areas = os.path.join(tmpdir.name, "areas.txt")
+        file_orientations = os.path.join(tmpdir.name, "average_orientations.txt")
+        file_centres = os.path.join(tmpdir.name, "centres.txt")
+        file_cortical = os.path.join(tmpdir.name, "cortical.txt")
 
-        np.savetxt(fname=file_areas, X=self.areas, fmt='%.2f')
-        np.savetxt(fname=file_orientations, X=self.orientations, fmt='%.2f %.2f %.2f')
-        np.savetxt(fname=file_cortical, X=self.cortical, fmt='%d')
+        np.savetxt(fname=file_areas, X=self.areas, fmt="%.2f")
+        np.savetxt(fname=file_orientations, X=self.orientations, fmt="%.2f %.2f %.2f")
+        np.savetxt(fname=file_cortical, X=self.cortical, fmt="%d")
 
-        with open(file_centres, 'w') as f:
+        with open(file_centres, "w") as f:
             for i, name in enumerate(self.names):
-                f.write('%s %.4f %.4f %.4f\n' % (name, self.centers[i, 0], self.centers[i, 1], self.centers[i, 2]))
+                f.write(
+                    "%s %.4f %.4f %.4f\n"
+                    % (name, self.centers[i, 0], self.centers[i, 1], self.centers[i, 2])
+                )
 
-        with ZipFile(filename, 'w') as zip_file:
+        with ZipFile(filename, "w") as zip_file:
             zip_file.write(file_areas, os.path.basename(file_areas))
             zip_file.write(file_orientations, os.path.basename(file_orientations))
             zip_file.write(file_centres, os.path.basename(file_centres))

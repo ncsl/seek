@@ -42,8 +42,7 @@ class OutputConfig(object):
     def FOLDER_LOGS(self):
         folder = os.path.join(self._out_base, "logs")
         if self._separate_by_run:
-            folder = folder + \
-                     datetime.strftime(datetime.now(), '%Y-%m-%d_%H-%M')
+            folder = folder + datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M")
         if not (os.path.isdir(folder)):
             os.makedirs(folder)
         return folder
@@ -52,8 +51,7 @@ class OutputConfig(object):
     def FOLDER_RES(self):
         folder = os.path.join(self._out_base, "res")
         if self._separate_by_run:
-            folder = folder + \
-                     datetime.strftime(datetime.now(), '%Y-%m-%d_%H-%M')
+            folder = folder + datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M")
         if not (os.path.isdir(folder)):
             os.makedirs(folder)
         if self.subfolder is not None:
@@ -64,8 +62,7 @@ class OutputConfig(object):
     def FOLDER_FIGURES(self):
         folder = os.path.join(self._out_base, "figs")
         if self._separate_by_run:
-            folder = folder + \
-                     datetime.strftime(datetime.now(), '%Y-%m-%d_%H-%M')
+            folder = folder + datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M")
         if not (os.path.isdir(folder)):
             os.makedirs(folder)
         if self.subfolder is not None:
@@ -87,11 +84,11 @@ class FiguresConfig(object):
     VERY_LARGE_PORTRAIT = (30, 50)
     SUPER_LARGE_PORTRAIT = (40, 70)
 
-    FIG_FORMAT = 'pdf'  # 'eps' 'pdf' 'svg'
+    FIG_FORMAT = "pdf"  # 'eps' 'pdf' 'svg'
     SAVE_FLAG = True
     SHOW_FLAG = True  # interactive mode and show?
     MOUSE_HOOVER = False
-    MATPLOTLIB_BACKEND = 'Agg'  # '#"Qt4Agg"  # , "Agg", "qt5"''
+    MATPLOTLIB_BACKEND = "Agg"  # '#"Qt4Agg"  # , "Agg", "qt5"''
 
     NORMAL_FONT_SIZE = 30
     LARGE_FONT_SIZE = 50

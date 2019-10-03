@@ -9,7 +9,7 @@ def read_label_coords(elecfile):
 
     print("Reading ", elecfile)
 
-    with open(elecfile, 'r') as f:
+    with open(elecfile, "r") as f:
         for _row in f:
             row = _row.split(" ")
             labels.append(row[0])
@@ -44,18 +44,22 @@ def read_label_coords(elecfilemat):
     print("Reading ", elecfilemat)
 
     elecmat = loadmat(elecfilemat)
-    elecxyz = elecmat['elecf']
+    elecxyz = elecmat["elecf"]
 
-    electxt = {elecxyz['label'][i]: list(elecxyz['elecpos'][i])
-               for i in range(len(elecxyz['label']))}
+    electxt = {
+        elecxyz["label"][i]: list(elecxyz["elecpos"][i])
+        for i in range(len(elecxyz["label"]))
+    }
 
     return electxt
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('talairach_elec_file', help="Brain MRI image space.")
-    parser.add_argument('txt_talairach_file', help="The CT image volume in its original space.")
+    parser.add_argument("talairach_elec_file", help="Brain MRI image space.")
+    parser.add_argument(
+        "txt_talairach_file", help="The CT image volume in its original space."
+    )
     args = parser.parse_args()
 
     # extract arguments from parser

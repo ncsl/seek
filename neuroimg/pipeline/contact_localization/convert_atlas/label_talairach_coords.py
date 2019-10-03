@@ -3,13 +3,14 @@ import subprocess
 import scipy.io
 from pprint import pprint
 
+
 def read_label_coords(elecfile):
     labels = []
     labelsxyz = []
 
     print("Reading ", elecfile)
 
-    with open(elecfile, 'r') as f:
+    with open(elecfile, "r") as f:
         for i, _row in enumerate(f):
             if i == 0:
                 hdr = _row.split(",")
@@ -47,6 +48,7 @@ def get_best_nghbr_match(all_tal_label):
     hemi, lobe, tal_label, matter, brodmanarea = bestfound
     return maxweight, hemi, lobe, tal_label, matter, brodmanarea
 
+
 def nearest_gm_search(labels, labelsxyz):
     """
     Performs nearest Gray-Matter search for atlas label in Talairach space using the xyz coordinates (in mm)
@@ -75,19 +77,24 @@ def nearest_gm_search(labels, labelsxyz):
         labelx, labely, labelz = labelsxyz[i]
         print(labelsxyz[i])
         # run subprocess to extract closest gm point in talairach atlas
-        cp = subprocess.run("java -cp ./talairach.jar org.talairach.PointToTD 3:9, %s, %s, %s" \
-                            % (labelx, labely, labelz),
-                            shell=True, stdout=subprocess.PIPE)
+        cp = subprocess.run(
+            "java -cp ./talairach.jar org.talairach.PointToTD 3:9, %s, %s, %s"
+            % (labelx, labely, labelz),
+            shell=True,
+            stdout=subprocess.PIPE,
+        )
 
         # label
-        all_tal_labels = cp.stdout.decode('ascii').strip().split("\n")
+        all_tal_labels = cp.stdout.decode("ascii").strip().split("\n")
 
         all_tal_labels = [x.strip() for x in all_tal_labels][2:]
         # print(len(all_tal_labels))
         pprint(all_tal_labels)
         # pprint(f"Tal label: \n {all_tal_labels} \nfor {labels[i]}")
 
-        weight, hemi, lobe, tal_label, matter, brodmanarea = get_best_nghbr_match(all_tal_labels)
+        weight, hemi, lobe, tal_label, matter, brodmanarea = get_best_nghbr_match(
+            all_tal_labels
+        )
 
         print(f"Found: {weight}, {hemi}, {lobe}, {tal_label}, {matter}, {brodmanarea}")
 
@@ -100,10 +107,10 @@ def nearest_gm_search(labels, labelsxyz):
     return atlaslabels
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('txt_talairach_file')
-    parser.add_argument('labeled_txt_talairach_file')
+    parser.add_argument("txt_talairach_file")
+    parser.add_argument("labeled_txt_talairach_file")
     args = parser.parse_args()
 
     # extract arguments from parser
@@ -118,10 +125,6 @@ if __name__ == '__main__':
     # run coordinate transformation labeling using talairach client
     atlaslabels = nearest_gm_search(labels, labelsxyz)
 
-    mdict = {
-        'eleclabels': labels,
-        'elecmatrix': labelsxyz,
-        'anatomy': atlaslabels
-    }
+    mdict = {"eleclabels": labels, "elecmatrix": labelsxyz, "anatomy": atlaslabels}
 
     scipy.io.savemat(labeled_txt_talairach_file, mdict=mdict)
