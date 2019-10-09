@@ -30,7 +30,7 @@ def create_voxel_volume_txt(img, outfilepath):
     np.savetxt(outfilepath, img_voxel_volume, fmt="%d")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dk_file = parser.dk_file
     destrieux_file = parser.destrieux_file
     lut_file = parser.lut_file

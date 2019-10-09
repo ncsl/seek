@@ -3,7 +3,7 @@ import numpy.linalg as npl
 from nibabel.affines import apply_affine
 
 
-class MaskVolume():
+class MaskVolume:
     @classmethod
     def apply_mask(self, mask_data, brain_img_data):
         """
@@ -30,7 +30,9 @@ class MaskVolume():
         """
         brainmasked_ct_data = brainmasked_ct_img.get_fdata()
         brainmasked_ct_affine = brainmasked_ct_img.affine
-        inv_affine = npl.inv(brainmasked_ct_affine)  # get the inverse affine matrix to go from xyz -> voxels
+        inv_affine = npl.inv(
+            brainmasked_ct_affine
+        )  # get the inverse affine matrix to go from xyz -> voxels
 
         # Convert contact xyz coordinates to CT voxels
         elec_coords_CTvox = {}
@@ -40,7 +42,10 @@ class MaskVolume():
         # Filter out electrodes not within brain mask at the voxel level
         elecvoxels_in_brain = {}
         for label, contact in elec_coords_CTvox.items():
-            if brainmasked_ct_data[int(contact[0]), int(contact[1]), int(contact[2])] != 0:
+            if (
+                brainmasked_ct_data[int(contact[0]), int(contact[1]), int(contact[2])]
+                != 0
+            ):
                 elecvoxels_in_brain[label] = contact
         return elecvoxels_in_brain
 
@@ -57,7 +62,9 @@ class MaskVolume():
         voxels_per_electrode = {}
         for label, contact in elec_in_brain.items():
             if label[1] == "'":
-                electrode_name = label[:2]  # If electrode name has a ' -> left hemisphere
+                electrode_name = label[
+                    :2
+                ]  # If electrode name has a ' -> left hemisphere
             else:
                 electrode_name = label[0]  # If electrode name has no '
             if electrode_name in voxels_per_electrode.keys():

@@ -29,18 +29,26 @@ def read_label_coords(elecfilemat):
     print("Reading ", elecfilemat)
 
     elecmat = loadmat(elecfilemat)
-    elecxyz = elecmat['elecf']
+    elecxyz = elecmat["elecf"]
 
-    electxt = {elecxyz['label'][i]: list(elecxyz['elecpos'][i])
-               for i in range(len(elecxyz['label']))}
+    electxt = {
+        elecxyz["label"][i]: list(elecxyz["elecpos"][i])
+        for i in range(len(elecxyz["label"]))
+    }
 
     return electxt
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('clustered_points_file', help="The output datafile with all the electrode points clustered.")
-    parser.add_argument('outputcoordsfile', help="The output datafile for electrodes mapped to correct coords.")
+    parser.add_argument(
+        "clustered_points_file",
+        help="The output datafile with all the electrode points clustered.",
+    )
+    parser.add_argument(
+        "outputcoordsfile",
+        help="The output datafile for electrodes mapped to correct coords.",
+    )
     args = parser.parse_args()
 
     # extract arguments from parser
@@ -51,9 +59,9 @@ if __name__ == '__main__':
     electxt = read_label_coords(clustered_points_file)
 
     # write the output to a txt file
-    with open(outputcoordsfile, 'w') as f:
+    with open(outputcoordsfile, "w") as f:
         for i, name in enumerate(electxt.keys()):
-            f.write('%s %.6f %.6f %.6f\n' % (name,
-                                             electxt[name][0],
-                                             electxt[name][1],
-                                             electxt[name][2]))
+            f.write(
+                "%s %.6f %.6f %.6f\n"
+                % (name, electxt[name][0], electxt[name][1], electxt[name][2])
+            )

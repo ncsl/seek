@@ -17,10 +17,14 @@ class Surface(object):
     vertex_normals = np.array([])
     triangle_normals = np.array([])
 
-    def __init__(self, vertices, triangles,
-                 surface_subtype="CORTICAL",
-                 vertex_normals=np.array([]),
-                 triangle_normals=np.array([])):
+    def __init__(
+        self,
+        vertices,
+        triangles,
+        surface_subtype="CORTICAL",
+        vertex_normals=np.array([]),
+        triangle_normals=np.array([]),
+    ):
         self.vertices = vertices
         self.triangles = triangles
         self.vertex_normals = vertex_normals
@@ -29,12 +33,14 @@ class Surface(object):
         self.vox2ras = np.array([])
 
     def __repr__(self):
-        d = {"00. surface subtype": self.surface_subtype,
-             "01. vertices": self.vertices,
-             "02. triangles": self.triangles,
-             "03. vertex_normals": self.vertex_normals,
-             "04. triangle_normals": self.triangle_normals,
-             "05. voxel to ras matrix": self.vox2ras}
+        d = {
+            "00. surface subtype": self.surface_subtype,
+            "01. vertices": self.vertices,
+            "02. triangles": self.triangles,
+            "03. vertex_normals": self.vertex_normals,
+            "04. triangle_normals": self.triangle_normals,
+            "05. voxel to ras matrix": self.vox2ras,
+        }
         return formal_repr(self, sort_dict(d))
 
     def __str__(self):

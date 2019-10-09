@@ -17,14 +17,32 @@ Stores the base classes for neuroimaging interaction.
 
 """
 
-SUBCORTICAL_REG_INDS = [8, 10, 11, 12, 13, 16, 17, 18, 26, 47, 49, 50, 51, 52, 53, 54, 58]
+SUBCORTICAL_REG_INDS = [
+    8,
+    10,
+    11,
+    12,
+    13,
+    16,
+    17,
+    18,
+    26,
+    47,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    58,
+]
 FS_LUT_LH_SHIFT = 1000
 FS_LUT_RH_SHIFT = 2000
 
 
 class Hemisphere(enum.Enum):
-    rh = 'rh'
-    lh = 'lh'
+    rh = "rh"
+    lh = "lh"
 
 
 class RegionIndexMapping(object):
@@ -34,7 +52,9 @@ class RegionIndexMapping(object):
     This maps each index of the source file to an index in the corresponding look up table.
     """
 
-    def __init__(self, color_lut_src_file: os.PathLike, color_lut_trg_file: os.PathLike):
+    def __init__(
+        self, color_lut_src_file: os.PathLike, color_lut_trg_file: os.PathLike
+    ):
         """
         :param color_lut_src_file: The source lookup table
         :param color_lut_trg_file: The target's lookup table.
@@ -50,7 +70,9 @@ class RegionIndexMapping(object):
             if trg_ind is not None:
                 self.src_to_trg[src_ind] = trg_ind
 
-        self.unknown_ind = names_to_trg.get('Unknown', 0)  # zero as the default unknown area
+        self.unknown_ind = names_to_trg.get(
+            "Unknown", 0
+        )  # zero as the default unknown area
 
     def source_to_target(self, index):
         return self.src_to_trg.get(index, self.unknown_ind)
@@ -63,9 +85,16 @@ class RegionIndexMappingLobe(object):
     This allows mapping of each index of source file to an index in lobe file.
     """
 
-    def __init__(self, orig_annot_file: os.PathLike, lobe_annot_file: os.PathLike, hemisphere: Hemisphere):
+    def __init__(
+        self,
+        orig_annot_file: os.PathLike,
+        lobe_annot_file: os.PathLike,
+        hemisphere: Hemisphere,
+    ):
         # read in the region mapping for each index in annotation file
-        region_mapping, _, region_names = nibabel.freesurfer.io.read_annot(orig_annot_file)
+        region_mapping, _, region_names = nibabel.freesurfer.io.read_annot(
+            orig_annot_file
+        )
         region_mapping[region_mapping == -1] = 0  # Unknown regions in hemispheres
 
         # read in the lobe names corresponding to each index in the annotation file
@@ -94,7 +123,6 @@ class RegionIndexMappingLobe(object):
         return self.src_to_trg.get(index, self.unknown_ind)
 
 
-
 class ColorLut(object):
     """
     Class wrapper for the color lookup table.
@@ -108,18 +136,18 @@ class ColorLut(object):
         if len(table.dtype) == 6:
             # id name R G B A
             self.inds = table[table.dtype.names[0]]
-            self.names = table[table.dtype.names[1]].astype('U')
+            self.names = table[table.dtype.names[1]].astype("U")
             self.r = table[table.dtype.names[2]]
             self.g = table[table.dtype.names[3]]
             self.b = table[table.dtype.names[4]]
             self.a = table[table.dtype.names[5]]
-            self.shortnames = np.zeros(len(self.names), dtype='U')
+            self.shortnames = np.zeros(len(self.names), dtype="U")
 
         elif len(table.dtype) == 7:
             # id shortname name R G B A
             self.inds = table[table.dtype.names[0]]
-            self.shortnames = table[table.dtype.names[1]].astype('U')
-            self.names = table[table.dtype.names[2]].astype('U')
+            self.shortnames = table[table.dtype.names[1]].astype("U")
+            self.names = table[table.dtype.names[2]].astype("U")
             self.r = table[table.dtype.names[3]]
             self.g = table[table.dtype.names[4]]
             self.b = table[table.dtype.names[5]]
@@ -135,19 +163,25 @@ def pial_to_verts_and_triangs(pial_surf) -> (np.ndarray, np.ndarray):
     """
     tmpdir = tempfile.TemporaryDirectory()
     pial_asc = os.path.join(tmpdir.name, os.path.basename(pial_surf + ".asc"))
-    subprocess.run(['mris_convert', pial_surf, pial_asc])
+    subprocess.run(["mris_convert", pial_surf, pial_asc])
 
-    with open(pial_asc, 'r') as f:
+    with open(pial_asc, "r") as f:
         f.readline()
-        nverts, ntriangs = [int(n) for n in f.readline().strip().split(' ')]
+        nverts, ntriangs = [int(n) for n in f.readline().strip().split(" ")]
 
-    vertices = np.genfromtxt(pial_asc, dtype=float, skip_header=2, skip_footer=ntriangs, usecols=(0, 1, 2))
-    triangles = np.genfromtxt(pial_asc, dtype=int, skip_header=2 + nverts, usecols=(0, 1, 2))
+    vertices = np.genfromtxt(
+        pial_asc, dtype=float, skip_header=2, skip_footer=ntriangs, usecols=(0, 1, 2)
+    )
+    triangles = np.genfromtxt(
+        pial_asc, dtype=int, skip_header=2 + nverts, usecols=(0, 1, 2)
+    )
     assert vertices.shape == (nverts, 3)
     assert triangles.shape == (ntriangs, 3)
 
-    completed_process = subprocess.run(["mris_info", pial_surf], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    mris_info = completed_process.stdout.decode('ascii')
+    completed_process = subprocess.run(
+        ["mris_info", pial_surf], stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+    mris_info = completed_process.stdout.decode("ascii")
     c_ras_list = extract_vector(mris_info, "c_(ras)")
     assert c_ras_list is not None
     vertices[:, 0:3] += np.array(c_ras_list)
@@ -169,12 +203,15 @@ def extract_vector(string: str, name: str) -> Optional[List[float]]:
     """
 
     for line in string.split("\n"):
-        match = re.match(r"""^\s*
+        match = re.match(
+            r"""^\s*
                          (.+?)              # name
                          \s*:\s*            # separator
                          \(([0-9.,\s-]+)\)   # vector: (x0, x1, ....)
                          \s*$""",
-                         line, re.X)
+            line,
+            re.X,
+        )
 
         if match and match.group(1) == name:
             try:
@@ -186,8 +223,9 @@ def extract_vector(string: str, name: str) -> Optional[List[float]]:
     return None
 
 
-def read_cortical_region_mapping(label_direc: os.PathLike, hemisphere: Hemisphere, fs_to_conn: RegionIndexMapping) \
-        -> np.ndarray:
+def read_cortical_region_mapping(
+    label_direc: os.PathLike, hemisphere: Hemisphere, fs_to_conn: RegionIndexMapping
+) -> np.ndarray:
     """
     Reads the cortical region mapping file.
 

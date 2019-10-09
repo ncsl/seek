@@ -10,7 +10,7 @@ import numpy.linalg as npl
 import seaborn as sns
 from sklearn.decomposition import PCA
 
-sys.path.append("../../")
+sys.path.append("../../../")
 
 from neuroimg.base.utils.data_structures_utils import MatReader
 from neuroimg.processing.electrode_clustering.mask import MaskVolume
@@ -47,28 +47,36 @@ def summary_PCA_plots(figurefilepath, final_centroids, elec_in_brain):
         pca = PCA()
         pca.fit(np.array(list(final_centroids[electrode].values())))
 
-        centroids_pca = pca.transform(np.array(list(final_centroids[electrode].values())))
+        centroids_pca = pca.transform(
+            np.array(list(final_centroids[electrode].values()))
+        )
         centroids_new = pca.inverse_transform(centroids_pca)
-        axs[i].scatter(centroids_new[:, 0], np.zeros_like(centroids_new[:, 0]), label='observed')
-        axs[i].set_title('PCA Visualization of Electrode %s' % electrode)
+        axs[i].scatter(
+            centroids_new[:, 0], np.zeros_like(centroids_new[:, 0]), label="observed"
+        )
+        axs[i].set_title("PCA Visualization of Electrode %s" % electrode)
         pca.fit(validation[electrode])
 
         exp_centroids_pca = pca.transform(validation[electrode])
         exp_centroids_new = pca.inverse_transform(exp_centroids_pca)
-        axs[i].scatter(exp_centroids_new[:, 0], np.zeros_like(exp_centroids_new[:, 0]), marker='x', c='r',
-                       label='expected')
-        axs[i].set_title('PCA Validation of Centroids (Electrode: %s)' % electrode)
+        axs[i].scatter(
+            exp_centroids_new[:, 0],
+            np.zeros_like(exp_centroids_new[:, 0]),
+            marker="x",
+            c="r",
+            label="expected",
+        )
+        axs[i].set_title("PCA Validation of Centroids (Electrode: %s)" % electrode)
         axs[i].set_ylim([-0.005, 0.005])
         axs[i].legend()
-        axs[i].set_xlabel('PC Coordinates in Voxels along Electrode %s' % electrode)
+        axs[i].set_xlabel("PC Coordinates in Voxels along Electrode %s" % electrode)
         for j, chan in enumerate(final_centroids[electrode]):
             axs[i].annotate(chan, (centroids_new[j, 0], 0.0005), size=8.5)
 
         # set plot paramsx
     fig.tight_layout()
 
-    plt.savefig(figurefilepath,
-                box_inches="tight")
+    plt.savefig(figurefilepath, box_inches="tight")
 
     return fig, axs
 
@@ -89,34 +97,42 @@ def l2_error(figurefilepath, final_centroids, elec_in_brain):
     for electrode in final_centroids:
         errors_per_channel[electrode] = {}
         for channel in final_centroids[electrode]:
-            observed = final_centroids[electrode][channel]  # The coordinates detected by clustering algorithm
+            observed = final_centroids[electrode][
+                channel
+            ]  # The coordinates detected by clustering algorithm
             if channel in elec_in_brain:
                 expected = elec_in_brain[channel]  # Manually labeled validation data
                 abs_error = npl.norm(observed - expected)
                 errors_per_channel[electrode][channel] = abs_error
             else:
-                errors_per_channel[electrode][channel] = float('NaN')
+                errors_per_channel[electrode][channel] = float("NaN")
 
     # print(len(errors_per_channel.keys()))
 
     sns.set(font_scale=1.1)
-    fig, axs = plt.subplots(int(np.ceil(numelectrodes / 2.)), 2, figsize=(15, 15))
+    fig, axs = plt.subplots(int(np.ceil(numelectrodes / 2.0)), 2, figsize=(15, 15))
     axs = axs.flatten()
 
     ymin, ymax = 0, 20
     for i, electrode in enumerate(errors_per_channel.keys()):
         y_pos = np.arange(len(errors_per_channel[electrode]))
-        axs[i].bar(y_pos, list(errors_per_channel[electrode].values()), align='center', alpha=0.9)
+        axs[i].bar(
+            y_pos,
+            list(errors_per_channel[electrode].values()),
+            align="center",
+            alpha=0.9,
+        )
         axs[i].set_xticks(y_pos)
         axs[i].set_xticklabels(list(final_centroids[electrode].keys()))
-        axs[i].set_title('Abs. Error By Channel in Electrode %s After Filling Gaps' % electrode)
-        axs[i].set_xlabel('Channel')
-        axs[i].set_ylabel('Distance')
+        axs[i].set_title(
+            "Abs. Error By Channel in Electrode %s After Filling Gaps" % electrode
+        )
+        axs[i].set_xlabel("Channel")
+        axs[i].set_ylabel("Distance")
         axs[i].set_ylim([ymin, ymax])
     fig.tight_layout()
 
-    plt.savefig(figurefilepath,
-                box_inches="tight")
+    plt.savefig(figurefilepath, box_inches="tight")
 
     return errors_per_channel, fig, axs
 
@@ -140,7 +156,9 @@ def load_data(elecfile):
         with open(elecfile) as f:
             for l in f:
                 row = l.split()
-                elec_coords_mm[row[0]] = np.array([float(row[1]), float(row[2]), float(row[3])])
+                elec_coords_mm[row[0]] = np.array(
+                    [float(row[1]), float(row[2]), float(row[3])]
+                )
     else:
         matreader = MatReader()
         data = matreader.loadmat(elecfile)
@@ -156,15 +174,23 @@ def load_data(elecfile):
     return elec_coords_mm
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('final_centroids_voxels', help="The CT image volume in its original space.")
-    parser.add_argument('final_centroids_xyz', help="The CT image volume in its original space.")
-    parser.add_argument('orgfinal_centroids_voxels', help="The CT image volume in its original space.")
-    parser.add_argument('orgfinal_centroids_xyz', help="The CT image volume in its original space.")
-    parser.add_argument('ctfile', help="The CT img file")
-    parser.add_argument('brainmaskfile', help="The Brain mask file")
-    parser.add_argument('fsdir', help="The freesurfer output diretroy.")
+    parser.add_argument(
+        "final_centroids_voxels", help="The CT image volume in its original space."
+    )
+    parser.add_argument(
+        "final_centroids_xyz", help="The CT image volume in its original space."
+    )
+    parser.add_argument(
+        "orgfinal_centroids_voxels", help="The CT image volume in its original space."
+    )
+    parser.add_argument(
+        "orgfinal_centroids_xyz", help="The CT image volume in its original space."
+    )
+    parser.add_argument("ctfile", help="The CT img file")
+    parser.add_argument("brainmaskfile", help="The Brain mask file")
+    parser.add_argument("fsdir", help="The freesurfer output diretroy.")
     parser.add_argument("summary_pcaplots_filepath")
     parser.add_argument("summary_l2errorplots_filepath")
     parser.add_argument("original_centroids_xyz")
@@ -206,14 +232,20 @@ if __name__ == '__main__':
     # Filtering out electrodes not within brainmask
     elec_in_brain = maskpipe.filter_electrodes_bm(elec_coords_mm, brainmasked_ct_img)
 
-    '''   SUMMARY PLOTS  '''
+    """   SUMMARY PLOTS  """
     # create generated figures to check
-    fig_pca, axs_pca = summary_PCA_plots(pcafig_filepath, elec_finalcoords_mm, elec_in_brain)
-    l2_errors, fig_l2, axs_l2 = l2_error(l2fig_filepath, elec_finalcoords_mm, elec_in_brain)
+    fig_pca, axs_pca = summary_PCA_plots(
+        pcafig_filepath, elec_finalcoords_mm, elec_in_brain
+    )
+    l2_errors, fig_l2, axs_l2 = l2_error(
+        l2fig_filepath, elec_finalcoords_mm, elec_in_brain
+    )
 
-    '''   EUCLIDEAN DISTANCE ERROR CHECK '''
-    l2_errorstxt_path = os.path.join(os.path.dirname(pcafig_filepath), 'euclidean_distance_errors.txt')
-    with open(l2_errorstxt_path, 'w') as f:
+    """   EUCLIDEAN DISTANCE ERROR CHECK """
+    l2_errorstxt_path = os.path.join(
+        os.path.dirname(pcafig_filepath), "euclidean_distance_errors.txt"
+    )
+    with open(l2_errorstxt_path, "w") as f:
         for elec in l2_errors:
             for chan in l2_errors[elec]:
                 err = l2_errors[elec][chan]

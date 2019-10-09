@@ -1,4 +1,12 @@
 # Neuroimaging Pipeline
+[![Build Status](https://travis-ci.com/adam2392/eegio.svg?token=6sshyCajdyLy6EhT8YAq&branch=master)](https://travis-ci.com/adam2392/neuroimg_pipeline)
+[![Coverage Status](./coverage.svg)](./coverage.svg)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+![GitHub](https://img.shields.io/github/license/adam2392/neuroimg_pipeline)
+![GitHub last commit](https://img.shields.io/github/last-commit/adam2392/neuroimg_pipeline)
+<a href="https://codeclimate.com/github/adam2392/neuroimg_pipeline/maintainability"><img src="https://api.codeclimate.com/v1/badges/2c7d5910e89350b967c8/maintainability" /></a>
+![GitHub repo size](https://img.shields.io/github/repo-size/adam2392/neuroimg_pipeline)
+
 By: Adam Li
 
 Date: 10/4/18
@@ -18,9 +26,7 @@ and iEEG data (ECoG, or SEEG).
 <!-- /MarkdownTOC -->
 
 # Features
-- [x] Keep FS style directory, but instead add directories there if necessary. Remove fat code that simply copies and pastes data files
 - [ ] Add Travis.CI testing
-- [x] Convert pipeline into running on the FS directory structure
 - [ ] Add support for MRICloud running using R-script. Possibly convert to Python script.
 - [ ] Create Python pipeline for running everything, or submit PR to Chang Lab's to run SEEG.
 - [ ] Create unit and integration tests using pytest that test: pipeline in both snakemake and Python
@@ -39,29 +45,29 @@ Follow links and tutorials on each respective tool to install. Preferably this i
     
     
         # probably doesn't work
-        conda create -n <envname>
-        conda activate <envname>
-        conda env create -f environment.yml python=3.6
-        # conda install --file environment.yml
-        cd pipeline/
-        snakemake -n    
-    
+        conda create -n neuroimgpipe
+        conda activate neuroimgpipe
+        
         # optionally separate install
         conda config --add channels bioconda
         conda config --add channels conda-forge
-        conda install numpy scipy pandas nibabel snakemake
-        conda install -c conda-forge mne 
+        conda install numpy scipy matplotlib pytest scikit-learn pandas seaborn nibabel mne snakemake ipykernel
         conda install -c flyem-forge/label/upgrade201904 marching_cubes
         conda env export > environment.yml
-        # conda env create -f environment_py3.yaml 
-
+        
+        cd pipeline/
+        snakemake -n    
     
-   ii. Update all submodules
-
+   ii. Install other libraries
+   
+        conda install -c conda-forge pyvtk
+        pip install img-pipe==2019.3.15.2
+    
+   iii. (Optional and outdated) Update all submodules
 
         git submodule update --init --recursive 
         
-        
+## Modules to Install     
 1. Reconstruction
     * Freesurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall)
     * This step is necessary to generate a parcellation and surface reconstruction of the patient's brain. The general requirements is just a 
@@ -153,12 +159,10 @@ data directories of your data. This is under pipeline/config/localconfig.yaml
         <run GUI>        
 
 ## Docker and Singularity
+TBD
 1. Freesurfer with FSL
 2. MRTrix3
 3. NDReG
-
-TODO: Make sure SPM, FieldTripToolbox are imported as well
-TBD
 
 # Pipeline Description
 At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry, regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
@@ -196,12 +200,9 @@ At a high level, this pipeline is taking neuroimaging data of a patient to produ
 
 3. (Manual Step): Determines the locations (xyz) of the electrode channels in T1 MRI space (pipeline/contact_localization).
     
-    This requires the user to first have preprocessed the T1 MRI, and the CT scans. Then
-    the user must run coregistration, of which there are many options. Remember that coregistration
-    is applying some deformation transformation on your input image (CT), such that it closely matches
-    your reference image (T1 MRI). Once, coregistration is complete, the user should run:
+    This requires the user to first have preprocessed the CT scans (and optionally the T1 MRI). 
            
-        matlab ./matlab/run_localization_fieldtrip_v3.m
+        matlab ./pipeline/contact_localization/matlab/run_localization_fieldtrip.m
         
     This will run an ~10-15 minute process to have users determine how to localize the channels. Note that
     you will need the corresponding implantation map (i.e. PPT, some image drawn up by clinician, or the implantation knowledge).
@@ -240,13 +241,16 @@ This assumes you have already ran reconstruction on your T1 MRI and have preproc
 necessary files.
 
 1. Use matlab script to get Voxel/MM coords in CT space
-    
-    
-    <open matlab>
-    <edit pipeline/contact_localization/matlab/run_localization_fieldtrip.m configuration to add path of your fieldtrip toolbox>
-    <run pipeline/contact_localization/matlab/run_localization_fieldtrip.m>
-    <click through contacts as in demo>
-    
+ 
+    This requires the user to first have preprocessed the CT scans (and optionally the T1 MRI). 
+           
+        matlab ./pipeline/contact_localization/matlab/run_localization_fieldtrip.m
+        
+    This will run an ~10-15 minute process to have users determine how to localize the channels. Note that
+    you will need the corresponding implantation map (i.e. PPT, some image drawn up by clinician, or the implantation knowledge).
+    Deep channels (i.e. A1, B1, B'1, etc.) are usually in the brain, while the last channels of
+    an electrode are near the skull. 
+
 2. Apply coregistration transform matrix to coords to map to your MRI space.
 
     TBD
@@ -258,10 +262,33 @@ language.
 
     TBD
 
+# Documentation
+
+    sphinx-quickstart
+    
+
+# Testing
+Install testing and formatting libs:
+
+    conda install sphinx black pytest pytest-cov coverage 
+    pip install coverage-badge
+
+Run tests
+
+    black neuroimg/*
+    black tests/*
+    pylint ./neuroimg/
+    pre-commit run black --all-files
+    pytest --cov-config=.coveragerc --cov=./neuroimg/ tests/
+    coverage-badge -f -o coverage.svg
+
+Tests is organized into two directories right now: 
+1. eegio/: consists of all unit tests related to various parts of eegio.
+2. api/: consists of various integration tests tha test when eegio should work.
 
 
 ### Pipeline Process Visualized
-[DAG of Pipeline in Snakemake](./pipeline/dag_neuroimaging_pipeline.pdf)
+[DAG of Pipeline in Snakemake](neuroimg/pipeline/dag_neuroimaging_pipeline.pdf)
 
 # References:
 1. Recon-all. FreeSurfer. https://surfer.nmr.mgh.harvard.edu/fswiki/recon-all#References

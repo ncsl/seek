@@ -14,24 +14,28 @@ class ContactMapping(object):
         self.chanxyz = chanxyz
 
     def simplest_gain_matrix(self):
-        '''
+        """
         This is a function to recompute a new gain matrix based on xyz that moved
         G = 1 / ( 4*pi * sum(sqrt(( X - X[:, new])^2))^2)
-        '''
+        """
         # NOTE IF YOU MOVE SEEGXYZ ONTO REGXYZ, YOU DIVIDE BY 0, SO THERE IS A PROBLEM
         # reg_xyz = con.centres
         dr = self.conn.centres - self.chanxyz[:, np.newaxis]
         print("Computing simple gain mat!")
         if 0 in dr:
-            print("Computing simplest gain matrix will result \
+            print(
+                "Computing simplest gain matrix will result \
                 in error when contact is directly on top of any region!\
-                Dividing by 0!")
+                Dividing by 0!"
+            )
 
         ndr = np.sqrt((dr ** 2).sum(axis=-1))
         Vr = 1.0 / (4 * np.pi) / (1 + ndr ** 2)
         return Vr
 
-    def gain_matrix_dipole(self, vertices, regmapping, nregions, sensors, orientations, areas):
+    def gain_matrix_dipole(
+        self, vertices, regmapping, nregions, sensors, orientations, areas
+    ):
         """
 
         Parameters
@@ -60,13 +64,16 @@ class ContactMapping(object):
         for sens_ind in range(nsens):
             a = sensors[sens_ind, :] - vertices
             na = np.sqrt(np.sum(a ** 2, axis=1))
-            gain_mtx_vert[sens_ind, :] = areas * \
-                                         (np.sum(orientations * a, axis=1) / na ** 3) / (4.0 * np.pi * SIGMA)
+            gain_mtx_vert[sens_ind, :] = (
+                areas
+                * (np.sum(orientations * a, axis=1) / na ** 3)
+                / (4.0 * np.pi * SIGMA)
+            )
 
         return gain_mtx_vert.dot(reg_map_mtx)
 
     def gain_matrix_inv_square(self, vertices, regmapping, areas):
-        '''
+        """
         Computes a gain matrix using an inverse square fall off (like a mean field model)
         Parameters
         ----------
@@ -79,7 +86,7 @@ class ContactMapping(object):
         Returns
         -------
         np.ndarray of size m x n
-        '''
+        """
         pass
         nregions = self.conn.region_labels.shape[0]
         nverts = vertices.shape[0]
@@ -103,15 +110,16 @@ class ContactMapping(object):
                 # print("na was less than one, so softmaxing here at 1.")
                 # epsilon = 1 - a
                 # na = np.sqrt(np.sum(a**2, axis=1))
-                gain_mtx_vert[sens_ind, softmax_inds] = areas[softmax_inds] / \
-                                                        (1 + na[softmax_inds] ** 2)
+                gain_mtx_vert[sens_ind, softmax_inds] = areas[softmax_inds] / (
+                    1 + na[softmax_inds] ** 2
+                )
 
         return gain_mtx_vert.dot(reg_map_mtx)
 
     def getallcontacts(self, seeg_contact):
-        '''
+        """
         Gets the entire electrode contacts' indices, so that we can modify the corresponding xyz
-        '''
+        """
         # get the elec label name
         isleftside = seeg_contact.find("'")
         contacts = []
@@ -120,25 +128,27 @@ class ContactMapping(object):
                 if s.isdigit():
                     elec_label = tempcontact[0:idx]
                     break
-            contacts.append((elec_label, int(tempcontact[len(elec_label):])))
+            contacts.append((elec_label, int(tempcontact[len(elec_label) :])))
 
         # get indices depending on if it is a left/right hemisphere electrode
         if isleftside != -1:
             elec_label = seeg_contact.split("'")[0]
-            electrodeindices = [i for i, item in enumerate(
-                self.chanlabels) if elec_label + "'" in item]
+            electrodeindices = [
+                i for i, item in enumerate(self.chanlabels) if elec_label + "'" in item
+            ]
         else:
             for idx, s in enumerate(seeg_contact):
                 if s.isdigit():
                     elec_label = seeg_contact[0:idx]
                     break
-            electrodeindices = [i for i, item in enumerate(
-                contacts) if elec_label == item[0]]
-        print('\nelec label is %s' % elec_label)
+            electrodeindices = [
+                i for i, item in enumerate(contacts) if elec_label == item[0]
+            ]
+        print("\nelec label is %s" % elec_label)
         return electrodeindices
 
     def _cart2sph(self, x, y, z):
-        '''
+        """
         Transform Cartesian coordinates to spherical
 
         Paramters:
@@ -147,7 +157,7 @@ class ContactMapping(object):
         z           (float) Z coordinate
 
         :return: radius, elevation, azimuth
-        '''
+        """
         x2_y2 = x ** 2 + y ** 2
         r = math.sqrt(x2_y2 + z ** 2)  # r
         elev = math.atan2(math.sqrt(x2_y2), z)  # Elevation / phi
@@ -182,9 +192,9 @@ class ContactMapping(object):
         self.chanxyz[electrodeindices] = self.chanxyz[electrodeindices] + distancetomove
 
     def findclosestcontact(self, regionind):
-        '''
+        """
         This function finds the closest contact to an ezregion
-        '''
+        """
         # get the region's xyz coords we want to get
         regionxyz = self.conn.centres[regionind]
         # create a mask of the indices we already moved
@@ -202,16 +212,15 @@ class ContactMapping(object):
         return seeg_index, distance
 
     def move_electrodetoreg(self, regionind, distance=-1):
-        '''
+        """
         This function moves the contact and the entire electrode the correct distance, so that the contact
         is on the ezregion now
-        '''
+        """
         if regionind.size > 1:
             warnings.warn("Need to pass in one region index at a time!")
 
         if distance == -1:
-            warnings.warn(
-                "Not moving electrodes, so this call does not do anything!")
+            warnings.warn("Not moving electrodes, so this call does not do anything!")
             return None, None
         # find the seeg index closest to this region and move it
         seegind, origdistance = self.findclosestcontact(regionind)
@@ -239,8 +248,7 @@ class ContactMapping(object):
 
         # createa copy of the seeg_xyz df and modify the electrode
         new_seeg_xyz = self.chanxyz.copy()
-        new_seeg_xyz[electrodeindices] = new_seeg_xyz[electrodeindices] + \
-                                         distancetomove
+        new_seeg_xyz[electrodeindices] = new_seeg_xyz[electrodeindices] + distancetomove
 
         # modify the object's seeg xyz
         self.chanxyz[electrodeindices] = self.chanxyz[electrodeindices] + distancetomove

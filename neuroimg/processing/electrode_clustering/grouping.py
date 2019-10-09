@@ -3,7 +3,7 @@ import numpy.linalg as npl
 from skimage import measure
 
 
-class Cluster():
+class Cluster:
     @classmethod
     def find_clusters(self, maskedCT, pointsOnly=True):
         """
@@ -20,7 +20,7 @@ class Cluster():
                 of points in each clsuter.
             numobj: List of the number of clusters found for the range of thresholds
         """
-        masktype = 'keep'
+        masktype = "keep"
 
         threshvec = np.arange(0.63, 0.64, 0.005)
         # create a list to store number of clusters at each threshold
@@ -36,8 +36,12 @@ class Cluster():
             currthresh = threshvec[i]
 
             # find connected components in image
-            cluster_labels, numobj[i] = measure.label(maskedCT / 255 > currthresh,
-                                                      background=0, return_num=True, connectivity=2)
+            cluster_labels, numobj[i] = measure.label(
+                maskedCT / 255 > currthresh,
+                background=0,
+                return_num=True,
+                connectivity=2,
+            )
 
             print("%.3f \t\t %d" % (currthresh, numobj[i]))
 
@@ -45,23 +49,32 @@ class Cluster():
                 # filter out all background, i.e. zero-valued, pixels in cluster_labels array
                 # tuple of arrays, one for each dim, containing coordinates of nonzero values
                 nonzeros = np.nonzero(cluster_labels)
-                nonzero_voxs = np.array(list(zip(nonzeros[0], nonzeros[1], nonzeros[2])))
+                nonzero_voxs = np.array(
+                    list(zip(nonzeros[0], nonzeros[1], nonzeros[2]))
+                )
 
                 # go through all identified labels
                 for j in range(len(nonzero_voxs)):
                     # Check if coordinate in brainmask is non-zero, i.e. within the brain
                     voxel = nonzero_voxs[j]
-                    if (cluster_labels[voxel[0]][voxel[1]][voxel[2]] not in clusters.keys()):
-                        clusters[cluster_labels[voxel[0]][voxel[1]][voxel[2]]] = [nonzero_voxs[j]]
+                    if (
+                        cluster_labels[voxel[0]][voxel[1]][voxel[2]]
+                        not in clusters.keys()
+                    ):
+                        clusters[cluster_labels[voxel[0]][voxel[1]][voxel[2]]] = [
+                            nonzero_voxs[j]
+                        ]
                     else:
-                        clusters[cluster_labels[voxel[0]][voxel[1]][voxel[2]]].append(nonzero_voxs[j])
+                        clusters[cluster_labels[voxel[0]][voxel[1]][voxel[2]]].append(
+                            nonzero_voxs[j]
+                        )
                 allclusters[float("%.3f" % threshvec[i])] = clusters
             else:
                 allclusters[float("%.3f" % threshvec[i])] = cluster_labels
         return allclusters, numobj
 
 
-class CylindricalGroup():
+class CylindricalGroup:
     @classmethod
     def test_point_in_cylinder(self, pt1, pt2, r, q):
         """
@@ -82,7 +95,7 @@ class CylindricalGroup():
         dot = np.dot(testpt, vec)
 
         # Check if point is within caps of the cylinder
-        if (dot >= 0 and dot <= length_sq):
+        if dot >= 0 and dot <= length_sq:
 
             # distance squared to the cylinder axis of the cylinder:
             dist_sq = np.dot(testpt, testpt) - (dot * dot / length_sq)
@@ -143,7 +156,9 @@ class CylindricalGroup():
                 chan_num = label[1:]
             if electrode_name in group_channel_labels.keys():
                 group_channel_labels[electrode_name].append(int(chan_num))
-                group_channel_labels[electrode_name] = sorted(group_channel_labels[electrode_name])
+                group_channel_labels[electrode_name] = sorted(
+                    group_channel_labels[electrode_name]
+                )
             else:
                 group_channel_labels[electrode_name] = [int(chan_num)]
 
@@ -163,8 +178,12 @@ class CylindricalGroup():
             next_last = "%s%d" % (electrode, next_last_num)
             last = "%s%d" % (electrode, last_num)
             sparse_elec_labels[electrode] = [first, second, next_last, last]
-            sparse_elec_coords[electrode] = [elec_in_brain[first], elec_in_brain[second],
-                                             elec_in_brain[next_last], elec_in_brain[last]]
+            sparse_elec_coords[electrode] = [
+                elec_in_brain[first],
+                elec_in_brain[second],
+                elec_in_brain[next_last],
+                elec_in_brain[last],
+            ]
 
         # # Hyperparameter: estimating the radius of each electrode in voxels such that
         # # none of the cylinders overlap.
@@ -179,7 +198,9 @@ class CylindricalGroup():
             clusters_by_cylinder[electrode] = {}
             for cluster_id in points_to_test.keys():
                 points_list = []
-                points_list = self.points_in_cylinder(p1, p2, radius, points_to_test[cluster_id])
+                points_list = self.points_in_cylinder(
+                    p1, p2, radius, points_to_test[cluster_id]
+                )
                 if len(points_list) > 0:
                     clusters_by_cylinder[electrode][cluster_id] = points_list
 
