@@ -1,15 +1,15 @@
 ############## define directories that we work with #############
 rawdatadir:
 #    "/home/ksr/Desktop/contact_localization/raw"
-#  "~/sarmalab/contact_localization_proj/rawdata"
- "/home/adam2392/hdd2/data/neuroimaging/raw"
+ "/Users/ChesterHuynh/sarmalab/contact_localization_proj/rawdata"
+ # "/home/adam2392/hdd2/data/neuroimaging/raw"
 # "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/raw/"
 
 ############# define FreeSurfer Subject Directory #############
 fs_outputdatadir:
 #    "/home/ksr/Desktop/contact_localization/freesurfer_output"
-#  "~/sarmalab/contact_localization_proj/fs_outputdata"
- "/home/adam2392/hdd2/data/neuroimaging/freesurfer_output/"
+ "/Users/ChesterHuynh/sarmalab/contact_localization_proj/fs_outputdata"
+ # "/home/adam2392/hdd2/data/neuroimaging/freesurfer_output/"
 # "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/freesurfer_output/"
 
 ############# define list of files to run this for #############
@@ -30,21 +30,21 @@ patients:
 #    'efri14',
 #    'efri20'
 #    'pt1', 'pt2', 'pt3', 'pt6', 'pt8', 'pt10', 'pt11', 'pt12', 'pt13', 'pt14', 'pt15', 'pt16', 'pt17',
-#    'la02',
+   # 'la02',
 #    'la17',
 #    'la23',
-   'la03',
+   # 'la03',
    'la04',
-   'la05',
-   'la06',
-   'la07',
-    'la08',
-    #'la09',
-    'la10',
-    'la11',
-    'la12',
-    'la13',
-    'la15',
+   # 'la05',
+   # 'la06',
+   # 'la07',
+   #  'la08',
+   #  #'la09',
+   #  'la10',
+   #  'la11',
+   #  'la12',
+   #  'la13',
+   #  'la15',
     #'la16',
 #    'la21',
 #    'la22',

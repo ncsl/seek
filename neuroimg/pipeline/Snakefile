@@ -3,9 +3,9 @@ import os
 import snakemake
 
 """
-TODO: 
+TODO:
 - Add rule to run aseg2srf for the new native space aseg.mgz mapped file.
-- 
+-
 
 """
 
@@ -101,7 +101,7 @@ TVB_OUTPUT_DIR = os.path.join(config['fs_outputdatadir'],
                                                 "tvb")
 
 # CONFORMSPACE_OUTPUT_DIR = os.path.join(TVB_OUTPUT_DIR)
-NATIVESPACE_OUTPUT_DIR = os.path.join(fs_outputdatadir,
+NATIVESPACE_OUTPUT_DIR = os.path.join(config['fs_outputdatadir'],
                                       "nativespace-transform")
 
 

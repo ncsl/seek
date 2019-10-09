@@ -99,7 +99,7 @@ class CylindricalGroup:
 
             # distance squared to the cylinder axis of the cylinder:
             dist_sq = np.dot(testpt, testpt) - (dot * dot / length_sq)
-            if dist_sq <= r:
+            if (dist_sq <= radius_sq):
                 return True
         return False
 
@@ -114,11 +114,7 @@ class CylindricalGroup:
         :param points_to_test: list of points to test
         :return: points_list: all the points that lie in the cylinder
         """
-        points_list = []
-        for point in points_to_test:
-            if self.test_point_in_cylinder(pt1, pt2, r, point) == True:
-                points_list.append(point)
-        return points_list
+        return [point for point in points_to_test if self.test_point_in_cylinder(pt1, pt2, r, point)]
 
     @classmethod
     def cylinder_filter(self, elec_in_brain, clusters, radius):

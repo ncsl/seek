@@ -6,9 +6,11 @@ import nibabel as nb
 import numpy as np
 import numpy.linalg as npl
 import scipy.io
+import pdb
+import inspect
 from nibabel.affines import apply_affine
 
-sys.path.append("../../")
+sys.path.append("../../../")
 
 from neuroimg.base.utils.data_structures_utils import MatReader
 from neuroimg.processing.electrode_clustering.mask import MaskVolume
@@ -84,13 +86,8 @@ def compute_centroids(chanxyzvoxels):
     """
     centroids = {}
     for channel, voxels in chanxyzvoxels.items():
-        i = j = k = count = 0
-        for vox in voxels:
-            i += vox[0]
-            j += vox[1]
-            k += vox[2]
-            count += 1
-        centroids[channel] = np.array([int(i / count), int(j / count), int(k / count)])
+        voxels = np.array(voxels)
+        centroids[channel] = np.mean(voxels, axis=0)
     return centroids
 
 
@@ -105,7 +102,8 @@ def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath):
     :return elec_labels_DKT: array of contacts labeled with Desikan-Killiany atlas
     """
     try:
-        from img_pipe.img_pipe import img_pipe
+        sys.path.insert(0, "/Users/ChesterHuynh/img_pipe")
+        from img_pipe import img_pipe
     except ImportError as e:
         print(e, flush=True)
         return
@@ -168,6 +166,8 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
 
     wm_label = np.zeros(anatomy_orig.shape[0], dtype=bool)
     bm_label = np.zeros(anatomy_orig.shape[0], dtype=bool)
+    # Add two columns in anatomy to store boolean for whether voxel is
+    # white matter or brain matter
     anatomy = np.zeros((anatomy_orig.shape[0], anatomy_orig.shape[1] + 2), dtype=object)
     for i, label in enumerate(anatomy_orig):
         chan = str(label[0][0]).strip()
@@ -185,9 +185,53 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
     return anatomy
 
 
+def _brightness_frequencies(self, maskedCT):
+    brightness_freqs = {}
+    pdb.set_trace()
+    for i in range(len(maskedCT)):
+        for j in range(len(maskedCT)):
+            for k, vox in enumerate(maskedCT):
+                if vox in points_by_brightness:
+                    brightness_freqs[vox] += 1
+                else:
+                    brightness_freqs[vox] = 1
+    return brightness_freqs
+
+
+def _compute_brightness_distribution(self, maskedCT, start=0.4, stop=0.8, step=0.05):
+    """
+    Compute the brightness distribution and color label ones that are 0 and 1
+    """
+    brightness_freqs = self._brightness_frequencies(maskedCT / 255)
+    threshvec = np.arange(start, stop, step)
+    fig, axs = plt.subplots(len(threshvec))
+    for i, thr in enumerate(threshvec):
+        abovethr = {"thresholds": [], "frequencies": []}
+        belowthr = {"thresholds": [], "frequencies": []}
+        for k, v in brightness_freqs.items():
+            if k >= thr:
+                abovethr["thresholds"].append(k)
+                abovethr["frequencies"].append(v)
+            else:
+                belowthr["thresholds"].append(k)
+                belowthr["frequencies"].append(v)
+        abovethr = pd.DataFrame.from_dict(abovethr)
+        belowthr = pd.DataFrame.from_dict(belowthr)
+        sns.distplot(abovethr["frequencies"], label="Above threshold", ax=axs[i])
+        sns.distplot(belowthr["frequencies"], label="Below threshold", ax=axs[i])
+        axs[i].set(title=f"Brightness Distribution at Threshold={thr}",
+                xlabel="Brightness",
+                ylabel="Number of Points")
+    # Save figure
+    # plt.savefig(figurefilepath,
+    #             box_inches="tight")
+
+
+
+
 def main(ctimgfile, brainmaskfile, elecinitfile):
     # hyperparameters:
-    radius = 15  # cylindrical boundary - WHAT IS THE MEANING OF 15? MM?, M?
+    radius = 4  # radius (in voxels) of cylindrical boundary
     # Threshold for applying naive clustering algorithm
     threshold = 0.630  # WHAT IS THE RANGE OF THRESHOLD VALUES? [0,1]?
     gap_tolerance = 12.5  # maximum distance between two adjacent nodes
@@ -220,6 +264,7 @@ def main(ctimgfile, brainmaskfile, elecinitfile):
     # Runs threshold-based clustering algorithm over brainmasked CT
     # for thresholds between 0.62 and 0.65 with a step of 0.005
     clusters, numobj = np.array(clusterpipe.find_clusters(brainmasked_ct_data))
+
 
     # Cluster by cylinder
     clusters_by_cylinder, sparse_elec_labels, sparse_elec_coords = grouppipe.cylinder_filter(

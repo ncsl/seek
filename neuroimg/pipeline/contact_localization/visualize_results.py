@@ -10,7 +10,7 @@ import numpy.linalg as npl
 import seaborn as sns
 from sklearn.decomposition import PCA
 
-sys.path.append("../../")
+sys.path.append("../../../")
 
 from neuroimg.base.utils.data_structures_utils import MatReader
 from neuroimg.processing.electrode_clustering.mask import MaskVolume

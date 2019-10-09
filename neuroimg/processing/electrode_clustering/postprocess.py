@@ -3,6 +3,7 @@ import numpy.linalg as npl
 from nibabel.affines import apply_affine
 from scipy.stats import norm
 from sklearn.decomposition import PCA
+import pdb
 
 
 class PostProcessor:
@@ -229,13 +230,24 @@ class PostProcessor:
         return dists
 
     @classmethod
+    def _strip_nans(self, channels):
+        """
+        Strip any nan values from a channel array
+        :param channels: numpy array of channels and possibly nan values
+        :return temp: numpy array with the same channels excluding nan values
+        """
+        channels = np.array(channels)
+        temp = [chan for chan in channels if not np.isnan(chan).all()]
+        return temp
+
+    @classmethod
     def reassign_labels(self, centroid_dict):
         """
         Assigns labels which follow the standard labeling convention for SEEG electrodes.
         :param centroid_dict: A dictionary where the keys are each electrode name and values
         are dictionaries with entries of channels (does not necessarily have to follow standard
         labeling convention) and their corresponding coordinates.
-        :return: result: A dictionary where channels are correctly assigned and sorted in order.
+        :return result: A dictionary where channels are correctly assigned and sorted in order.
         If the electrode name has a ', then the first entry in the dictionary will be the smallest
         number (usually 1) and every subsequent entry will be larger. Otherwise, the first entry
         in the dictionary will be the largest number and every subsequent entry will be smaller.
@@ -244,17 +256,16 @@ class PostProcessor:
         result = {}
         for electrode in centroid_dict:
             result[electrode] = {}
-            pca.fit(np.array(list(centroid_dict[electrode].values())))
-            centroids_pca = pca.transform(
-                np.array(list(centroid_dict[electrode].values()))
-            )
+            chans = np.array(list(centroid_dict[electrode].values()))
+            stripped_chans = self._strip_nans(chans)
+            pca.fit(stripped_chans)
+            centroids_pca = pca.transform(stripped_chans)
             centroids_new = pca.inverse_transform(centroids_pca)
             sorted_idxs = np.argsort(centroids_new[:, 0])
-            sorted_orig_ids = np.array(list(centroid_dict[electrode].keys()))[
-                sorted_idxs
-            ]
+            sorted_orig_ids = np.array(list(centroid_dict[electrode].keys()))[sorted_idxs]
+
+            # assert len(sorted_idxs) == len(centroid_dict[electrode].keys())
             # Left side of the brain
-            assert len(sorted_idxs) == len(centroid_dict[electrode].keys())
             if electrode[-1] == "'":
                 for i, chan in enumerate(sorted_idxs):
                     new_id = electrode + str(i + 1)
