@@ -17,6 +17,22 @@ from neuroimg.processing.electrode_clustering.mask import MaskVolume
 
 
 def summary_PCA_plots(figurefilepath, final_centroids, elec_in_brain):
+    """
+    Construct PCA plots to visually show deviations in predicted centroids
+    and manually labeled centroids.
+
+    Parameters
+    ----------
+        figurefilepath: str
+            File path to save the image to
+
+        final_centroids: dict()
+            Dictionary of the centroidsfor each contact along an electrode
+            found by clustering algorithm.
+
+        elec_in_brain: dict()
+            Dictionary of manually labeled centroids
+    """
     if not os.path.exists(os.path.dirname(figurefilepath)):
         os.mkdir(os.path.dirname(figurefilepath))
 
@@ -85,10 +101,17 @@ def l2_error(figurefilepath, final_centroids, elec_in_brain):
     """
     Function that computes the Euclidean distance (l2) between centroids computed by algorithm
     and the validation data, which are centroids manually inputted by user.
-    :param final_centroids: dictionary of properly labeled centroids grouped by electrode
-    in CT voxels
-    :param elec_in_brain: electrode coordinates in CT voxels
-    :return error_per_channel: error in each channel (accurate prediction is between 0-3)
+    
+    Parameters
+    ----------
+    final_centroids: dict()
+        dictionary of properly labeled centroids grouped by electrode in CT voxels
+    elec_in_brain: dict()
+        electrode coordinates in CT voxels
+
+    Returns
+    -------
+        Error in each channel (accurate prediction is between 0-3).
     """
     numelectrodes = len(final_centroids.keys())
     print(f"Plotting results for {numelectrodes} electrodes.")
@@ -139,15 +162,26 @@ def l2_error(figurefilepath, final_centroids, elec_in_brain):
 
 def load_data(elecfile):
     """
-    Load each brain image scan as a NiBabel image object
-    :param elecfile: Space-delimited text file of contact labels and contact
-        coordinates in mm space
-    :return:
-        ct_img: NiBabel image object of CT scan input
-        brainmask_ct: NiBabel image object of brain mask in CT
-        elecinitfile: A dictionary of contact coordinates in mm space. Keys are
-            individual contact labels, and values are the corresponding coordinates
-            in mm space.
+    Load each brain image scan as a NiBabel image object.
+    
+    Parameters
+    ----------
+    elecfile: str
+        Path to space-delimited text file of contact labels and contact
+        coordinates in mm space.
+    
+    Returns
+    -------
+        ct_img: NiBabel image object
+            NiBabel image object of CT scan input.
+
+        brainmask_ct: NiBabel image object
+            NiBabel image object of brain mask in CT.
+
+        elecinitfile: dict()
+            A dictionary of contact coordinates in mm space. Keys are
+            individual contact labels, and values are the corresponding 
+            coordinates in mm space.
     """
 
     elec_coords_mm = {}

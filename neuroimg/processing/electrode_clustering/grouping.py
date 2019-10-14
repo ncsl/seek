@@ -7,18 +7,34 @@ class Cluster:
     @classmethod
     def find_clusters(self, maskedCT, pointsOnly=True):
         """
-        Function to apply a thresholding based algorithm and then running connected clustering using skimage.
-        This will then return clusters of voxels that belong to distinct contact groups.
+        Function to apply a thresholding based algorithm and then running 
+        connected clustering using skimage. This will then return clusters 
+        of voxels that belong to distinct contact groups.
         http://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.label
-        :param maskedCT: Brain-masked CT scan
-        :param brainmaskinCT: Brain mask in CT space
-        :param pointsOnly: True if it is desired to remove background and return a list of all contact coordinates.
-            If False, the function returns a 3D array of the same dimensions as the inputted image array.
-        :return:
-            allclusters: Dictionary of clusters found at various thresholds. The keys are threshold values;
+
+        Parameters
+        ----------
+            maskedCT: np.ndarray of 3 dimensions
+                Brain-masked CT scan
+        
+            brainmaskinCT: np.ndarray of 3 dimensions with same shape as masked CT
+                Brain mask in CT space
+        
+            pointsOnly: bool
+                True if it is desired to remove background and return 
+                a list of all contact coordinates. If False, the function 
+                returns a 3D array of the same dimensions as the inputted 
+                image array.
+        
+        Returns
+        -------
+            allclusters: dict()
+                Dictionary of clusters found at various thresholds. The keys are threshold values;
                 the values are dictionaries of clusters with their corresponding list of coordinates
                 of points in each clsuter.
-            numobj: List of the number of clusters found for the range of thresholds
+
+            numobj: List[int]
+                List of the number of clusters found for the range of thresholds
         """
         masktype = "keep"
 
@@ -78,15 +94,28 @@ class CylindricalGroup:
     @classmethod
     def test_point_in_cylinder(self, pt1, pt2, r, q):
         """
-        Tests whether a point q lies within a cylinder with points pt1 and pt2 that
-        define the axis of the cylinder and a specified radius r. Used formulas provided here:
+        Tests whether a point q lies within a cylinder with points 
+        pt1 and pt2 that define the axis of the cylinder and a 
+        specified radius r. Used formulas provided here:
         https://www.flipcode.com/archives/Fast_Point-In-Cylinder_Test.shtml
 
-        :param pt1: first point to bound the cylinder
-        :param pt2: second point to bound the cylinder
-        :param r: the radius of the cylinder
-        :param q: the point to test whether it lies within the cylinder
-        :return True if q lies in the cylinder, else False.
+        Parameters
+        ----------
+        pt1: np.ndarray of dimensions 1 x 3 
+            first point to bound the cylinder.
+        
+        pt2: np.ndarray of dimensions 1 x 3
+            second point to bound the cylinder.
+        
+        r: int
+            the radius of the cylinder
+        
+        q: np.ndarray of dimensions 1 x 3
+            the point to test whether it lies within the cylinder
+        
+        Returns
+        -------
+            True if q lies in the cylinder, else False.
         """
         vec = pt2 - pt1
         length_sq = npl.norm(vec) ** 2
@@ -108,26 +137,52 @@ class CylindricalGroup:
         """
         Tests whether a list of points lies within a cylinder with points pt1 and pt2 that
         define the axis of the cylinder and a specified radius r.
-        :param pt1: first point to bound the cylinder
-        :param pt2: second point to bound the cylinder
-        :param r: the radius of the cylinder
-        :param points_to_test: list of points to test
-        :return: points_list: all the points that lie in the cylinder
+
+        Parameters
+        ----------
+            pt1: np.ndarray of dimensions 1 x 3 
+                first point to bound the cylinder.
+            
+            pt2: np.ndarray of dimensions 1 x 3
+                second point to bound the cylinder.
+            
+            r: int
+                the radius of the cylinder.
+
+            points_to_test: List[np.ndarray of dimensions 1 x 3]
+                list of points to test.
+        
+        Returns
+        -------
+            List of all the points that lie in the cylinder
         """
         return [point for point in points_to_test if self.test_point_in_cylinder(pt1, pt2, r, point)]
 
     @classmethod
     def cylinder_filter(self, elec_in_brain, clusters, radius):
         """
-        Applies a cylindrical filtering on the raw threshold-based clustering by generating
-        bounding cylinders given a sparse collection of contact coordinates.
-        :param elec_in_brain: Dictionary of contacts that fall within the brain
-        :param clusters: Dictionary of clusters found at a given threshold
-        :param radius: Radius with which to form cylindrical boundaries
-        :return: clusters_by_cylinder: Dictionary of clusters sorted by the cylinder/electrode
-            in which they fall. The keys of the dictionary are electrode labels, the values of the
-            dictionary are the cluster points from the threshold-based clustering algorithm that
-            fell into a cylinder.
+        Applies a cylindrical filtering on the raw threshold-based 
+        clustering by generating bounding cylinders given a sparse 
+        collection of contact coordinates.
+        
+        Parameters
+        ----------
+        elec_in_brain: dict()
+            Dictionary of contacts that fall within the brain.
+        
+        clusters: dict()
+            Dictionary of clusters found at a given threshold.
+        
+        radius: dict()
+            Radius with which to form cylindrical boundaries.
+
+        Returns
+        -------
+            Dictionary of clusters sorted by the cylinder/electrode
+            in which they fall. The keys of the dictionary are electrode 
+            labels, the values of the dictionary are the cluster points 
+            from the threshold-based clustering algorithm that fell 
+            into a cylinder.
         """
 
         # Separate components of all points found in clustering algorithm

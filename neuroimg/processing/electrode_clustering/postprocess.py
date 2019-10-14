@@ -17,18 +17,34 @@ class PostProcessor:
         qtile=0.875,
     ):
         """
-        Truncates the clusters closest to the skull, which tend to be oversized, and
-        separates clusters that appear to have grouped two contacts together. The cluster is filtered
-        with 90% quantile filtering, using a coordinate from user-input as the mean for the cluster.
-        :param clusters: Dictionary of clusters found at a given threshold
-        :param elec_in_brain: Dictionary of all the contacts found within the brain
-        :param cylindrical_filter_clusters: Dictionary of points first sorted by the cylindrical electrode
-            in which they fall and then the cluster in which they fall. The keys of the dictionary are
-            electrode labels, the values of the dictionary are the cluster points from the threshold-based
+        Truncates the clusters closest to the skull, which tend to be 
+        oversized, and separates clusters that appear to have grouped two 
+        contacts together. The cluster is filtered with 90% quantile filtering, 
+        using a coordinate from user-input as the mean for the cluster.
+
+        Parameters
+        –---------
+        clusters: dict()
+            Dictionary of clusters found at a given threshold.
+        
+        elec_in_brain: dict()
+            Dictionary of all the contacts found within the brain.
+        
+        cylindrical_filter_clusters: dict()
+            Dictionary of points first sorted by the cylindrical electrode
+            in which they fall and then the cluster in which they fall. 
+            The keys of the dictionary are electrode labels, the values of 
+            the dictionary are the cluster points from the threshold-based
             clustering algorithm that fell into a cylinder.
-        :param sparse_elec_labels: sparse dictionary of electrode labels given by user input
-        :return: clusters: Updated dictionary of clusters found along each electrode
-            with the skull clusters having been resized through quantile filtering and large clusters having been separated.
+
+        sparse_elec_labels: dict()
+            sparse dictionary of electrode labels given by user input
+        
+        Returns
+        -------
+            Updated dictionary of clusters found along each electrode
+            with the skull clusters having been resized through quantile 
+            filtering and large clusters having been separated.
 
         """
         # Group cylindrically bounded clusters by electrodes
@@ -155,9 +171,18 @@ class PostProcessor:
     def fill_one_point(self, p1, p2):
         """
         Computes midpoint.
-        :param: p1: first point to compute midpoint.
-        :param: p2: second point to compute midpoint.
-        :return: midpoint of the two specified points.
+
+        Parameters
+        –---------
+        p1: np.ndarray of dimension 1 x 3
+            first point to compute midpoint.
+        
+        p2: np.ndarray of dimension 1 x 3
+            second point to compute midpoint.
+        
+        Returns
+        -------
+            midpoint of the two specified points.
         """
         return (p1 + p2) / 2
 
@@ -165,9 +190,18 @@ class PostProcessor:
     def fill_two_points(self, p1, p2):
         """
         Computes trisection points.
-        :param: p1: first point to compute trisection points.
-        :param: p2: second point to compute trisection points.
-        :return: two points which trisect the line segment formed by p1 and p2
+
+        Parameters
+        ----------
+        p1: np.ndarray of dimension 1 x 3
+            first point to compute trisection points.
+
+        p2: np.ndarray of dimension 1 x 3
+            second point to compute trisection points.
+
+        Returns
+        -------
+            Two points which trisect the line segment formed by p1 and p2.
         """
         return (2 / 3) * p1 + (1 / 3) * p2, (1 / 3) * p1 + (2 / 3) * p2
 
@@ -175,9 +209,18 @@ class PostProcessor:
     def fill_three_points(self, p1, p2):
         """
         Computes quadrisection points.
-        :param: p1: first point to compute quadrisection points.
-        :param: p2: second point to compute qaudrisection points.
-        :return: three points which quadrisect the line segment formed by p1 and p2
+
+        Parameters
+        –---------
+        p1: np.ndarray of dimension 1 x 3
+            first point to compute quadrisection points.
+
+        p2: np.ndarray of dimension 1 x 3
+            second point to compute qaudrisection points.
+        
+        Returns
+        -------
+            Three points which quadrisect the line segment formed by p1 and p2.
         """
         return (
             (1 / 4) * p1 + (3 / 4) * p2,
@@ -188,13 +231,28 @@ class PostProcessor:
     @classmethod
     def shift_downstream_labels(self, electrode_name, idx, shift_factor, chan_dict):
         """
-        Helps to relabel downstream labels from a given index to maintain sorted order.
-        :param: electrode_name: string that contains electrode name (e.g. L')
-        :param: idx: index from which shifting should start
-        :param: shift_factor: how much to shift downstream labels by
-        :param: chan_dict: dictionary of channels with standard labeling and their
-        corresponding coordinates.
-        :return: updated version of chan_dict with shifted labels to allow for easy insertion
+        Helps to relabel downstream labels from a given index to maintain 
+        sorted order.
+        
+        Parameters
+        ----------
+        electrode_name: str
+            string that contains electrode name (e.g. L')
+
+        idx: int 
+            index from which shifting should start
+        
+        shift_factor: int
+            how much to shift downstream labels by
+        
+        chan_dict: dict
+            dictionary of channels with standard labeling and their
+            corresponding coordinates.
+        
+        Returns
+        -------
+            Updated version of chan_dict with shifted labels to allow 
+            for easy insertion.
         """
         start = len(list(chan_dict.keys()))
         for i in range(start, idx - 1, -1):
@@ -209,12 +267,19 @@ class PostProcessor:
         """
         Compute the distances between a given channel and its immediate neighbor on the right.
         The last channel has a distance set to 0.
-        :param: centroid_dict: a dictionary with keys being electrode names and values being
-        dictionaries consisting of entries of channel names and their corresponding centroid
-        coordinates.
-        :return: dists: a dictionary with keys being electrode names and values being dictionaries
-        consisting of entries of channel names and their corresponding distances as described
-        above.
+
+        Parameters
+        ----------
+        centroid_dict: dict()
+            a dictionary with keys being electrode names and values being
+            dictionaries consisting of entries of channel names and their 
+            corresponding centroid coordinates.
+        
+        Returns
+        -------
+            a dictionary with keys being electrode names and values being 
+            dictionaries consisting of entries of channel names and their 
+            corresponding distances as described above.
         """
 
         dists = {elec: {} for elec in list(centroid_dict.keys())}
@@ -232,9 +297,16 @@ class PostProcessor:
     @classmethod
     def _strip_nans(self, channels):
         """
-        Strip any nan values from a channel array
-        :param channels: numpy array of channels and possibly nan values
-        :return temp: numpy array with the same channels excluding nan values
+        Strip any nan values from a channel array.
+
+        Parameters
+        ----------
+        channels: np.ndarray of dimension 1 x n
+            numpy array of channels and possibly nan values.
+        
+        Returns
+        -------
+            numpy array with the same channels excluding nan values.
         """
         channels = np.array(channels)
         temp = [chan for chan in channels if not np.isnan(chan).all()]
@@ -243,14 +315,25 @@ class PostProcessor:
     @classmethod
     def reassign_labels(self, centroid_dict):
         """
-        Assigns labels which follow the standard labeling convention for SEEG electrodes.
-        :param centroid_dict: A dictionary where the keys are each electrode name and values
-        are dictionaries with entries of channels (does not necessarily have to follow standard
-        labeling convention) and their corresponding coordinates.
-        :return result: A dictionary where channels are correctly assigned and sorted in order.
-        If the electrode name has a ', then the first entry in the dictionary will be the smallest
-        number (usually 1) and every subsequent entry will be larger. Otherwise, the first entry
-        in the dictionary will be the largest number and every subsequent entry will be smaller.
+        Assigns labels which follow the standard labeling convention for SEEG 
+        electrodes.
+
+        Parameters
+        ----------
+            centroid_dict: dict()
+                A dictionary where the keys are each electrode name and values
+                are dictionaries with entries of channels (does not necessarily 
+                have to follow standard labeling convention) and their 
+                corresponding coordinates.
+
+        Returns
+        -------
+            A dictionary where channels are correctly assigned and sorted in 
+            order. If the electrode name has a ', then the first entry in the 
+            dictionary will be the smallest number (usually 1) and every 
+            subsequent entry will be larger. Otherwise, the first entry
+            in the dictionary will be the largest number and every subsequent 
+            entry will be smaller.
         """
         pca = PCA()
         result = {}
@@ -286,17 +369,26 @@ class PostProcessor:
         """
         Assist in filling in gaps in clustering.
 
-        :param: final_centroids: a dictionary with keys being electrode names and values being
-        dictionaries consisting of entries of channel names and their corresponding centroid
-        coordinates.
-        :param: dists: a dictionary with keys being electrode names and values being dictionaries
-        consisting of entries of channel names and their corresponding distance to their most
-        immediate neighbor on their right. The rightmost channel for a given electrode has a
-        distance set to 0.
-        :param: gap_tolerance: maximum distance we will allow two adjacent contacts to be before
-        no longer considering them adjacent.
-        :return: updated versions of final_centroids with adjusted labeling and dists with updated
-        distances.
+        Parameters
+        –---------
+        final_centroids: dict()
+            a dictionary with keys being electrode names and values being
+            dictionaries consisting of entries of channel names and their 
+            corresponding centroid coordinates.
+        dists: dict()
+            a dictionary with keys being electrode names and values being 
+            dictionaries consisting of entries of channel names and their 
+            corresponding distance to their most immediate neighbor on their 
+            right. The rightmost channel for a given electrode has a distance 
+            set to 0.
+        gap_tolerance: dict()
+            maximum distance we will allow two adjacent contacts to be before
+            no longer considering them adjacent.
+        
+        Returns
+        -------
+            Updated versions of final_centroids with adjusted labeling and 
+            dists with updated distances.
         """
         for electrode in dists:
             for i, chan in enumerate(dists[electrode]):
@@ -377,10 +469,15 @@ class PostProcessor:
         Convert finalized dictionary of centroids from CT voxel coordinates
         to xyz coordinates.
 
-        :param final_centroids_voxels: Properly labeled dictioanry of centroids
-        in CT voxel coordinates
-        :return final_centroids_xyz: Properly labeled dictionary of centroids in
-        xyz coordinates
+        Parameters
+        ----------
+
+        final_centroids_voxels: dict()
+            Properly labeled dictioanry of centroids in CT voxel coordinates.
+        
+        Returns
+        -------
+            Properly labeled dictionary of centroids in xyz coordinates
         """
         final_centroids_xyz = {}
         for electrode in final_centroids_voxels.keys():
