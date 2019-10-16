@@ -17,6 +17,12 @@ from neuroimg.processing.electrode_clustering.mask import MaskVolume
 from neuroimg.processing.electrode_clustering.grouping import Cluster, CylindricalGroup
 from neuroimg.processing.electrode_clustering.postprocess import PostProcessor
 
+try:
+    sys.path.insert(0, "/Users/ChesterHuynh/img_pipe")
+    from img_pipe import img_pipe
+except ImportError as e:
+    print(e, flush=True)
+    return
 
 def load_data(ct_scan, brainmask_ct):
     """
@@ -101,13 +107,6 @@ def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath):
     :return elec_labels_destriuex: array of contacts labeled with Destriuex atlas
     :return elec_labels_DKT: array of contacts labeled with Desikan-Killiany atlas
     """
-    try:
-        sys.path.insert(0, "/Users/ChesterHuynh/img_pipe")
-        from img_pipe import img_pipe
-    except ImportError as e:
-        print(e, flush=True)
-        return
-
     destriuexname = os.path.splitext(os.path.basename(destrieuxfilepath))[0]
     dktname = os.path.splitext(os.path.basename(dktfilepath))[0]
 
