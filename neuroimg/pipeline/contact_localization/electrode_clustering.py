@@ -12,10 +12,10 @@ from nibabel.affines import apply_affine
 
 sys.path.append("../../../")
 
-from neuroimg.base.utils.data_structures_utils import MatReader
-from neuroimg.processing.electrode_clustering.mask import MaskVolume
-from neuroimg.processing.electrode_clustering.grouping import Cluster, CylindricalGroup
-from neuroimg.processing.electrode_clustering.postprocess import PostProcessor
+from neuroimg.base.utils import MatReader
+from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
+from neuroimg.localize_contacts.electrode_clustering.grouping import Cluster, CylindricalGroup
+from neuroimg.localize_contacts.electrode_clustering.postprocess import PostProcessor
 
 try:
     sys.path.insert(0, "/Users/ChesterHuynh/img_pipe")

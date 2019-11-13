@@ -12,8 +12,8 @@ from sklearn.decomposition import PCA
 
 sys.path.append("../../../")
 
-from neuroimg.base.utils.data_structures_utils import MatReader
-from neuroimg.processing.electrode_clustering.mask import MaskVolume
+from neuroimg.base.utils import MatReader
+from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
 
 
 def summary_PCA_plots(figurefilepath, final_centroids, elec_in_brain):

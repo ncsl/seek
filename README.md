@@ -48,7 +48,7 @@ Anaconda and Python3.6+ :
         # optionally separate install
         conda config --add channels bioconda
         conda config --add channels conda-forge
-        conda install numpy scipy matplotlib pytest scikit-learn pandas seaborn nibabel mne snakemake ipykernel
+        conda install numpy scipy matplotlib pytest scikit-learn skimage pandas seaborn nibabel mne snakemake ipykernel
         conda install -c flyem-forge/label/upgrade201904 marching_cubes
         conda env export > environment.yml
         
