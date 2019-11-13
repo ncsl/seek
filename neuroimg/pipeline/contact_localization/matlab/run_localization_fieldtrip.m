@@ -1,3 +1,7 @@
+clear all
+close all
+clc
+
 % REFERENCE: http://www.fieldtriptoolbox.org/tutorial/human_ecog
 %% Setup Paths and Directories for Registration Results and Raw EEG Data
 % ------- CHANGE THIS ------
@@ -9,22 +13,30 @@ addpath("/home/ksr/Downloads/spm12") % SPM12 pacakge
 
 % ------- CHANGE THIS ------
 % neuroimaging output data dir
-RESULTS_DIR = '/home/ksr/Desktop/contact_localization/freesurfer_output/efri/';
+studyname = 'epilepsy'; % 'efri'
+RESULTS_DIR = fullfile('/home/ksr/Desktop/contact_localization/freesurfer_output/', studyname);
 % RESULTS_DIR = '/home/adam2392/hdd/data/neuroimaging/freesurfer_output/";
 
 % ------- CHANGE THIS ------
 % raw data EEG dir
-RECORD_DATADIR = '/home/ksr/Desktop/contact_localization/raw'; % '/home/ksr/Desktop/contact_localization/freesurfer_output/epilepsy/';
+RECORD_DATADIR = '/home/ksr/Desktop/contact_localization/freesurfer_output/epilepsy/'; % '/home/ksr/Desktop/contact_localization/freesurfer_output/epilepsy/';
 
 % ------- CHANGE THIS ------
 % subj id to analyze
-subjID = 'efri16';      % e.g. efri01, pt01, umf001, tvb1
-center = 'efri';         % e.g. cc, efri, nih, etc.
-your_initials = 'BAR';
+subjID = 'nl12';      % e.g. efri01, pt01, umf001, tvb1
+your_initials = 'CH';
 
 % Reading electrode names, or reading from eeg files -> get channel names 
-data_id= [upper(subjID) '_WAR_SES1_Setup.mat']; % [subjID '_sz_chanlabels.mat'];
-load(fullfile('/home/ksr/Desktop/contact_localization/raw/', subjID, data_id)); % load(fullfile('/home/ksr/Desktop/contact_localization/raw/', data_id));
+% data_id= [upper(subjID) '_WAR_SES1_Setup.mat']; 
+data_id = [subjID '_sz_6p_chanlabels.mat'];
+chandata = load(fullfile(RECORD_DATADIR, data_id)); % load(fullfile('/home/ksr/Desktop/contact_localization/raw/', data_id));
+elec_names = chandata.chanlabels;
+elec_labels = cellstr(elec_names);
+% for i=1:size(elec_names,2)
+%     elec_labels{i} = convertCharsToStrings(elec_names(:, i)); %, '\W', '');
+% end
+% elec_names = num2cell(elec_names, 1);
+% size(elec_names, 1), size(elec_names, 2));
 
 %% Initialize Variablees and Parameters
 % run setup of global variables to make tool GUI work
@@ -40,7 +52,7 @@ CTDIR = fullfile(SUBJDIR, 'CT');
 MRIDIR = fullfile(SUBJDIR, 'mri');
 
 % output filepath for your electrode localization
-elec_coords_filepath = fullfile(CTDIR, [subjID your_initials '_elec_initialize.mat']);
+elec_coords_filepath = fullfile(SUBJDIR, 'elecs', [subjID your_initials '_elec_initialize.mat']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CHOOSE EITHER COREGISTERED CT FILE, OR ORIGINAL CT IMAGE FILE.
@@ -48,21 +60,22 @@ elec_coords_filepath = fullfile(CTDIR, [subjID your_initials '_elec_initialize.m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ctimgfile = fullfile(strcat('CT_IN_T1_mgz.nii.gz'))
 ctimgfile = fullfile(strcat('CT.nii'));
-t1imgfile = fullfile(strcat('T1.nii'));
+% t1imgfile = fullfile(strcat('T1.nii'));
 
 %% Read in Original MRI Scan
-t1_img = ft_read_mri(fullfile(MRIDIR, t1imgfile));
+% t1_img = ft_read_mri(fullfile(MRIDIR, t1imgfile));
 
 %% Read in Original CT Scan
 ct_img = ft_read_mri(fullfile(CTDIR, ctimgfile));
 
 %% Electrode Placement - Runs GUI
 % EEG labels read from an eeg file
+% rawdatafilepath = './la04_ictal.edf';
 % hdr = ft_read_header(rawdatafilepath);
 
 % configuration for your GUI to read
 cfg         = [];
-cfg.channel = elec_name; % Labels from analyzed data not eeg. If from eeg file hdr.label;
+cfg.channel = elec_labels; % Labels from analyzed data not eeg. If from eeg file hdr.label;
 elecf = ft_electrodeplacement(cfg, ct_img);
 
 % print out the structure that stores your electrode contact points - xyz

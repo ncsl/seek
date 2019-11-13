@@ -73,12 +73,16 @@ configfile: "../config/localconfig.yaml"
 FREESURFER_HOME = os.getenv("FREESURFER_HOME") or ''
 MRTRIX3_HOME = os.getenv("MRTRIX3_HOME") or ''
 HOME_DIR="../../"
-SCRIPTS_UTIL_DIR = "../../neuroimg/format"
+SCRIPTS_UTIL_DIR = "../../format"
 ATLAS=['dk', 'destrieux']
 
 ''' USER DEFINED DIRECTORIES TO STORE FINAL DATA IN ORGANIZED SUBFOLDERS '''
 FS_PATIENT_OUTPUT_DIR = os.path.join(config['fs_outputdatadir'],
                                      "{patient_id}")
+
+# DIRECTORY for raw ACPC
+ACPCDIR = os.path.join(config["rawdatadir"], "{patient_id}", "acpc")
+FS_ACPCDIR = os.path.join(config["fs_outputdatadir"], "{patient_id}", "acpc")
 
 # key-word parameters
 parc = "aparc.a2009s"
@@ -123,26 +127,42 @@ in the USA.
 """
 rule prep_recon:
     params:
-        fs_subj_dir = os.path.join(FS_PATIENT_OUTPUT_DIR),
+        # fs_subj_dir = os.path.join(FS_PATIENT_OUTPUT_DIR),
+        # MRI_FOLDER=os.path.join(config['rawdatadir'], "{patient_id}", "ft"), #########################################################
         CT_FOLDER=os.path.join(config['rawdatadir'],"{patient_id}", "postct"),
-        MRI_FOLDER=os.path.join(config['rawdatadir'], "{patient_id}", "premri"),
         CTDIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "CT"),
         elecsdir = os.path.join(FS_PATIENT_OUTPUT_DIR, "elecs"),
-        acpcdir = os.path.join(FS_PATIENT_OUTPUT_DIR, "acpc"),
+        acpcdir = FS_ACPCDIR,
+        ACPC_IMAGE = os.path.join(ACPCDIR, "{patient_id}_MR_acpc.nii"),
+        FS_ACPC_FPATH = os.path.join(FS_PATIENT_OUTPUT_DIR, "acpc", "{patient_id}_MR_acpc.nii"),
     output:
         CT_NIFTI_IMG=os.path.join(FS_PATIENT_OUTPUT_DIR, "CT",
                                          "CT.nii"),
-        MRI_MGZ_IMG=os.path.join(FS_PATIENT_OUTPUT_DIR, "mri", "orig",
-                                                        "001.mgz"),
+        # MRI_MGZ_IMG=os.path.join(FS_PATIENT_OUTPUT_DIR, "mri", "orig",
+        #                                                 "001.mgz"),
         # MRI_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
         #                                             "T1.nii")
     shell:
         "mkdir -p {params.CTDIR};"
         "mkdir -p {params.elecsdir};"
         "mkdir -p {params.acpcdir};"
-        "mrconvert {params.MRI_FOLDER} {output.MRI_MGZ_IMG};"
+        "cp {params.ACPC_IMAGE} {params.FS_ACPC_FPATH};"
         "mrconvert {params.CT_FOLDER} {output.CT_NIFTI_IMG};"
+        # "mrconvert {params.MRI_FOLDER} {output.MRI_MGZ_IMG};" #########################################################
         # "mrconvert {output.MRI_MGZ_IMG} {output.MRI_NIFTI_IMG};"
+
+rule use_acpc_specified_input:
+    params:
+        ACPC_IMAGE = os.path.join(ACPCDIR, "{patient_id}_MR_acpc.nii"),
+        FS_ACPC_FPATH = os.path.join(FS_PATIENT_OUTPUT_DIR, "acpc", "{patient_id}_MR_acpc.nii"),
+    output:
+        # MRI_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
+        #                      "T1.nii"),
+        MRI_MGZ_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
+                                   "orig",
+                           "001.mgz"),
+    shell:
+        "mrconvert {params.ACPC_IMAGE} {output.MRI_MGZ_IMG};"
 
 """
 Rule to run more then one MRI/CT Scan for Movement Correction
@@ -184,6 +204,7 @@ rule reconstruction:
         outsuccess_file=os.path.join(config['fs_outputdatadir'],
                                 "{patient_id}_recon_success.txt")
     shell:
+        "echo 'hi';"
         "export SUBJECTS_DIR={params.SUBJECTS_DIR}; \
             SUBJECTS_DIR={params.SUBJECTS_DIR};"
         "recon-all " \
@@ -264,14 +285,16 @@ rule create_subcortical_volume:
         "touch {output.subcort_success_flag_file};"
 
 rule convert_nifti:
-    params:
-        MRI_MGZ_IMG=os.path.join(FS_PATIENT_OUTPUT_DIR, "mri", "orig",
-                                                        "001.mgz"),
-        fs_subj_dir = os.path.join(FS_PATIENT_OUTPUT_DIR),
-        CT_FOLDER=os.path.join(config['rawdatadir'],"{patient_id}", "postct"),
-        MRI_FOLDER=os.path.join(config['rawdatadir'], "{patient_id}", "premri"),
+    input:
+        MRI_MGZ_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
+                           "orig",
+                           "001.mgz"),
+    # params:
+    #     fs_subj_dir = os.path.join(FS_PATIENT_OUTPUT_DIR),
+    #     CT_FOLDER=os.path.join(config['rawdatadir'],"{patient_id}", "postct"),
+    #     MRI_FOLDER=os.path.join(config['rawdatadir'], "{patient_id}", "premri"),
     output:
         MRI_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
                                                     "T1.nii")
     shell:
-        "mrconvert {params.MRI_MGZ_IMG} {output.MRI_NIFTI_IMG};"
+        "mrconvert {input.MRI_MGZ_IMG} {output.MRI_NIFTI_IMG};"
