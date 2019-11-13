@@ -1,4 +1,4 @@
-Contributing to EEGIO
+Contributing to NeuroimgPipe
 ======================
 
 (adopted from scikit-learn)
@@ -6,15 +6,15 @@ Contributing to EEGIO
 The latest contributing guide is available in the repository at
 `docs/contributing.rst`, or online at:
 
-There are many ways to contribute to EEGIO, with the most common ones
+There are many ways to contribute to NeuroimgPipe, with the most common ones
 being contribution of code or documentation to the project. Improving the
 documentation is no less important than improving the library itself. If you
 find a typo in the documentation, or have made improvements, do not hesitate to
 submit a GitHub pull request. Documentation can be found under the
-[doc/](https://github.com/adam2392/eegio/tree/master/doc) directory.
+[doc/](https://github.com/adam2392/neuroimg_pipeline/tree/master/doc) directory.
 
 But there are many other ways to help. In particular answering queries on the
-[issue tracker](https://github.com/adam2392/eegio/issues), and
+[issue tracker](https://github.com/adam2392/neuroimg_pipeline/issues), and
 investigating bugs are very valuable contributions that decrease the burden on 
 the project maintainers.
 

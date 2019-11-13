@@ -12,25 +12,37 @@ from nibabel.affines import apply_affine
 
 sys.path.append("../../../")
 
-from neuroimg.base.utils.data_structures_utils import MatReader
-from neuroimg.processing.electrode_clustering.mask import MaskVolume
-from neuroimg.processing.electrode_clustering.grouping import Cluster, CylindricalGroup
-from neuroimg.processing.electrode_clustering.postprocess import PostProcessor
+from neuroimg.base.utils import MatReader
+from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
+from neuroimg.localize_contacts.electrode_clustering.grouping import Cluster, CylindricalGroup
+from neuroimg.localize_contacts.electrode_clustering.postprocess import PostProcessor
 
+try:
+    sys.path.insert(0, "/Users/ChesterHuynh/img_pipe")
+    from img_pipe import img_pipe
+except ImportError as e:
+    print(e, flush=True)
+    return
 
 def load_data(ct_scan, brainmask_ct):
     """
-    Load each brain image scan as a NiBabel image object
-    :param ct_scan: Nifti image file of CT scan
-    :param brainmask_ct: Nifti image file of corresponding brain mask in CT voxels
-    :param elecinitfile: Space-delimited text file of contact labels and contact
-        coordinates in mm space
-    :return:
-        ct_img: NiBabel image object of CT scan input
-        brainmask_ct: NiBabel image object of brain mask in CT
-        elecinitfile: A dictionary of contact coordinates in mm space. Keys are
-            individual contact labels, and values are the corresponding coordinates
-            in mm space.
+    Load each brain image scan as a NiBabel image object.
+
+    Parameters
+    –––-------
+        ct_scan: str
+            Path to Nifti image file of CT scan.
+
+        brainmask_ct: str
+            Path to Nifti image file of corresponding brain mask in CT voxels.
+    
+    Returns
+    -------
+        ct_img: NiBabel image object
+            NiBabel image object of CT scan input.
+
+        brainmask_ct: NiBabel image object
+            NiBabel image object of brain mask in CT.
     """
 
     ct_img = nb.load(ct_scan)
@@ -40,13 +52,18 @@ def load_data(ct_scan, brainmask_ct):
 
 def load_elecs_data(elecfile):
     """
-    Load each brain image scan as a NiBabel image object
-    :param elecfile: Space-delimited text file of contact labels and contact
-        coordinates in mm space
-    :return:
-        ct_img: NiBabel image object of CT scan input
-        brainmask_ct: NiBabel image object of brain mask in CT
-        elecinitfile: A dictionary of contact coordinates in mm space. Keys are
+    Load each brain image scan as a NiBabel image object.
+
+    Parameters
+    ----------
+        elecfile: str
+            Space-delimited text file of contact labels and contact
+            coordinates in mm space.
+    
+    Returns
+    -------
+        elecinitfile: dict()
+            A dictionary of contact coordinates in mm space. Keys are
             individual contact labels, and values are the corresponding coordinates
             in mm space.
     """
@@ -78,11 +95,18 @@ def load_elecs_data(elecfile):
 
 def compute_centroids(chanxyzvoxels):
     """
-    Function to return the centroids of each channel label given a list of voxels per channel label.
+    Function to return the centroids of each channel label given a list 
+    of voxels per channel label.
 
-    :param chanxyzvoxels: dictionary of electrodes and corresponding dictionary
-    of channels to centroid xyz coordinates.
-    :return: centroids: list of centroids
+    Parameters
+    ----------
+        chanxyzvoxels: dict()
+            dictionary of electrodes and corresponding dictionary of channels
+            to centroid xyz coordinates.
+    
+    Returns
+    -------
+        list of centroids.
     """
     centroids = {}
     for channel, voxels in chanxyzvoxels.items():
@@ -96,18 +120,20 @@ def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath):
     Map centroids to an atlas (e.g. Desikan-Killiany, Destriuex) and apply
     white matter and brain masks to label centroids as white matter or out of
     the brain.
-    :param final_centroids_xyz: dictionary of electrodes and corresponding
-    dictionary of channels to centroid xyz coordinates.
-    :return elec_labels_destriuex: array of contacts labeled with Destriuex atlas
-    :return elec_labels_DKT: array of contacts labeled with Desikan-Killiany atlas
-    """
-    try:
-        sys.path.insert(0, "/Users/ChesterHuynh/img_pipe")
-        from img_pipe import img_pipe
-    except ImportError as e:
-        print(e, flush=True)
-        return
 
+    Parameters
+    –---------
+        final_centroids_xyz: dict()
+            dictionary of electrodes and corresponding dictionary of channels 
+            to centroid xyz coordinates.
+    
+    Returns
+    -------
+        elec_labels_destriuex: dict()
+            array of contacts labeled with Destriuex atlas.
+        elec_labels_DKT: dict()
+            array of contacts labeled with Desikan-Killiany atlas.
+    """
     destriuexname = os.path.splitext(os.path.basename(destrieuxfilepath))[0]
     dktname = os.path.splitext(os.path.basename(dktfilepath))[0]
 
@@ -146,10 +172,25 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
     """
     Apply white matter and brainmask labels to final centroid output and save
     in .mat files
-    :param final_centroids_xyz:
-    :param elecfile:
-    :param PATIENT_OUTPUT_DIR:
-    :return elec_labels:
+
+    Parameters
+    ----------
+    final_centroids_xyz: dict()
+        Dictionary of predicted centroids in xyz (mm) coordinates.
+
+    atlasfilepath: str
+        Path to .txt file to save the xyz coordinates of centroids.
+    
+    wmpath: str
+        Path to white matter mask file.
+    
+    bmpath: str
+        Path to brain matter mask file.
+
+    Returns
+    -------
+        Anatomy matrix with columns of coordinates, anatomical label, 
+        and channel label.
     """
     dat = scipy.io.loadmat(atlasfilepath)
     elecmatrix = dat["elecmatrix"]
@@ -186,21 +227,51 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
 
 
 def _brightness_frequencies(self, maskedCT):
+    """
+    Compute the brightness frequencies for all intensity values.
+
+    Parameters
+    ----------
+    maskedCT: np.ndarray of 3 dimensions.
+        Normalized, brain-masked CT 3D image array.
+
+    Returns
+    -------
+        Dictionary of voxel intensities and the number of points 
+        with that frequency.
+    """
     brightness_freqs = {}
     pdb.set_trace()
     for i in range(len(maskedCT)):
         for j in range(len(maskedCT)):
-            for k, vox in enumerate(maskedCT):
-                if vox in points_by_brightness:
-                    brightness_freqs[vox] += 1
+            for k, intens in enumerate(maskedCT):
+                if intens in points_by_brightness:
+                    brightness_freqs[intens] += 1
                 else:
-                    brightness_freqs[vox] = 1
+                    brightness_freqs[intens] = 1
     return brightness_freqs
 
 
 def _compute_brightness_distribution(self, maskedCT, start=0.4, stop=0.8, step=0.05):
     """
-    Compute the brightness distribution and color label ones that are 0 and 1
+    Compute the brightness distribution and color label ones that are 0 and 1,
+    and save the plot of this distribution.
+
+    Parameters
+    ----------
+    maskedCT: np.ndarray of 3 dimensions.
+        Normalized, brain-masked CT 3D image array.
+
+    start: float
+        Starting threshold to use when partitioning points into groups of
+        above and below threshold value.
+
+    stop: float
+        Threshold to stop at when partitioning points into groups of above
+        and below threshold value.
+    
+    step: float
+        Amount to increment the threshold by.
     """
     brightness_freqs = self._brightness_frequencies(maskedCT / 255)
     threshvec = np.arange(start, stop, step)
@@ -231,9 +302,8 @@ def _compute_brightness_distribution(self, maskedCT, start=0.4, stop=0.8, step=0
 
 def main(ctimgfile, brainmaskfile, elecinitfile):
     # hyperparameters:
-    radius = 4  # radius (in voxels) of cylindrical boundary
-    # Threshold for applying naive clustering algorithm
-    threshold = 0.630  # WHAT IS THE RANGE OF THRESHOLD VALUES? [0,1]?
+    radius = 4  # radius (in CT voxels) of cylindrical boundary
+    threshold = 0.630  # Between 0 and 1. Zero-out voxels with intensity < threshold.
     gap_tolerance = 12.5  # maximum distance between two adjacent nodes
 
     # Load data
