@@ -22,7 +22,7 @@ try:
     from img_pipe import img_pipe
 except ImportError as e:
     print(e, flush=True)
-    return
+    raise Exception("No imgpipe. Run pip install on README for img_pipe.")
 
 def load_data(ct_scan, brainmask_ct):
     """
