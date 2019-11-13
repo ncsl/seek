@@ -7,12 +7,10 @@
 <a href="https://codeclimate.com/github/adam2392/neuroimg_pipeline/maintainability"><img src="https://api.codeclimate.com/v1/badges/2c7d5910e89350b967c8/maintainability" /></a>
 ![GitHub repo size](https://img.shields.io/github/repo-size/adam2392/neuroimg_pipeline)
 
-By: Adam Li
-
-Date: 10/4/18
-
-This repo describes Sarma lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT, DTI 
+This repo describes Sarma lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). 
+
+For incorporation of DTI data, see ndmeg: https://github.com/neurodata/ndmg
 
 <!-- MarkdownTOC -->
 
@@ -30,21 +28,20 @@ and iEEG data (ECoG, or SEEG).
 - [ ] Add support for MRICloud running using R-script. Possibly convert to Python script.
 - [ ] Create Python pipeline for running everything, or submit PR to Chang Lab's to run SEEG.
 - [ ] Create unit and integration tests using pytest that test: pipeline in both snakemake and Python
-- [ ] Add visualization features for SEEG that can be synced into Chang's lab repo. 
 - [ ] Add Docker container for project
 
 # Setup and Installation
 There are a couple of tools that you need to install in your system before everything is working. You ar recommended to use a Linux based OS. 
 Follow links and tutorials on each respective tool to install. Preferably this is done via Docker, or Singularity, but if not, then:
 
-0. Anaconda and Python3.6+ 
-    * Conda (https://docs.anaconda.com/anaconda/install/)
-    * This is mainly necessary to run img_pipe (ECoG localization with Chang Lab repo), snakemake, and any Python wrapper code
+Anaconda and Python3.6+ :
+   * Conda (https://docs.anaconda.com/anaconda/install/)
+   * This is mainly necessary to run img_pipe (ECoG localization with Chang Lab repo), snakemake, and any Python wrapper code
     
     i. Conda env
     
     
-        # probably doesn't work
+        # create environment
         conda create -n neuroimgpipe
         conda activate neuroimgpipe
         
@@ -63,9 +60,6 @@ Follow links and tutorials on each respective tool to install. Preferably this i
         conda install -c conda-forge pyvtk
         pip install img-pipe==2019.3.15.2
     
-   iii. (Optional and outdated) Update all submodules
-
-        git submodule update --init --recursive 
         
 ## Modules to Install     
 1. Reconstruction
@@ -100,14 +94,20 @@ Follow links and tutorials on each respective tool to install. Preferably this i
 8. (Optional) Nonlinear Registration NDREG:
     * NDReg (https://github.com/neurodata/ndreg)
 
+# Data Organization
+
+We use BIDS. 
+See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
+
 # Running Your Own Image Patients
 
 0. Setup your raw data directory for your patient to be read in:
     
     * /patient_id/ 
-        - /premri/
-        - /postct/
-        - /dti/ (optional)
+        - /mri/
+        - /ct/
+
+    For more details, see BIDS: https://bids.neuroimaging.io/
 
 1. (Optional) Setup data directory for your patient in FreeSurfer format:
 
@@ -157,12 +157,6 @@ data directories of your data. This is under pipeline/config/localconfig.yaml
         <open run_localization_fieldtrip_v3.m>
         <change directories and variables>
         <run GUI>        
-
-## Docker and Singularity
-TBD
-1. Freesurfer with FSL
-2. MRTrix3
-3. NDReG
 
 # Pipeline Description
 At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry, regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
@@ -228,8 +222,8 @@ At a high level, this pipeline is taking neuroimaging data of a patient to produ
     TBD
 
 # Localizing Electrodes Process 
-For NCSL specific Readme, check out: [link](docs/contact_localization/localizingelectrodes_instructions.pdf)
-For general-purpose Readme, check out: [link](docs/contact_localization/localizingelectrodes_instructions.pdf)
+For NCSL specific Readme, check out: [link](docs/extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
+For general-purpose Readme, check out: [link](docs/extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
 
 To only localize contacts using fieldtrip toolbox GUI, or img_pipe GUI, then follow these instructions:
 1.	Install SPM (preferably 12): https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
@@ -266,27 +260,6 @@ language.
 
     sphinx-quickstart
     
-
-# Testing
-Install testing and formatting libs:
-
-    conda install sphinx black pytest pytest-cov coverage 
-    pip install coverage-badge
-
-Run tests
-
-    black neuroimg/*
-    black tests/*
-    pylint ./neuroimg/
-    pre-commit run black --all-files
-    pytest --cov-config=.coveragerc --cov=./neuroimg/ tests/
-    coverage-badge -f -o coverage.svg
-
-Tests is organized into two directories right now: 
-1. eegio/: consists of all unit tests related to various parts of eegio.
-2. api/: consists of various integration tests tha test when eegio should work.
-
-
 ### Pipeline Process Visualized
 [DAG of Pipeline in Snakemake](neuroimg/pipeline/dag_neuroimaging_pipeline.pdf)
 
