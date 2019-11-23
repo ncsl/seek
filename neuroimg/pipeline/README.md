@@ -32,9 +32,3 @@ By: Adam Li
     algorithm and then mapping contacts into their corresponding MRI space.
     
     The pipeline will assume contacts are in native MRI space.
-
-4. (Optional) Diffusion_Tensor_Imaging
-
-
-5. (Optional) Resection_Ablation_Estimation
-
