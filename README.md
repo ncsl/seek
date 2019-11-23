@@ -6,6 +6,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/adam2392/neuroimg_pipeline)
 <a href="https://codeclimate.com/github/adam2392/neuroimg_pipeline/maintainability"><img src="https://api.codeclimate.com/v1/badges/2c7d5910e89350b967c8/maintainability" /></a>
 ![GitHub repo size](https://img.shields.io/github/repo-size/adam2392/neuroimg_pipeline)
+[![DOI](https://zenodo.org/badge/160566959.svg)](https://zenodo.org/badge/latestdoi/160566959)
 
 This repo describes Sarma lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). 
