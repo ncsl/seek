@@ -6,23 +6,21 @@ import nibabel as nb
 import numpy as np
 import numpy.linalg as npl
 import scipy.io
-import pdb
-import inspect
 from nibabel.affines import apply_affine
 
 sys.path.append("../../../")
 
-from neuroimg.base.utils.data_structures_utils import MatReader
-from neuroimg.processing.electrode_clustering.mask import MaskVolume
-from neuroimg.processing.electrode_clustering.grouping import Cluster, CylindricalGroup
-from neuroimg.processing.electrode_clustering.postprocess import PostProcessor
+from neuroimg.base.utils import MatReader
+from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
+from neuroimg.localize_contacts.electrode_clustering.grouping import Cluster, CylindricalGroup
+from neuroimg.localize_contacts.electrode_clustering.postprocess import PostProcessor
 
 try:
     sys.path.insert(0, "/Users/ChesterHuynh/img_pipe")
     from img_pipe import img_pipe
 except ImportError as e:
     print(e, flush=True)
-    return
+    raise Exception("No imgpipe. Run pip install on README for img_pipe.")
 
 def load_data(ct_scan, brainmask_ct):
     """
@@ -35,7 +33,7 @@ def load_data(ct_scan, brainmask_ct):
 
         brainmask_ct: str
             Path to Nifti image file of corresponding brain mask in CT voxels.
-    
+
     Returns
     -------
         ct_img: NiBabel image object
@@ -59,13 +57,13 @@ def load_elecs_data(elecfile):
         elecfile: str
             Space-delimited text file of contact labels and contact
             coordinates in mm space.
-    
+
     Returns
     -------
         elecinitfile: dict()
             A dictionary of contact coordinates in mm space. Keys are
-            individual contact labels, and values are the corresponding coordinates
-            in mm space.
+            individual contact labels, and values are the corresponding
+            coordinates in mm space.
     """
 
     elec_coords_mm = {}
@@ -74,28 +72,26 @@ def load_elecs_data(elecfile):
         with open(elecfile) as f:
             for l in f:
                 row = l.split()
-                elec_coords_mm[row[0]] = np.array(
-                    [float(row[1]), float(row[2]), float(row[3])]
-                )
+                elec_coords_mm[row[0]] = np.array(list(map(float, row)))
     else:
         matreader = MatReader()
         data = matreader.loadmat(elecfile)
 
         eleclabels = data["eleclabels"]
         elecmatrix = data["elecmatrix"]
-        print(elecmatrix.shape)
-        # print(elecmatrix)
-        # print(eleclabels)
+        print(f"Electrode matrix shape: {elecmatrix.shape}")
+
         for i in range(len(eleclabels)):
             elec_coords_mm[eleclabels[i][0].strip()] = elecmatrix[i]
-    print(elec_coords_mm.keys())
-    # print(elecmatrix)
+
+    print(f'Electrode labels: {elec_coords_mm.keys()}')
+
     return elec_coords_mm
 
 
 def compute_centroids(chanxyzvoxels):
     """
-    Function to return the centroids of each channel label given a list 
+    Function to return the centroids of each channel label given a list
     of voxels per channel label.
 
     Parameters
@@ -103,7 +99,7 @@ def compute_centroids(chanxyzvoxels):
         chanxyzvoxels: dict()
             dictionary of electrodes and corresponding dictionary of channels
             to centroid xyz coordinates.
-    
+
     Returns
     -------
         list of centroids.
@@ -124,9 +120,9 @@ def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath):
     Parameters
     –---------
         final_centroids_xyz: dict()
-            dictionary of electrodes and corresponding dictionary of channels 
+            dictionary of electrodes and corresponding dictionary of channels
             to centroid xyz coordinates.
-    
+
     Returns
     -------
         elec_labels_destriuex: dict()
@@ -180,16 +176,16 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
 
     atlasfilepath: str
         Path to .txt file to save the xyz coordinates of centroids.
-    
+
     wmpath: str
         Path to white matter mask file.
-    
+
     bmpath: str
         Path to brain matter mask file.
 
     Returns
     -------
-        Anatomy matrix with columns of coordinates, anatomical label, 
+        Anatomy matrix with columns of coordinates, anatomical label,
         and channel label.
     """
     dat = scipy.io.loadmat(atlasfilepath)
@@ -215,90 +211,18 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
         for elec in final_centroids_xyz:
             if chan in final_centroids_xyz[elec].keys():
                 pt = apply_affine(affine, final_centroids_xyz[elec][chan])
-                wm_label[i] = wm_dat[int(pt[0]), int(pt[1]), int(pt[2])] > 0
-                bm_label[i] = bm_dat[int(pt[0]), int(pt[1]), int(pt[2])] > 0
-    anatomy[:, 0 : anatomy_orig.shape[1]] = anatomy_orig
+                wm_label[i] = wm_dat[list(map(int, pt))] > 0
+                bm_label[i] = bm_dat[list(map(int, pt))] > 0
+    anatomy[:, :anatomy_orig.shape[1]] = anatomy_orig
     anatomy[:, anatomy_orig.shape[1]] = wm_label
     anatomy[:, anatomy_orig.shape[1] + 1] = bm_label
 
-    save_dict = {"elecmatrix": elecmatrix, "anatomy": anatomy, "eleclabels": eleclabels}
+    save_dict = {"elecmatrix": elecmatrix,
+                 "anatomy": anatomy,
+                 "eleclabels": eleclabels
+    }
     scipy.io.savemat(atlasfilepath, mdict=save_dict)
     return anatomy
-
-
-def _brightness_frequencies(self, maskedCT):
-    """
-    Compute the brightness frequencies for all intensity values.
-
-    Parameters
-    ----------
-    maskedCT: np.ndarray of 3 dimensions.
-        Normalized, brain-masked CT 3D image array.
-
-    Returns
-    -------
-        Dictionary of voxel intensities and the number of points 
-        with that frequency.
-    """
-    brightness_freqs = {}
-    pdb.set_trace()
-    for i in range(len(maskedCT)):
-        for j in range(len(maskedCT)):
-            for k, intens in enumerate(maskedCT):
-                if intens in points_by_brightness:
-                    brightness_freqs[intens] += 1
-                else:
-                    brightness_freqs[intens] = 1
-    return brightness_freqs
-
-
-def _compute_brightness_distribution(self, maskedCT, start=0.4, stop=0.8, step=0.05):
-    """
-    Compute the brightness distribution and color label ones that are 0 and 1,
-    and save the plot of this distribution.
-
-    Parameters
-    ----------
-    maskedCT: np.ndarray of 3 dimensions.
-        Normalized, brain-masked CT 3D image array.
-
-    start: float
-        Starting threshold to use when partitioning points into groups of
-        above and below threshold value.
-
-    stop: float
-        Threshold to stop at when partitioning points into groups of above
-        and below threshold value.
-    
-    step: float
-        Amount to increment the threshold by.
-    """
-    brightness_freqs = self._brightness_frequencies(maskedCT / 255)
-    threshvec = np.arange(start, stop, step)
-    fig, axs = plt.subplots(len(threshvec))
-    for i, thr in enumerate(threshvec):
-        abovethr = {"thresholds": [], "frequencies": []}
-        belowthr = {"thresholds": [], "frequencies": []}
-        for k, v in brightness_freqs.items():
-            if k >= thr:
-                abovethr["thresholds"].append(k)
-                abovethr["frequencies"].append(v)
-            else:
-                belowthr["thresholds"].append(k)
-                belowthr["frequencies"].append(v)
-        abovethr = pd.DataFrame.from_dict(abovethr)
-        belowthr = pd.DataFrame.from_dict(belowthr)
-        sns.distplot(abovethr["frequencies"], label="Above threshold", ax=axs[i])
-        sns.distplot(belowthr["frequencies"], label="Below threshold", ax=axs[i])
-        axs[i].set(title=f"Brightness Distribution at Threshold={thr}",
-                xlabel="Brightness",
-                ylabel="Number of Points")
-    # Save figure
-    # plt.savefig(figurefilepath,
-    #             box_inches="tight")
-
-
-
 
 def main(ctimgfile, brainmaskfile, elecinitfile):
     # hyperparameters:
@@ -313,7 +237,7 @@ def main(ctimgfile, brainmaskfile, elecinitfile):
     ct_data = ct_img.get_fdata()
     bm_ct_data = bm_ct_img.get_fdata()
 
-    # define pipeline objects to run algorithm
+    # Define pipeline objects to run algorithm
     maskpipe = MaskVolume()
     clusterpipe = Cluster()
     grouppipe = CylindricalGroup()
@@ -328,15 +252,14 @@ def main(ctimgfile, brainmaskfile, elecinitfile):
     elecvoxels_in_brain = maskpipe.filter_electrodes_bm(
         elec_coords_mm, brainmasked_ct_img
     )
-    # get all voxel clouds per electrode
+    # Get all voxel clouds per electrode
     voxels_per_electrode = maskpipe.sort_contacts(elecvoxels_in_brain)
 
     # Runs threshold-based clustering algorithm over brainmasked CT
     # for thresholds between 0.62 and 0.65 with a step of 0.005
     clusters, numobj = np.array(clusterpipe.find_clusters(brainmasked_ct_data))
 
-
-    # Cluster by cylinder
+    # Cluster by cylindrical boundaries
     clusters_by_cylinder, sparse_elec_labels, sparse_elec_coords = grouppipe.cylinder_filter(
         elecvoxels_in_brain, clusters[threshold], radius
     )
@@ -352,7 +275,8 @@ def main(ctimgfile, brainmaskfile, elecinitfile):
     # Compute centroids for filling gaps
     centroids = {}
     for electrode in processed_clusters:
-        centroids[electrode] = compute_centroids(processed_clusters[electrode])
+        centroid = compute_centroids(processed_clusters[electrode])
+        centroids[electrode] = centroid
     centroids = postprocesspipe.reassign_labels(centroids)
 
     dists = postprocesspipe.compute_dists(centroids)

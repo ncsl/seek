@@ -1,41 +1,24 @@
 ############## define directories that we work with #############
-# home directory that every dataset sits in
+# home directory that every dataset sits in -> fileutils sets the BIDS structure
 basedatadir:
-  "/home/adam2392/hdd2/data/neuroimaging/"
+  "/home/ksr/Desktop/contact_localization/efri/"
 
 rawdatadir:
-#  "/home/ksr/Desktop/contact_localization/raw"
+    "/home/ksr/Desktop/contact_localization/efri/raw_msb/"
 # "/Users/ChesterHuynh/sarmalab/contact_localization_proj/rawdata"
-  "/home/adam2392/hdd2/data/neuroimaging/raw"
+ # "/home/adam2392/hdd2/data/neuroimaging/raw"
 # "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/raw/"
-
-############# define FreeSurfer Subject Directory #############
-fs_outputdatadir:
-#    "/home/ksr/Desktop/contact_localization/freesurfer_output"
-# "/Users/ChesterHuynh/sarmalab/contact_localization_proj/fs_outputdata"
-  "/home/adam2392/hdd2/data/neuroimaging/freesurfer_output/"
-# "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/freesurfer_output/"
 
 ############# define list of files to run this for #############
 patients:
   [
-#    'pt1', 'pt2', 'pt3', 'pt6', 'pt8', 'pt10', 'pt11', 'pt12', 'pt13', 'pt14', 'pt15', 'pt16', 'pt17',
-# 'la03',
-#   'la04',
-# 'la05',
-  'la02',
-  'la06',
-  'la07',
-  'la08',
-  'la09',
-  'la10',
-  'la11',
-  'la12',
-  'la13',
-  'la15',
-  'la16',
-  'la17',
-  'la23',
-#    'la21',
-#    'la22',
+#      'efri02',
+#     'efri06',
+#      'efri10',
+#      'efri13',
+     'efri07',
+     'efri09',
+      'efri14',
+     'efri18',
+      'efri20',
 ]
