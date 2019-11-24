@@ -15,7 +15,7 @@ install:
   - conda config --add channels bioconda
   - conda config --add channels conda-forge
   - conda install numpy scipy matplotlib pytest scikit-learn pandas seaborn nibabel mne snakemake ipykernel scikit-image
-  - conda install -c flyem-forge/label/upgrade201904 marching_cubes
+#  - conda install -c flyem-forge/label/upgrade201904 marching_cubes
   # run conda /pip installation of packages
   - conda install -c anaconda natsort pylint flake8
 # command to run tests
