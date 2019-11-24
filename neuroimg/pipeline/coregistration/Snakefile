@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.append("../../../")
-from neuroimg.pipeline.fileutils import get_freesurfer_dir
+from neuroimg.pipeline.fileutils import get_freesurfer_dir, get_freesurfer_patient_dir
 
 """
 export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
@@ -15,7 +15,7 @@ configfile: "../config/localconfig.yaml"
 
 ''' USER DEFINED DIRECTORIES TO STORE FINAL DATA IN ORGANIZED SUBFOLDERS '''
 # get the freesurfer patient directory
-FS_PATIENT_OUTPUT_DIR = get_freesurfer_dir(config)
+FS_PATIENT_OUTPUT_DIR = get_freesurfer_patient_dir(config)
 FSOUT_MRI_FOLDER = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri")
 FSOUT_CT_FOLDER = os.path.join(FS_PATIENT_OUTPUT_DIR, "CT")
 #
@@ -39,9 +39,8 @@ rule all:
         # MAPPED BRAIN MASK TO CT SPACE
         brainmask_inct_file = expand(os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
                                     patient_id=config['patients']),
-        wm_inct_outputfile_nifti = expand(os.path.join(FSOUT_CT_FOLDER, "wm_in_ct.nii"),
-                                    patient_id=config['patients']),
-
+        # wm_inct_outputfile_nifti = expand(os.path.join(FSOUT_CT_FOLDER, "wm_in_ct.nii"),
+        #                             patient_id=config['patients']),
     shell:
         "echo 'done'"
 

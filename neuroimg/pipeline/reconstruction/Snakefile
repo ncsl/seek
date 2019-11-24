@@ -141,19 +141,19 @@ rule reconstruction:
         MRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
     params:
         patient="{patient_id}",
-        SUBJECTS_DIR=FS_PATIENT_OUTPUT_DIR,
+        SUBJECTS_DIR=FS_OUTPUT_DIR,
     output:
         outsuccess_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_recon_success.txt")
     shell:
         "echo 'hi';"
         "export SUBJECTS_DIR={params.SUBJECTS_DIR};" \
         "SUBJECTS_DIR={params.SUBJECTS_DIR};"
-        "recon-all " \
-            "-cw256 " \
-            "-i {input.MRI_MGZ_IMG} " \
-            "-subjid {params.patient} " \
-            "-all "\
-            "-parallel -openmp 4;"
+        # "recon-all " \
+        #     "-cw256 " \
+        #     "-i {input.MRI_MGZ_IMG} " \
+        #     "-subjid {params.patient} " \
+        #     "-all "\
+        #     "-parallel -openmp 4;"
         "touch {output.outsuccess_file}"
 
 """
