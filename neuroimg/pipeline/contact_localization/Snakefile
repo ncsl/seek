@@ -116,7 +116,24 @@ rule find_electrodes_on_CT:
             "{params.fsdir} " \
             "{params.patid};"
 
-
+# parser.add_argument(
+# "chanxyz_file",
+# help = "The output datafile with all the electrode centroid points labeled.",
+# )
+# parser.add_argument(
+# "clustered_points_file",
+# help = "The output datafile with all the electrode points clustered.",
+# )
+# parser.add_argument("clustered_voxels_file", help="the voxels output datafile")
+# parser.add_argument(
+# "orgclustered_points_file",
+# help = "The output datafile with all the electrode points clustered.",
+# )
+# parser.add_argument("orgclustered_voxels_file", help="the voxels output datafile")
+#
+# parser.add_argument("binarized_ct_volume", help="The binarized CT volume.")
+# parser.add_argument("fsdir", help="The freesurfer output diretroy.")
+# parser.add_argument("patid")
 """
 Rule for conversion .mat -> .txt
 
