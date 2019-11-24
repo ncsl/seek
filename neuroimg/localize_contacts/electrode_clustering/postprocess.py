@@ -9,10 +9,7 @@ from sklearn.decomposition import PCA
 
 class PostProcessor:
     @classmethod
-    def _group_by_cylinder(
-        self,
-        cylindrical_filter_clusters
-    ):
+    def _group_by_cylinder(self, cylindrical_filter_clusters):
         """
         Groups clusters by electrodes according to cylindrical boundaries.
 
@@ -53,9 +50,7 @@ class PostProcessor:
             cluster_labels_per_electrode[electrode] = []
             for cluster_id in clusters:
                 # Convert every cluster into tuples to be hashable
-                a = map(
-                    tuple, clusters[cluster_id]
-                )
+                a = map(tuple, clusters[cluster_id])
                 b = map(tuple, grouped_cylindrical_clusters[electrode])
                 intxn = list(set(a) & set(b))
                 if len(intxn) > 0:
@@ -75,7 +70,9 @@ class PostProcessor:
         return cluster_sizes_by_electrode
 
     @classmethod
-    def _typeify_abnormalities(self, grouped_cylindrical_clusters, cluster_sizes_by_electrode):
+    def _typeify_abnormalities(
+        self, grouped_cylindrical_clusters, cluster_sizes_by_electrode
+    ):
         merged_clusters, skull_clusters = [], []
         for electrode, cluster_sizes in cluster_sizes_by_electrode.items():
             for i in range(len(cluster_sizes)):
@@ -128,12 +125,20 @@ class PostProcessor:
 
         """
         # Group the cylindrically bounded clusters by electrodes
-        grouped_cylindrical_clusters = self._group_by_cylinder(cylindrical_filter_clusters)
-        grouped_cylindrical_clusters = self._label_cylinder_clusters(grouped_cylindrical_clusters, clusters)
-        cluster_sizes_by_electrode = self._get_cluster_sizes(grouped_cylindrical_clusters, clusters)
+        grouped_cylindrical_clusters = self._group_by_cylinder(
+            cylindrical_filter_clusters
+        )
+        grouped_cylindrical_clusters = self._label_cylinder_clusters(
+            grouped_cylindrical_clusters, clusters
+        )
+        cluster_sizes_by_electrode = self._get_cluster_sizes(
+            grouped_cylindrical_clusters, clusters
+        )
 
         # Identify abnormal clusters
-        merged_clusters, skull_clusters = self._typeify_abnormalities(grouped_cylindrical_clusters, cluster_sizes_by_electrode)
+        merged_clusters, skull_clusters = self._typeify_abnormalities(
+            grouped_cylindrical_clusters, cluster_sizes_by_electrode
+        )
         result = copy.deepcopy(cylindrical_filter_clusters)
 
         print(f"Oversized clusters: {skull_clusters}")
@@ -174,10 +179,11 @@ class PostProcessor:
             for electrode in grouped_cylindrical_clusters:
                 if cluster_id in grouped_cylindrical_clusters[electrode]:
                     if len(sparse_elec_labels[electrode]) < 2:
-                        raise ValueError(f"Unable to split merged cluster for "
-                                         f"electrode {electrode}. "
-                                         f"Please manually label "
-                                         f"the second innermost channel."
+                        raise ValueError(
+                            f"Unable to split merged cluster for "
+                            f"electrode {electrode}. "
+                            f"Please manually label "
+                            f"the second innermost channel."
                         )
                     first_contact_label = sparse_elec_labels[electrode][0]
                     second_contact_label = sparse_elec_labels[electrode][1]
@@ -258,10 +264,7 @@ class PostProcessor:
         -------
             Two points which trisect the line segment formed by p1 and p2.
         """
-        return (
-            (2 / 3) * p1 + (1 / 3) * p2,
-            (1 / 3) * p1 + (2 / 3) * p2
-        )
+        return ((2 / 3) * p1 + (1 / 3) * p2, (1 / 3) * p1 + (2 / 3) * p2)
 
     @classmethod
     def fill_three_points(self, p1, p2):
@@ -403,7 +406,9 @@ class PostProcessor:
             centroids_pca = pca.transform(stripped_chans)
             centroids_new = pca.inverse_transform(centroids_pca)
             sorted_idxs = np.argsort(centroids_new[:, 0])
-            sorted_orig_ids = np.array(list(centroid_dict[electrode].keys()))[sorted_idxs]
+            sorted_orig_ids = np.array(list(centroid_dict[electrode].keys()))[
+                sorted_idxs
+            ]
 
             # assert len(sorted_idxs) == len(centroid_dict[electrode].keys())
             # Left side of the brain
@@ -467,9 +472,7 @@ class PostProcessor:
                     # Shift downstream labels by one
                     midpt_idx = i + 1
                     midpt_id = electrode + str(i + 1)
-                    print(f"Interpolating points for channels: "
-                          f"{midpt_id}"
-                    )
+                    print(f"Interpolating points for channels: " f"{midpt_id}")
                     shift = 1
                     final_centroids[electrode] = self.shift_downstream_labels(
                         electrode, midpt_idx, shift, final_centroids[electrode]
@@ -490,9 +493,8 @@ class PostProcessor:
                     pt1_idx = i + 1
                     pt1_id = electrode + str(i + 1)
                     pt2_id = electrode + str(i + 2)
-                    print(f"Interpolating points for channels: "
-                          f"{pt1_id}, "
-                          f"{pt2_id}"
+                    print(
+                        f"Interpolating points for channels: " f"{pt1_id}, " f"{pt2_id}"
                     )
                     shift = 2
                     final_centroids[electrode] = self.shift_downstream_labels(
@@ -511,10 +513,11 @@ class PostProcessor:
                     pt1_id = electrode + str(i + 1)
                     pt2_id = electrode + str(i + 2)
                     pt3_id = electrode + str(i + 3)
-                    print(f"Interpolating points for channels: "
-                          f"{pt1_id}, "
-                          f"{pt2_id}, "
-                          f"{pt3_id}. "
+                    print(
+                        f"Interpolating points for channels: "
+                        f"{pt1_id}, "
+                        f"{pt2_id}, "
+                        f"{pt3_id}. "
                     )
                     shift = 3
                     final_centroids[electrode] = self.shift_downstream_labels(

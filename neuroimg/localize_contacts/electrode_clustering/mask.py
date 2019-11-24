@@ -54,9 +54,10 @@ class MaskVolume:
         )  # get the inverse affine matrix to go from xyz -> voxels
 
         # Convert contact xyz coordinates to CT voxels
-        elec_coords_CTvox = {label: apply_affine(inv_affine, contact)
-                             for label, contact
-                             in elec_coords_mm.items()}
+        elec_coords_CTvox = {
+            label: apply_affine(inv_affine, contact)
+            for label, contact in elec_coords_mm.items()
+        }
 
         # Filter out electrodes not within brain mask at the voxel level
         elecvoxels_in_brain = {}

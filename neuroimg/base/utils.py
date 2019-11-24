@@ -96,20 +96,20 @@ class NumpyEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if isinstance(
-                obj,
-                (
-                        np.int_,
-                        np.intc,
-                        np.intp,
-                        np.int8,
-                        np.int16,
-                        np.int32,
-                        np.int64,
-                        np.uint8,
-                        np.uint16,
-                        np.uint32,
-                        np.uint64,
-                ),
+            obj,
+            (
+                np.int_,
+                np.intc,
+                np.intp,
+                np.int8,
+                np.int16,
+                np.int32,
+                np.int64,
+                np.uint8,
+                np.uint16,
+                np.uint32,
+                np.uint64,
+            ),
         ):
             return int(obj)
         elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
@@ -385,7 +385,7 @@ def monopolar_to_bipolar(labels, indices=None, data=None):
         iS1 = indices[ind]
         iS2 = indices[ind + 1]
         if (labels[iS1][0] == labels[iS2][0]) and int(
-                re.findall(r"\d+", labels[iS1])[0]
+            re.findall(r"\d+", labels[iS1])[0]
         ) == int(re.findall(r"\d+", labels[iS2])[0]) - 1:
             bipolar_lbls.append(labels[iS1] + "-" + labels[iS2])
             bipolar_inds[0].append(iS1)
@@ -467,7 +467,7 @@ def make_int(x, precision="64"):
 
 
 def copy_object_attributes(
-        obj1, obj2, attr1, attr2=None, deep_copy=False, check_none=False
+    obj1, obj2, attr1, attr2=None, deep_copy=False, check_none=False
 ):
     attr1 = ensure_list(attr1)
     if attr2 is None:

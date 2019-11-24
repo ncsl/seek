@@ -27,7 +27,6 @@ For incorporation of DTI data, see ndmeg: https://github.com/neurodata/ndmg
 # Features
 - [ ] Add Travis.CI testing
 - [ ] Add support for MRICloud running using R-script. Possibly convert to Python script.
-- [ ] Create Python pipeline for running everything, or submit PR to Chang Lab's to run SEEG.
 - [ ] Create unit and integration tests using pytest that test: pipeline in both snakemake and Python
 - [ ] Add Docker container for project
 
@@ -49,7 +48,7 @@ Anaconda and Python3.6+ :
         # optionally separate install
         conda config --add channels bioconda
         conda config --add channels conda-forge
-        conda install numpy scipy matplotlib pytest scikit-learn skimage pandas seaborn nibabel mne snakemake ipykernel
+        conda install numpy scipy matplotlib pytest scikit-learn scikit-image pandas seaborn nibabel mne snakemake ipykernel
         conda install -c flyem-forge/label/upgrade201904 marching_cubes
         conda env export > environment.yml
         
@@ -104,13 +103,16 @@ See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hiera
 
 0. Setup your raw data directory for your patient to be read in:
     
-    * /patient_id/ 
-        - /mri/
-        - /ct/
+    * study_name/
+        - /raw/
+            - /patient_id/ 
+                - /premri/
+                - /postct/
+                - /acpc/ (optional)
 
     For more details, see BIDS: https://bids.neuroimaging.io/
 
-1. (Optional) Setup data directory for your patient in FreeSurfer format:
+0.  Patient in FreeSurfer format explained:
 
     * /patient_id = The subject directory for data ran through FS (e.g. "umf001")
         - /mri/ = Includes the mri-derived image transformations, including the original mri image volume.
@@ -125,32 +127,32 @@ See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hiera
         - /acpc/ = Anterior-commissure & posterior-commissure aligned image volumes. This is generally a common preprocessing step in many pipelines.
         - /connectome/ = Any sort of connectome related files. For example, structural connectivity matrices used for The Virtual Brain.
         
-2. Change config.yaml file (local or cluster) to the respective
+1. Change config.yaml file (local or cluster) to the respective
 data directories of your data. This is under pipeline/config/localconfig.yaml
     
     * define rawdata dir 
     * define FS output data dir (i.e. the FS_SUBJDIR)
 
-3. Run dry-run snakemake to make sure DAG job is constructed properly. Note, that you can only run snakemake commands after installing SnakeMake.
+2. Run dry-run snakemake to make sure DAG job is constructed properly. Note, that you can only run snakemake commands after installing SnakeMake.
     
     * you can run this in each of the subdirectories of pipeline/
         
             snakemake -n # dry run
             snakemake # real run
             
-4. Reconstruction
+3. Reconstruction
 
         cd pipeline/reconstruction
         snakemake -n
         snakemake
 
-5. Coregistration
+4. Coregistration
 
         cd pipeline/coregistration
         snakemake -n
         snakemake
         
-6. Contact Localization
+5. Contact Localization
 
         
         cd pipeline/contact_localization/matlab
@@ -209,16 +211,12 @@ At a high level, this pipeline is taking neuroimaging data of a patient to produ
     For developers contribbuting new rules into the pipeline, add explicit names for data 
     you want merged into the final output, so that new users can easily step in and understand
     what that data point is used for.
-
-5. Diffusion Tensor Imaging (pipeline/diffusion_tensor_imaging):
-
-    TBD
     
-6. Postprocess Analysis (pipeline/postprocess_analysis):
+5. Postprocess Analysis (pipeline/postprocess_analysis):
 
     TBD
 
-7. Resection/Ablation Estimation Volume (pipeline/resection_ablation_estimation):
+6. Resection/Ablation Estimation Volume (pipeline/resection_ablation_estimation):
 
     TBD
 

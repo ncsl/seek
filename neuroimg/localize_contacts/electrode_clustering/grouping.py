@@ -131,7 +131,7 @@ class CylindricalGroup:
 
             # distance squared to the cylinder axis of the cylinder:
             dist_sq = np.dot(testpt, testpt) - (dot * dot / length_sq)
-            if (dist_sq <= radius_sq):
+            if dist_sq <= radius_sq:
                 return True
         return False
 
@@ -159,9 +159,10 @@ class CylindricalGroup:
         -------
             List of all the points that lie in the cylinder
         """
-        return [point
-                for point in points_to_test
-                if self.test_point_in_cylinder(pt1, pt2, r, point)
+        return [
+            point
+            for point in points_to_test
+            if self.test_point_in_cylinder(pt1, pt2, r, point)
         ]
 
     @classmethod
@@ -228,9 +229,10 @@ class CylindricalGroup:
             if numlabels >= 4:
                 second_num = labels[1]
                 next_last_num = labels[-2]
-                print(f"Using two additional channels("
-                      f"{electrode}{second_num} and {electrode}{next_last_num}"
-                      f") from input"
+                print(
+                    f"Using two additional channels("
+                    f"{electrode}{second_num} and {electrode}{next_last_num}"
+                    f") from input"
                 )
 
             first = f"{electrode}{first_num}"
@@ -239,11 +241,7 @@ class CylindricalGroup:
             if second_num and next_last_num:
                 second = f"{electrode}{second_num}"
                 next_last = f"{electrode}{next_last_num}"
-                sparse_elec_labels[electrode] = [first,
-                                                 second,
-                                                 next_last,
-                                                 last
-                ]
+                sparse_elec_labels[electrode] = [first, second, next_last, last]
                 sparse_elec_coords[electrode] = [
                     elec_in_brain[first],
                     elec_in_brain[second],
@@ -252,8 +250,9 @@ class CylindricalGroup:
                 ]
             else:
                 sparse_elec_labels[electrode] = [first, last]
-                sparse_elec_coords[electrode] = [elec_in_brain[first],
-                                                 elec_in_brain[last]
+                sparse_elec_coords[electrode] = [
+                    elec_in_brain[first],
+                    elec_in_brain[last],
                 ]
 
         # Perform cylindrical filtering on the points detected by
