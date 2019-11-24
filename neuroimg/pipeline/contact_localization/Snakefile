@@ -93,6 +93,7 @@ rule find_electrodes_on_CT:
         brainmask_inct_file = os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
         # list of channel points (at least 2 per electrode)
         electrode_initialization_file = os.path.join(FSOUT_ELECS_FOLDER, '{patient_id}_elecxyz.txt'),
+        fs_lut_fpath = os.path.join("../../../data/", "FreeSurferColorLUT.txt")
     params:
         fsdir = FS_PATIENT_OUTPUT_DIR,
         patid = "{patient_id}"
@@ -114,7 +115,8 @@ rule find_electrodes_on_CT:
             "{output.organizedclustered_center_voxels} " \
             "{output.binarized_ct_volume} " \
             "{params.fsdir} " \
-            "{params.patid};"
+            "{params.patid} " \
+            "{input.fs_lut_fpath};"
 
 """
 Rule for conversion .mat -> .txt

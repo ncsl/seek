@@ -106,11 +106,8 @@ def compute_centroids(chanxyzvoxels):
     return centroids
 
 
-def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath):
+def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath, fs_lut_fpath):
     """
-    TODO:
-    1. Pass in explicitly LUT filepath
-
     Map centroids to an atlas (e.g. Desikan-Killiany, Destriuex) and apply
     white matter and brain masks to label centroids as white matter or out of
     the brain.
@@ -137,12 +134,11 @@ def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath):
     convert_fsmesh2mlab(subj_dir=os.path.abspath(os.path.dirname(fspatdir)), subj=patid)
     elec_labels_destriuex = label_elecs(subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
                                         subj=patid, hem="lh",
-                                        fs_dir=os.path.dirname(fspatdir),
+                                        fs_lut_fpath=fs_lut_fpath,
                                         elecfile_prefix=destriuexname, atlas_depth="destriuex"
                                         )
     elec_labels_DKT = label_elecs(subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
-                                  subj=patid, hem="lh",
-                                  fs_dir=os.path.dirname(fspatdir),
+                                  subj=patid, hem="lh", fs_lut_fpath=fs_lut_fpath,
                                   elecfile_prefix=dktname, atlas_depth="desikan-killiany"
                                   )
     return elec_labels_destriuex, elec_labels_DKT
@@ -325,6 +321,7 @@ if __name__ == "__main__":
     parser.add_argument("binarized_ct_volume", help="The binarized CT volume.")
     parser.add_argument("fsdir", help="The freesurfer output diretroy.")
     parser.add_argument("patid")
+    parser.add_argument("fs_lut_fpath")
     parser.add_argument("--wm_native_file", default=None)
     args = parser.parse_args()
 
@@ -340,6 +337,7 @@ if __name__ == "__main__":
     binarized_ct_file = args.binarized_ct_volume
     fsdir = args.fsdir
     patid = args.patid
+    fs_lut_fpath = args.fs_lut_fpath
     wm_native_file = args.wm_native_file
 
     # create electrodes directory if not exist
@@ -371,7 +369,7 @@ if __name__ == "__main__":
 
     # Output labeled .mat files with atlas, white matter, and brainmask information
     elec_labels_destriuex, elec_labels_DKT = apply_atlas(
-        fsdir, destrieuxfilepath, dktfilepath
+        fsdir, destrieuxfilepath, dktfilepath, fs_lut_fpath
     )
 
     # LOOKS LIKE THIS IS REPEATING BUT FOR WM AND BRAINMASK?

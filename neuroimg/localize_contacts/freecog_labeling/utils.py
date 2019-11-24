@@ -85,7 +85,7 @@ def convert_fsmesh2mlab(subj_dir, subj, mesh_name='pial'):
         return out_file
 
 
-def label_elecs(subj_dir, subj, hem, fs_dir, elecfile_prefix='TDT_elecs_all', atlas_surf='desikan-killiany',
+def label_elecs(subj_dir, subj, hem, fs_lut_fpath, elecfile_prefix='TDT_elecs_all', atlas_surf='desikan-killiany',
                 atlas_depth='destrieux',
                 elecs_all=True):
     ''' Automatically labels electrodes based on the freesurfer annotation file.
@@ -268,7 +268,7 @@ def label_elecs(subj_dir, subj, hem, fs_dir, elecfile_prefix='TDT_elecs_all', at
 
         # Get the names of these labels using Freesurfer's lookup table (LUT)
         print("Loading lookup table for freesurfer labels")
-        fid = open(os.path.join(fs_dir, 'FreeSurferColorLUT.txt'))
+        fid = open(fs_lut_fpath)
         LUT = fid.readlines()
         fid.close()
 
