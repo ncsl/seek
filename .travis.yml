@@ -9,18 +9,15 @@ install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-#  - conda update -q conda
-  - conda info -a
-  - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
-  - conda activate test-env
+  - conda create -q -n test-env
+  - conda init bash
+  - source activate test-env
   - conda config --add channels bioconda
   - conda config --add channels conda-forge
-  - conda install numpy scipy matplotlib pytest scikit-learn pandas seaborn nibabel mne snakemake ipykernel
-  - conda install -c flyem-forge/label/upgrade201904 marching_cubes
+  - conda install numpy scipy matplotlib pytest scikit-learn pandas seaborn nibabel mne snakemake ipykernel scikit-image
+#  - conda install -c flyem-forge/label/upgrade201904 marching_cubes
   # run conda /pip installation of packages
-  - conda install -c conda-forge mne
   - conda install -c anaconda natsort pylint flake8
-  - conda install -c bioconda snakemake
 # command to run tests
 script:
   - pytest ./tests

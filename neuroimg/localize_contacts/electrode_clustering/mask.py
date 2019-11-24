@@ -14,9 +14,8 @@ class MaskVolume:
         mask_data: np.ndarray of 3 dimensions
             3D array of brain mask.
 
-        brain_img_data: np.ndarray of 3 dimensions 
+        brain_img_data: np.ndarray of 3 dimensions
             3D array of CT brain image that is the same shape as mask_data.
-        
 
         Returns
         -------
@@ -31,7 +30,8 @@ class MaskVolume:
     @classmethod
     def filter_electrodes_bm(self, elec_coords_mm, brainmasked_ct_img):
         """
-        Filters out electrodes that do not fall within brain matter of a CT image
+        Filters out electrodes that do not fall within brain
+        matter of a CT image.
 
         Parameters
         –---------
@@ -40,7 +40,6 @@ class MaskVolume:
 
         brainmasked_ct_img: NiBabel image object
             A brain-masked CT image in the form of NiBabel image object.
-        
 
         Returns
         -------
@@ -55,9 +54,10 @@ class MaskVolume:
         )  # get the inverse affine matrix to go from xyz -> voxels
 
         # Convert contact xyz coordinates to CT voxels
-        elec_coords_CTvox = {}
-        for label, contact in elec_coords_mm.items():
-            elec_coords_CTvox[label] = apply_affine(inv_affine, contact)
+        elec_coords_CTvox = {
+            label: apply_affine(inv_affine, contact)
+            for label, contact in elec_coords_mm.items()
+        }
 
         # Filter out electrodes not within brain mask at the voxel level
         elecvoxels_in_brain = {}
@@ -72,19 +72,20 @@ class MaskVolume:
     @classmethod
     def sort_contacts(self, elec_in_brain):
         """
-        Groups the individual contacts by the electrode to which they correspond.
-        
+        Groups individual contacts by the electrode to which they correspond.
+
         Parameters
         –---------
         elec_in_brain: dict()
-            A dictionary of contact coordinates in CT voxels that fall 
+            A dictionary of contact coordinates in CT voxels that fall
             within the brain matter.
-        
+
         Returns
         -------
             A dictionary of contact coordinates in CT voxels that
-            fall within the brain. The keys are electrode labels, and the values are lists of
-            the coordinates of all the contacts that correspond to a given electrode.
+            fall within the brain. The keys are electrode labels, and the values
+            are lists of the coordinates of all the contacts that correspond to
+            a given electrode.
         """
         voxels_per_electrode = {}
         for label, contact in elec_in_brain.items():

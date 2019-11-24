@@ -2,7 +2,10 @@
 
 # Data structure manipulations and conversions
 
+import bz2
+import contextlib
 import json
+import pickle
 import re
 from collections import OrderedDict
 from copy import deepcopy
@@ -10,15 +13,6 @@ from datetime import date, datetime
 
 import numpy as np
 import scipy.io
-
-from neuroimg.base.config.config import CalculusConfig
-from neuroimg.base.utils.log_error import (
-    raise_value_error,
-    raise_import_error,
-    initialize_logger,
-)
-
-logger = initialize_logger(__name__)
 
 
 class MatReader:
@@ -151,17 +145,6 @@ def dict_str(d):
         s += "\n" + key + ": " + str(value)
     s += "}"
     return s
-
-
-def isequal_string(a, b, case_sensitive=False):
-    if case_sensitive:
-        return a == b
-    else:
-        try:
-            return a.lower() == b.lower()
-        except AttributeError:
-            logger.warning("Case sensitive comparison!")
-            return a == b
 
 
 def split_string_text_numbers(ls):
@@ -369,59 +352,6 @@ def linear_index_to_coordinate_tuples(linear_index, shape):
         return []
 
 
-def extract_dict_stringkeys(
-    d,
-    keys,
-    modefun="find",
-    two_way_search=False,
-    break_after=CalculusConfig.MAX_INT_VALUE,
-    remove=False,
-):
-    if isequal_string(modefun, "equal"):
-
-        def modefun(x, y):
-            return isequal_string(x, y)
-
-    else:
-        if two_way_search:
-
-            def modefun(x, y):
-                return (x.find(y) >= 0) or (y.find(x) >= 0)
-
-        else:
-
-            def modefun(x, y):
-                return x.find(y) >= 0
-
-    if remove:
-        out_dict = deepcopy(d)
-    else:
-        out_dict = {}
-    keys = ensure_list(keys)
-    counts = 0
-    for key, value in d.items():
-        for k in keys:
-            if modefun(key, k):
-                if remove:
-                    del out_dict[key]
-                    counts += 1
-                else:
-                    out_dict.update({key: value})
-                    counts += 1
-            if counts >= break_after:
-                return out_dict
-    return out_dict
-
-
-def get_val_key_for_first_keymatch_in_dict(name, pkeys, **kwargs):
-    pkeys += ["_".join([name, pkey]) for pkey in pkeys]
-    temp = extract_dict_stringkeys(kwargs, pkeys, modefun="equal", break_after=1)
-    if len(temp) > 0:
-        return temp.values()[0], temp.keys()[0].split("_")[-1]
-    else:
-        return None, None
-
-
 def labels_to_inds(labels, lbls):
     idx = []
     lbls = ensure_list(lbls)
@@ -467,132 +397,6 @@ def monopolar_to_bipolar(labels, indices=None, data=None):
         return bipolar_lbls, bipolar_inds
 
 
-# This function is meant to confirm that two objects assumingly of the
-# same type are equal, i.e., identical
-def assert_equal_objects(obj1, obj2, attributes_dict=None, logger=None):
-    def print_not_equal_message(attr, field1, field2, logger):
-        # logger.error("\n\nValueError: Original and read object field "+ attr + " not equal!")
-        # raise_value_error("\n\nOriginal and read object field " + attr + " not equal!")
-        logger.warning(
-            "Original and read object field "
-            + attr
-            + " not equal!"
-            + "\nOriginal field:\n"
-            + str(field1)
-            + "\nRead object field:\n"
-            + str(field2),
-            logger,
-        )
-
-    if isinstance(obj1, dict):
-
-        def get_field1(obj, key):
-            return obj[key]
-
-        if not (isinstance(attributes_dict, dict)):
-            attributes_dict = dict()
-            for key in obj1.keys():
-                attributes_dict.update({key: key})
-    elif isinstance(obj1, (list, tuple)):
-
-        def get_field1(obj, key):
-            return get_list_or_tuple_item_safely(obj, key)
-
-        indices = range(len(obj1))
-        attributes_dict = dict(zip([str(ind) for ind in indices], indices))
-    else:
-
-        def get_field1(obj, attribute):
-            return getattr(obj, attribute)
-
-        if not (isinstance(attributes_dict, dict)):
-            attributes_dict = dict()
-            for key in obj1.__dict__.keys():
-                attributes_dict.update({key: key})
-    if isinstance(obj2, dict):
-
-        def get_field2(obj, key):
-            return obj.get(key, None)
-
-    elif isinstance(obj2, (list, tuple)):
-
-        def get_field2(obj, key):
-            return get_list_or_tuple_item_safely(obj, key)
-
-    else:
-
-        def get_field2(obj, attribute):
-            return getattr(obj, attribute, None)
-
-    equal = True
-    for attribute in attributes_dict:
-        # print attributes_dict[attribute]
-        field1 = get_field1(obj1, attributes_dict[attribute])
-        field2 = get_field2(obj2, attributes_dict[attribute])
-        try:
-            # TODO: a better hack for the stupid case of an ndarray of a string, such as model.zmode or pmode
-            # For non numeric types
-            if (
-                isinstance(field1, str)
-                or isinstance(field1, list)
-                or isinstance(field1, dict)
-                or (isinstance(field1, np.ndarray) and field1.dtype.kind in "OSU")
-            ):
-                if np.any(field1 != field2):
-                    print_not_equal_message(
-                        attributes_dict[attribute], field1, field2, logger
-                    )
-                    equal = False
-            # For numeric numpy arrays:
-            elif isinstance(field1, np.ndarray) and not field1.dtype.kind in "OSU":
-                # TODO: handle better accuracy differences, empty matrices and
-                # complex numbers...
-                if field1.shape != field2.shape:
-                    print_not_equal_message(
-                        attributes_dict[attribute], field1, field2, logger
-                    )
-                    equal = False
-                elif np.any(np.float32(field1) - np.float32(field2) > 0):
-                    print_not_equal_message(
-                        attributes_dict[attribute], field1, field2, logger
-                    )
-                    equal = False
-            # For numeric scalar types
-            elif isinstance(field1, (int, float, long, complex, np.number)):
-                if np.float32(field1) - np.float32(field2) > 0:
-                    print_not_equal_message(
-                        attributes_dict[attribute], field1, field2, logger
-                    )
-                    equal = False
-            else:
-                equal = assert_equal_objects(field1, field2, logger=logger)
-        except BaseException:
-            try:
-                logger.warning(
-                    "Comparing str(objects) for field "
-                    + attributes_dict[attribute]
-                    + " because there was an error!",
-                    logger,
-                )
-                if np.any(str(field1) != str(field2)):
-                    print_not_equal_message(
-                        attributes_dict[attribute], field1, field2, logger
-                    )
-                    equal = False
-            except BaseException:
-                raise_value_error(
-                    "ValueError: Something went wrong when trying to compare "
-                    + attributes_dict[attribute]
-                    + " !",
-                    logger,
-                )
-
-    if equal:
-        return True
-    else:
-        return False
-
-
 def shape_to_size(shape):
     shape = np.array(shape)
     shape = shape[shape > 0]
@@ -626,105 +430,6 @@ def squeeze_array_to_scalar(arr):
         return arr[0]
     else:
         return arr
-
-
-def assert_arrays(params, shape=None, transpose=False):
-    # type: (object, object) -> object
-    if shape is None or not (
-        isinstance(shape, tuple)
-        and len(shape) in range(3)
-        and np.all([isinstance(s, (int, np.int)) for s in shape])
-    ):
-        shape = None
-        shapes = []  # list of all unique shapes
-        n_shapes = []  # list of all unique shapes' frequencies
-        size = 0  # initial shape
-    else:
-        size = shape_to_size(shape)
-
-    for ip in range(len(params)):
-        # Convert all accepted types to np arrays:
-        if isinstance(params[ip], np.ndarray):
-            pass
-        elif isinstance(params[ip], (list, tuple)):
-            # assuming a list or tuple of symbols...
-            params[ip] = np.array(params[ip]).astype(type(params[ip][0]))
-        elif isinstance(params[ip], (float, int, long, complex, np.number)):
-            params[ip] = np.array(params[ip])
-        else:
-            try:
-                import sympy
-            except BaseException:
-                raise_import_error("sympy import failed")
-            if isinstance(params[ip], tuple(sympy.core.all_classes)):
-                params[ip] = np.array(params[ip])
-            else:
-                raise_value_error(
-                    "Input "
-                    + str(params[ip])
-                    + " of type "
-                    + str(type(params[ip]))
-                    + " is not numeric, "
-                    "of type np.ndarray, nor Symbol"
-                )
-        if shape is None:
-            # Only one size > 1 is acceptable
-            if params[ip].size != size:
-                if size > 1 and params[ip].size > 1:
-                    raise_value_error("Inputs are of at least two distinct sizes > 1")
-                elif params[ip].size > size:
-                    size = params[ip].size
-            # Construct a kind of histogram of all different shapes of the
-            # inputs:
-            ind = np.array([(x == params[ip].shape) for x in shapes])
-            if np.any(ind):
-                ind = np.where(ind)[0]
-                # TODO: handle this properly
-                n_shapes[int(ind)] += 1
-            else:
-                shapes.append(params[ip].shape)
-                n_shapes.append(1)
-        else:
-            if params[ip].size > size:
-                raise_value_error(
-                    "At least one input is of a greater size than the one given!"
-                )
-
-    if shape is None:
-        # Keep only shapes of the correct size
-        ind = np.array([shape_to_size(s) == size for s in shapes])
-        shapes = np.array(shapes)[ind]
-        n_shapes = np.array(n_shapes)[ind]
-        # Find the most frequent shape
-        ind = np.argmax(n_shapes)
-        shape = tuple(shapes[ind])
-
-    if transpose and len(shape) > 1:
-        if (transpose is "horizontal" or "row" and shape[0] > shape[1]) or (
-            transpose is "vertical" or "column" and shape[0] < shape[1]
-        ):
-            shape = list(shape)
-            temp = shape[1]
-            shape[1] = shape[0]
-            shape[0] = temp
-            shape = tuple(shape)
-
-    # Now reshape or tile when necessary
-    for ip in range(len(params)):
-        try:
-            if params[ip].shape != shape:
-                if params[ip].size in [0, 1]:
-                    params[ip] = np.tile(params[ip], shape)
-                else:
-                    params[ip] = np.reshape(params[ip], shape)
-        except BaseException:
-            # TODO: maybe make this an explicit message
-            logger.info("\n\nwhat the fuck??")
-
-    if len(params) == 1:
-        return params[0]
-    else:
-        return tuple(params)
 
 
 def make_float(x, precision="64"):
