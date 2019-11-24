@@ -72,9 +72,7 @@ rule prep_recon:
         acpcdir = FSOUT_ACPC_FOLDER,
         INPUT_FS_ORIG_DIR = os.path.join(FSOUT_MRI_FOLDER, "orig"),
         MRI_MGZ_IMG=os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
-        ACPC_IMAGE = os.path.join(RAW_MRIACPC_FOLDER, "{patient_id}_MR_acpc.nii"),
     output:
-        FS_ACPC_IMAGE = os.path.join(FSOUT_ACPC_FOLDER, "{patient_id}_MR_acpc.nii"),
         CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
         MRI_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri", "origT1.nii")
     shell:
@@ -82,21 +80,34 @@ rule prep_recon:
         "mkdir -p {params.elecsdir};"
         "mkdir -p {params.acpcdir};"
         "mkdir -p {params.INPUT_FS_ORIG_DIR};"
-        "cp {params.ACPC_IMAGE} {output.FS_ACPC_IMAGE};"
         "mrconvert {params.CT_FOLDER} {output.CT_NIFTI_IMG};"
         "mrconvert {params.MRI_FOLDER} {params.MRI_MGZ_IMG}; "
         "mrconvert {params.MRI_MGZ_IMG} {output.MRI_NIFTI_IMG};"
 
-"""
-Use ACPC aligned T1 image. Comment out if not using.
-"""
-rule use_acpc_specified_input:
-    input:
-        FS_ACPC_IMAGE = os.path.join(FSOUT_ACPC_FOLDER, "{patient_id}_MR_acpc.nii"),
+rule convert_nifti:
+    params:
+        MRI_FOLDER=RAW_MRI_FOLDER,
+        MRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "orig", "001.nii"),
     output:
         MRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
     shell:
-        "mrconvert {input.FS_ACPC_IMAGE} {output.MRI_MGZ_IMG};"
+        "mrconvert {params.MRI_FOLDER} {params.MRI_NIFTI_IMG};"
+        "mrconvert {params.MRI_NIFTI_IMG} {output.MRI_MGZ_IMG};"
+        "rm {params.MRI_NIFTI_IMG};"
+
+"""
+Use ACPC aligned T1 image. Comment out if not using.
+"""
+# rule use_acpc_specified_input:
+#     params:
+#         ACPC_IMAGE = os.path.join(RAW_MRIACPC_FOLDER, "{patient_id}_MR_acpc.nii"),
+#     output:
+#         FS_ACPC_IMAGE = os.path.join(FSOUT_ACPC_FOLDER, "{patient_id}_MR_acpc.nii"),
+#         MRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
+#     shell:
+#         "cp {params.ACPC_IMAGE} {output.FS_ACPC_IMAGE};"
+#         "mrconvert {input.FS_ACPC_IMAGE} {output.MRI_MGZ_IMG};"
+
 
 """
 TODO: Rule to run more then one MRI/CT Scan for Movement Correction.
@@ -196,12 +207,4 @@ rule create_subcortical_volume:
         "{params.scripts_dir}/aseg2srf -s {params.patient};"
         "touch {output.subcort_success_flag_file};"
 
-# rule convert_nifti:
-#     params:
-#         fs_subj_dir = os.path.join(FS_PATIENT_OUTPUT_DIR),
-#         MRI_FOLDER=os.path.join(config['rawdatadir'], "{patient_id}", "premri"),
-#     output:
-#         MRI_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri",
-#                                                     "T1.nii")
-#     shell:
-#         "mrconvert {input.MRI_MGZ_IMG} {output.MRI_NIFTI_IMG};"
+
