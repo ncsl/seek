@@ -12,6 +12,7 @@ install:
 #  - conda update -q conda
   - conda info -a
   - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
+  - conda init bash
   - conda activate test-env
   - conda config --add channels bioconda
   - conda config --add channels conda-forge
