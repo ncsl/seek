@@ -1,0 +1,90 @@
+import os
+import sys
+sys.path.append("../../../")
+from neuroimg.pipeline.fileutils import get_freesurfer_patient_dir, get_freesurfer_dir
+
+configfile: "../config/localconfig.yaml"
+FS_OUTPUT_DIR = get_freesurfer_dir(config)
+FS_PATIENT_OUTPUT_DIR = get_freesurfer_patient_dir(config)
+
+FS_SURF_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "surf")
+FS_LABEL_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "label")
+FS_ROI_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "roi")
+
+LH_PIAL_ASC = os.path.join(FS_SURF_DIR, "lh.pial.asc")
+RH_PIAL_ASC = os.path.join(FS_SURF_DIR, "rh.pial.asc")
+LH_ANNOT_FILE = os.path.join(FS_LABEL_DIR, "lh.aparc.annot")
+RH_ANNOT_FILE = os.path.join(FS_LABEL_DIR, "rh.aparc.annot")
+LH_PIAL_SRF = os.path.join(FS_SURF_DIR, "lh.pial.asc")
+RH_PIAL_SRF = os.path.join(FS_SURF_DIR, "rh.pial.srf")
+
+rule all:
+	output:
+		surface_scene_file = expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
+									patient_id=config["patients"]),
+	shell:
+		"echo 'Done!;'"
+
+rule convert_asc_to_srf:
+	input:
+		LH_PIAL_ASC = LH_PIAL_ASC,
+		RH_PIAL_ASC = RH_PIAL_ASC,
+	output:
+		LH_PIAL_SRF = LH_PIAL_SRF,
+		RH_PIAL_SRF = RH_PIAL_SRF,
+	shell:
+		"cp {input.LH_PIAL_ASC} {output.LH_PIAL_SRF};"
+		"cp {input.RH_PIAL_ASC} {output.RH_PIAL_SRF};"
+
+rule convert_subcort_to_obj:
+	input:
+		subcort_success_flag_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_subcort_success.txt"),
+	params:
+		subject = "{patient_id}",
+	output:
+
+	shell:
+		"./scripts/objMaker.sh {params.subject};"
+
+rule convert_annot_to_dpv:
+	input:
+		LH_ANNOT_FILE = LH_ANNOT_FILE,
+		RH_ANNOT_FILE = RH_ANNOT_FILE,
+	output:
+		LH_ANNOT_DPV = os.path.join(FS_LABEL_DIR, "lh.aparc.annot.dpv"),
+		RH_ANNOT_DPV = os.path.join(FS_LABEL_DIR, "rh.aparc.annot.dpv"),
+	shell:
+		"./scripts/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
+		"./scripts/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
+
+rule split_surfaces:
+	input:
+		LH_ANNOT_DPV = os.path.join(FS_LABEL_DIR, "lh.aparc.annot.dpv"),
+		RH_ANNOT_DPV = os.path.join(FS_LABEL_DIR, "rh.aparc.annot.dpv"),
+		LH_PIAL_SRF = LH_PIAL_SRF,
+		RH_PIAL_SRF = RH_PIAL_SRF,
+	output:
+		LH_PIAL_ROI = os.path.join(FS_ROI_DIR, "lh.pial.roi"),
+		RH_PIAL_ROI = os.path.join(FS_ROI_DIR, "rh.pial.roi"),
+	shell:
+		"./scripts/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {output.LH_PIAL_ROI};"
+		"./scripts/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {output.RH_PIAL_ROI};"
+
+rule create_surface_objects:
+	input:
+		LH_PIAL_ROI = os.path.join(FS_ROI_DIR, "lh.pial.roi"),
+		RH_PIAL_ROI = os.path.join(FS_ROI_DIR, "rh.pial.roi"),
+	params:
+		subjectDirectory = FS_PATIENT_OUTPUT_DIR,
+		subject = "{patient_id}",
+	output:
+		surface_scene_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
+	shell:
+		"echo 'Creating surface objects for rendering!;"
+		"./scripts/surfaceToObject.sh {params.subject};"
+		"/usr/local/blender/blender --background --python scripts/sceneCreator.py -- {params.subjectDirectory} True False;"
+
+
+
+
+		
