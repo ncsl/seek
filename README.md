@@ -48,20 +48,25 @@ Anaconda and Python3.6+ :
         # optionally separate install
         conda config --add channels bioconda
         conda config --add channels conda-forge
-        conda install numpy scipy matplotlib pytest scikit-learn scikit-image pandas seaborn nibabel mne snakemake ipykernel
-        conda install -c flyem-forge/label/upgrade201904 marching_cubes
+        conda install numpy scipy matplotlib pytest scikit-learn scikit-image pandas seaborn nibabel mne snakemake ipykernel flask
         conda env export > environment.yml
         
-        cd pipeline/
+        cd neuroimg/pipeline/reconstruction/
         snakemake -n    
-    
-   ii. Install other libraries
    
-        conda install -c conda-forge pyvtk
-        pip install img-pipe==2019.3.15.2
-    
         
-## Modules to Install     
+## Modules to Install 
+0. Octave
+    Runs open-source. This runs various scripts for converting output files to object files for rendering visualizations.
+    Follow: https://www.gnu.org/software/octave/#install
+    
+   
+    brew install octave
+       
+0. Gawk
+    Runs command line tools.
+    https://brewinstall.org/Install-gawk-on-Mac-with-Brew/
+            
 1. Reconstruction
     * Freesurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall)
     * This step is necessary to generate a parcellation and surface reconstruction of the patient's brain. The general requirements is just a 

@@ -14,7 +14,8 @@ rawdatadir:
 ############# define list of files to run this for #############
 patients:
   [
-    "la04",
+    "PublicDataset",
+#    "la04",
 #      'efri02',
 #     'efri06',
 #      'efri10',

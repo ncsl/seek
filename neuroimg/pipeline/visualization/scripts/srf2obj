@@ -1,4 +1,4 @@
-#!/usr/bin/gawk -f
+#!/usr/local/bin/gawk -f
 
 BEGIN { if (ARGV[1] == "") { 
 print "Convert Surface ASCII format to OBJ."

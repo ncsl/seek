@@ -1,12 +1,12 @@
-import bpy
-import os
-import sys
+import argparse
 import json
 import math
+import os
+
+import bpy
 
 
-def main(patient='', electrodeExport=False, justCortex=False):
-
+def main(fsdir, patient, electrode_file, fbx_output_fpath, glb_output_fpath, electrodeExport=False, justCortex=False):
     with open('scripts/materialColors.json') as json_file:
         data = json.load(json_file)
 
@@ -14,14 +14,13 @@ def main(patient='', electrodeExport=False, justCortex=False):
     if not scn.render.engine == 'CYCLES':
         scn.render.engine = 'CYCLES'
 
-    subjDir = "{patient}".format(patient=patient)
+    subjDir = os.path.join(fsdir, "{patient}".format(patient=patient))
     if electrodeExport:
         bpy.ops.object.empty_add(type='CUBE')
         bpy.context.active_object.name = 'Electrodes'
-        bpy.context.active_object.rotation_euler = (-math.pi/2, 0, math.pi)
+        bpy.context.active_object.rotation_euler = (-math.pi / 2, 0, math.pi)
         bpy.context.active_object.location = (128, 128, 128)
-        electrodes = open(
-            "{dir}/electrodes/electrodes.txt".format(dir=subjDir))
+        electrodes = open(electrode_file)
         elecs = electrodes.readlines()
         for elec in elecs:
             electrodeGroup = elec.split('\t')[0]
@@ -50,9 +49,9 @@ def main(patient='', electrodeExport=False, justCortex=False):
             if file == 'Right-Cerebral-Cortex.obj' or file == 'Left-Cerebral-Cortex.obj':
                 pass
             else:
-                r = float(data[os.path.splitext(file)[0]][0]/255)
-                g = float(data[os.path.splitext(file)[0]][1]/255)
-                b = float(data[os.path.splitext(file)[0]][2]/255)
+                r = float(data[os.path.splitext(file)[0]][0] / 255)
+                g = float(data[os.path.splitext(file)[0]][1] / 255)
+                b = float(data[os.path.splitext(file)[0]][2] / 255)
                 bpy.ops.import_scene.obj(
                     filepath="{dir}/obj/".format(dir=subjDir) + file)
                 mat = bpy.data.materials.new("brainMaterial")
@@ -85,15 +84,44 @@ def main(patient='', electrodeExport=False, justCortex=False):
         o = bpy.context.selected_objects[0]
         o.active_material = mat
 
-    bpy.ops.export_scene.fbx(
-        filepath="{dir}/{patient}".format(dir=subjDir, patient="reconstruction") + ".fbx")
-    bpy.ops.export_scene.gltf(
-        filepath="{dir}/{patient}".format(dir=subjDir,
-                                          patient="reconstruction.glb"),
-        export_texcoords=False,
-        export_normals=False)
+    bpy.ops.export_scene.fbx(filepath=fbx_output_fpath)
+    bpy.ops.export_scene.gltf(filepath=glb_output_fpath,
+                              export_texcoords=False,
+                              export_normals=False)
 
 
 if __name__ == "__main__":
-    initial_run = sys.argv[6].lower() == 'true'
-    main(sys.argv[5], initial_run, sys.argv[7])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("fsdir", help="The freesurfer output diretroy.")
+    parser.add_argument("patid")
+    parser.add_argument(
+        "electrode_initialization_file",
+        help="The electrode file with contacts localized.",
+    )
+    parser.add_argument(
+        "initial_run",
+        help="Is this the first time running for patient?",
+    )
+    parser.add_argument(
+        "just_cortex",
+        help="Just do the cortex, or also include subcortex?",
+    )
+    parser.add_argument(
+        "fbx_output_fpath",
+    )
+    parser.add_argument(
+        "glb_output_fpath",
+    )
+    args = parser.parse_args()
+
+    # extract arguments from parser
+    fsdir = args.fsdir
+    patid = args.patid
+    electrode_file = args.electrode_initialization_file
+    initial_run = args.initial_run
+    just_cortex = args.just_cortex
+    fbx_output_fpath = args.fbx_output_fpath
+    glb_output_fpath = args.glb_output_fpath
+
+    main(fsdir, patid, electrode_file
+    fbx_output_fpath, glb_output_fpath, initial_run, just_cortex)

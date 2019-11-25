@@ -9,17 +9,20 @@ FS_PATIENT_OUTPUT_DIR = get_freesurfer_patient_dir(config)
 
 FS_SURF_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "surf")
 FS_LABEL_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "label")
-FS_ROI_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "roi")
+FS_ROI_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "rois")
+FS_ELECS_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "elecs")
+FS_OBJ_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "obj")
 
-LH_PIAL_ASC = os.path.join(FS_SURF_DIR, "lh.pial.asc")
-RH_PIAL_ASC = os.path.join(FS_SURF_DIR, "rh.pial.asc")
+
+LH_PIAL_ASC = os.path.join(FS_SURF_DIR, "ascii", "lh.pial.asc")
+RH_PIAL_ASC = os.path.join(FS_SURF_DIR, "ascii", "rh.pial.asc")
 LH_ANNOT_FILE = os.path.join(FS_LABEL_DIR, "lh.aparc.annot")
 RH_ANNOT_FILE = os.path.join(FS_LABEL_DIR, "rh.aparc.annot")
-LH_PIAL_SRF = os.path.join(FS_SURF_DIR, "lh.pial.asc")
+LH_PIAL_SRF = os.path.join(FS_SURF_DIR, "lh.pial.srf")
 RH_PIAL_SRF = os.path.join(FS_SURF_DIR, "rh.pial.srf")
 
 rule all:
-	output:
+	input:
 		surface_scene_file = expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
 									patient_id=config["patients"]),
 	shell:
@@ -41,10 +44,15 @@ rule convert_subcort_to_obj:
 		subcort_success_flag_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_subcort_success.txt"),
 	params:
 		subject = "{patient_id}",
+		FS_OBJ_DIR = FS_OBJ_DIR,
+		fsdir = FS_OUTPUT_DIR,
 	output:
-
+		obj_success_flag_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_subcortobjects_success.txt"),
 	shell:
+		"export SUBJECTS_DIR={params.fsdir};"
+		# "mkdir {params.FS_OBJ_DIR};"
 		"./scripts/objMaker.sh {params.subject};"
+		"touch {output.obj_success_flag_file};"
 
 rule convert_annot_to_dpv:
 	input:
@@ -63,28 +71,42 @@ rule split_surfaces:
 		RH_ANNOT_DPV = os.path.join(FS_LABEL_DIR, "rh.aparc.annot.dpv"),
 		LH_PIAL_SRF = LH_PIAL_SRF,
 		RH_PIAL_SRF = RH_PIAL_SRF,
+	params:
+		LH_PIAL_ROI = os.path.join(FS_ROI_DIR, "lh.pial_roi"),
+		RH_PIAL_ROI = os.path.join(FS_ROI_DIR, "rh.pial_roi"),
 	output:
-		LH_PIAL_ROI = os.path.join(FS_ROI_DIR, "lh.pial.roi"),
-		RH_PIAL_ROI = os.path.join(FS_ROI_DIR, "rh.pial.roi"),
+		roi_flag_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "surfaces_roi_flag_success.txt")
 	shell:
-		"./scripts/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {output.LH_PIAL_ROI};"
-		"./scripts/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {output.RH_PIAL_ROI};"
+		"cd ./scripts/;"
+		"./splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
+		"./splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
+		"touch {output.roi_flag_file};"
 
 rule create_surface_objects:
 	input:
-		LH_PIAL_ROI = os.path.join(FS_ROI_DIR, "lh.pial.roi"),
-		RH_PIAL_ROI = os.path.join(FS_ROI_DIR, "rh.pial.roi"),
+		roi_flag_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "surfaces_roi_flag_success.txt"),
+		electrode_fpath = os.path.join(FS_ELECS_DIR, "electrodes.txt"),
+		obj_success_flag_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_subcortobjects_success.txt"),
 	params:
-		subjectDirectory = FS_PATIENT_OUTPUT_DIR,
+		LH_PIAL_ROI = os.path.join(FS_ROI_DIR, "lh.pial_roi"),
+		RH_PIAL_ROI = os.path.join(FS_ROI_DIR, "rh.pial_roi"),
+		fsdir = FS_OUTPUT_DIR,
 		subject = "{patient_id}",
 	output:
 		surface_scene_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
+		surface_fbx_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.fbx"),
 	shell:
-		"echo 'Creating surface objects for rendering!;"
+		"echo 'Creating surface objects for rendering!';"
+		"export SUBJECTS_DIR={params.fsdir};"
 		"./scripts/surfaceToObject.sh {params.subject};"
-		"/usr/local/blender/blender --background --python scripts/sceneCreator.py -- {params.subjectDirectory} True False;"
+		"/usr/local/blender/blender --background --python scripts/sceneCreator.py -- " \
+																"{params.fsdir} " \
+																"{params.subject} " \
+																" {input.electrode_fpath} " \
+																" True False" \
+																" {output.surface_fbx_file} " \
+																" {output.surface_scene_file};"
 
-		
 # rule aseg:
 # 	params:
 # 		subject = "derivatives/freesurfer/PublicDataset",
