@@ -84,6 +84,25 @@ rule create_surface_objects:
 		"./scripts/surfaceToObject.sh {params.subject};"
 		"/usr/local/blender/blender --background --python scripts/sceneCreator.py -- {params.subjectDirectory} True False;"
 
+		
+# rule aseg:
+# 	params:
+# 		subject = "derivatives/freesurfer/PublicDataset",
+# 		subjectName = "PublicDataset",
+# 		subjectDirectory = FS_OUTPUT_DIR
+# 	shell:
+# 		"./scripts/aseg2srf.sh -s {params.subject} && "
+# 		"./scripts/objMaker.sh {params.subject} && "
+# 		"mris_convert {params.subjectDirectory}/PublicDataset/surf/lh.pial {params.subjectDirectory}/PublicDataset/surf/lh.pial.asc && "
+# 		"mris_convert {params.subjectDirectory}/PublicDataset/surf/rh.pial {params.subjectDirectory}/PublicDataset/surf/rh.pial.asc && "
+# 		"cp {params.subjectDirectory}/{params.subjectName}/surf/lh.pial.asc {params.subjectDirectory}/{params.subjectName}/surf/lh.pial.srf && "
+# 		"cp {params.subjectDirectory}/{params.subjectName}/surf/rh.pial.asc {params.subjectDirectory}/{params.subjectName}/surf/rh.pial.srf && "
+# 		"./scripts/annot2dpv {params.subjectDirectory}/{params.subjectName}/label/lh.aparc.annot {params.subjectDirectory}/{params.subjectName}/label/lh.aparc.annot.dpv && "
+# 		"./scripts/annot2dpv {params.subjectDirectory}/{params.subjectName}/label/rh.aparc.annot {params.subjectDirectory}/{params.subjectName}/label/rh.aparc.annot.dpv && "
+# 		"./scripts/splitsrf {params.subjectDirectory}/{params.subjectName}/surf/lh.pial.srf {params.subjectDirectory}/{params.subjectName}/label/lh.aparc.annot.dpv {params.subjectDirectory}/{params.subjectName}/rois/lh.pial_roi &&"
+# 		"./scripts/splitsrf {params.subjectDirectory}/{params.subjectName}/surf/rh.pial.srf {params.subjectDirectory}/{params.subjectName}/label/rh.aparc.annot.dpv {params.subjectDirectory}/{params.subjectName}/rois/rh.pial_roi &&"
+# 		"./scripts/surfaceToObject.sh {params.subject} && "
+# 		"/usr/local/blender/blender --background --python scripts/sceneCreator.py -- {params.subjectDirectory}/{params.subjectName} True False"
 
 
 
