@@ -4,10 +4,36 @@ sys.path.append("../../../")
 from neuroimg.pipeline.fileutils import SCRIPTS_UTIL_DIR
 from neuroimg.pipeline.fileutils import get_freesurfer_patient_dir, get_freesurfer_dir, \
     get_rawct_dir, get_rawmri_dir, get_rawacpc_dir
+
 configfile: "../config/localconfig.yaml"
 FS_OUTPUT_DIR = get_freesurfer_dir(config)
 FS_PATIENT_OUTPUT_DIR = get_freesurfer_patient_dir(config)
 
+LH_PIAL_ASC = ""
+RH_PIAL_ASC = ""
+LH_ANNOT_FILE = ""
+RH_ANNOT_FILE = ""
+LH_PIAL_SRF = ""
+RH_PIAL_SRF = ""
+
+rule all:
+	output:
+		"stuff",
+	shell:
+		"echo 'Done!;'
+
+rule create_surface_objects:
+	input:
+		stuff="",
+	params:
+		stuff="",
+	output:
+		stuff="",
+	shell:
+		"echo 'Creating surface objects for rendering!;"
+		
+rule create
+		
 rule aseg:
 	params:
 		subject = "derivatives/freesurfer/PublicDataset",
