@@ -2,12 +2,13 @@ import argparse
 import json
 import math
 import os
-
+import sys
 import bpy
 
-
-def main(fsdir, patient, electrode_file, fbx_output_fpath, glb_output_fpath, electrodeExport=False, justCortex=False):
-    with open('scripts/materialColors.json') as json_file:
+def main(fsdir, patient, electrode_file, fbx_output_fpath, glb_output_fpath, materialcolors_fpath, electrodeExport=False, justCortex=False):
+    # print(fsdir, patient, electrode_file, fbx_output_fpath, glb_output_fpath, materialcolors_fpath)
+    # print("trying to read: ", materialcolors_fpath)
+    with open(materialcolors_fpath) as json_file:
         data = json.load(json_file)
 
     scn = bpy.context.scene
@@ -91,37 +92,46 @@ def main(fsdir, patient, electrode_file, fbx_output_fpath, glb_output_fpath, ele
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("fsdir", help="The freesurfer output diretroy.")
-    parser.add_argument("patid")
-    parser.add_argument(
-        "electrode_initialization_file",
-        help="The electrode file with contacts localized.",
-    )
-    parser.add_argument(
-        "initial_run",
-        help="Is this the first time running for patient?",
-    )
-    parser.add_argument(
-        "just_cortex",
-        help="Just do the cortex, or also include subcortex?",
-    )
-    parser.add_argument(
-        "fbx_output_fpath",
-    )
-    parser.add_argument(
-        "glb_output_fpath",
-    )
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("fsdir", help="The freesurfer output diretroy.")
+    # parser.add_argument("patid")
+    # parser.add_argument(
+    #     "electrode_initialization_file",
+    #     help="The electrode file with contacts localized.",
+    # )
+    # parser.add_argument(
+    #     "initial_run",
+    #     help="Is this the first time running for patient?",
+    # )
+    # parser.add_argument(
+    #     "just_cortex",
+    #     help="Just do the cortex, or also include subcortex?",
+    # )
+    # parser.add_argument(
+    #     "fbx_output_fpath",
+    # )
+    # parser.add_argument(
+    #     "glb_output_fpath",
+    # )
+    # args = parser.parse_args()
+    #
+    # # extract arguments from parser
+    # fsdir = args.fsdir
+    # patid = args.patid
+    # electrode_file = args.electrode_initialization_file
+    # initial_run = args.initial_run
+    # just_cortex = args.just_cortex
+    # fbx_output_fpath = args.fbx_output_fpath
+    # glb_output_fpath = args.glb_output_fpath
 
-    # extract arguments from parser
-    fsdir = args.fsdir
-    patid = args.patid
-    electrode_file = args.electrode_initialization_file
-    initial_run = args.initial_run
-    just_cortex = args.just_cortex
-    fbx_output_fpath = args.fbx_output_fpath
-    glb_output_fpath = args.glb_output_fpath
+    fsdir = sys.argv[7]
+    patid = sys.argv[8]
+    electrode_file = sys.argv[9]
+    initial_run = sys.argv[10]
+    just_cortex = sys.argv[11]
+    fbx_output_fpath = sys.argv[12]
+    glb_output_fpath = sys.argv[13]
+    materialcolors_fpath = sys.argv[14]
 
-    main(fsdir, patid, electrode_file
-    fbx_output_fpath, glb_output_fpath, initial_run, just_cortex)
+    print(sys.argv[:])
+    main(fsdir, patid, electrode_file, fbx_output_fpath, glb_output_fpath, materialcolors_fpath, initial_run, just_cortex)

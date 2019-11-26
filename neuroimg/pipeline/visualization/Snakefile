@@ -21,7 +21,8 @@ RH_ANNOT_FILE = os.path.join(FS_LABEL_DIR, "rh.aparc.annot")
 LH_PIAL_SRF = os.path.join(FS_SURF_DIR, "lh.pial.srf")
 RH_PIAL_SRF = os.path.join(FS_SURF_DIR, "rh.pial.srf")
 
-# BLENDER_PATH = os.environ.get["blender"]
+BLENDER_PATH = "blender"
+# BLENDER_PATH = os.environ.get("blender")
 # print(BLENDER_PATH)
 
 rule all:
@@ -29,7 +30,7 @@ rule all:
 		surface_scene_file = expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
 									patient_id=config["patients"]),
 		# surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
-		surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
+		# surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
 	shell:
 		"echo 'Done!;'"
 
@@ -97,33 +98,39 @@ rule create_surface_objects:
 		RH_PIAL_ROI = os.path.join(FS_ROI_DIR, "rh.pial_roi"),
 		fsdir = FS_OUTPUT_DIR,
 		subject = "{patient_id}",
+		materialcolors_file = os.path.join(os.getcwd(), "./scripts/materialColors.json"),
 		BLENDER_PATH = BLENDER_PATH,
 	output:
 		surface_scene_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
 		surface_fbx_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.fbx"),
+		# copied_surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
+		# copied_surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
 	shell:
 		"echo 'Creating surface objects for rendering!';"
 		"export SUBJECTS_DIR={params.fsdir};"
 		"./scripts/surfaceToObject.sh {params.subject};"
-		"{params.BLENDER_PATH} --background --python scripts/sceneCreator.py -- " \
+		"{params.BLENDER_PATH} --background --python ./scripts/sceneCreator.py -- " \
 																"{params.fsdir} " \
 																"{params.subject} " \
-																" {input.electrode_fpath} " \
-																" True False" \
-																" {output.surface_fbx_file} " \
-																" {output.surface_scene_file};"
+																"{input.electrode_fpath} " \
+																"True False " \
+																"{output.surface_fbx_file} " \
+																"{output.surface_scene_file} " \
+		"{params.materialcolors_file};"
+		# "cp {output.surface_scene_file} {output.copied_surface_scene_file};"
+		# "cp {output.surface_fbx_file} {output.copied_surface_fbx_file};"
 
-rule copy_rendering_files:
-	input:
-		surface_scene_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
-		surface_fbx_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.fbx"),
-	output:
-		surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
-		surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
-	shell:
-		"cp {input.surface_scene_file} {output.surface_scene_file};"
-		"cp {input.surface_fbx_file} {output.surface_fbx_file};"
-		"python ./webserver/server.py;"
+# rule copy_rendering_files:
+# 	input:
+# 		surface_scene_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
+# 		surface_fbx_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.fbx"),
+# 	output:
+# 		surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
+# 		surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
+# 	shell:
+# 		"cp {input.surface_scene_file} {output.surface_scene_file};"
+# 		"cp {input.surface_fbx_file} {output.surface_fbx_file};"
+# 		"python ./webserver/server.py;"
 
 # rule aseg:
 # 	params:
