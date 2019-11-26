@@ -66,6 +66,10 @@ Anaconda and Python3.6+ :
 0. Gawk
     Runs command line tools.
     https://brewinstall.org/Install-gawk-on-Mac-with-Brew/
+   
+0. Blender
+    
+    
             
 1. Reconstruction
     * Freesurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall)
