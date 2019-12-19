@@ -82,9 +82,10 @@ def summary_PCA_plots(figurefilepath, final_centroids, elec_in_brain):
             c="r",
             label="expected",
         )
-        axs[i].set(title=f"PCA Validation of Centroids (Electrode: {electrode})",
-                   xlabel=f"PC Coordinates in Voxels along Electrode {electrode}",
-                   ylim=[-0.005, 0.005]
+        axs[i].set(
+            title=f"PCA Validation of Centroids (Electrode: {electrode})",
+            xlabel=f"PC Coordinates in Voxels along Electrode {electrode}",
+            ylim=[-0.005, 0.005],
         )
         axs[i].legend()
         for j, chan in enumerate(final_centroids[electrode]):
@@ -130,7 +131,9 @@ def l2_error(figurefilepath, final_centroids, elec_in_brain):
                 abs_error = npl.norm(observed - expected)
                 errors_per_channel[electrode][channel] = abs_error
             else:
-                print(f'Channel {channel} from prediction not in brain - saving error as NaN.')
+                print(
+                    f"Channel {channel} from prediction not in brain - saving error as NaN."
+                )
                 errors_per_channel[electrode][channel] = np.nan
 
     sns.set(font_scale=1.1)
@@ -146,12 +149,13 @@ def l2_error(figurefilepath, final_centroids, elec_in_brain):
             align="center",
             alpha=0.9,
         )
-        axs[i].set(title="Abs. Error By Channel in Electrode {electrode} After Filling Gaps",
-                   xlabel="Channel",
-                   xticks=y_pos,
-                   xticklabels=list(final_centroids[electrode].keys()),
-                   ylabel="Distance",
-                   ylim=[ymin, ymax]
+        axs[i].set(
+            title="Abs. Error By Channel in Electrode {electrode} After Filling Gaps",
+            xlabel="Channel",
+            xticks=y_pos,
+            xticklabels=list(final_centroids[electrode].keys()),
+            ylabel="Distance",
+            ylim=[ymin, ymax],
         )
         axs[i].set_xlabel("Channel")
         axs[i].set_ylabel("Distance")

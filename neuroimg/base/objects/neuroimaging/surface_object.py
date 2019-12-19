@@ -7,11 +7,10 @@ from zipfile import ZipFile
 import numpy as np
 
 from neuroimg.base.objects.neuroimaging.baseneuroimage import (
-    pial_to_verts_and_triangs,
-    read_cortical_region_mapping,
     Hemisphere,
-    RegionIndexMapping,
+    RegionIndexMapping
 )
+from neuroimg.base.utils import pial_to_verts_and_triangs, read_cortical_region_mapping
 
 SUBCORTICAL_REG_INDS = [
     8,
@@ -48,7 +47,7 @@ class Surface:
     """
 
     def __init__(
-        self, vertices: np.array, triangles: np.array, region_mapping: np.array
+            self, vertices: np.array, triangles: np.array, region_mapping: np.array
     ):
         assert vertices.ndim == 2
         assert triangles.ndim == 2
@@ -153,7 +152,7 @@ class Surface:
 
         try:
             triangle_normals = (
-                tri_norm / np.sqrt(np.sum(tri_norm ** 2, axis=1))[:, np.newaxis]
+                    tri_norm / np.sqrt(np.sum(tri_norm ** 2, axis=1))[:, np.newaxis]
             )
         except FloatingPointError:
             # TODO: NaN generation would stop execution, however for normals this case could maybe be
@@ -201,12 +200,12 @@ class Surface:
 
     @staticmethod
     def compute_vertex_normals(
-        number_of_vertices,
-        vertices,
-        vertex_triangles,
-        triangles,
-        triangle_angles,
-        triangle_normals,
+            number_of_vertices,
+            vertices,
+            vertex_triangles,
+            triangles,
+            triangle_angles,
+            triangle_normals,
     ):
         """
         Estimates vertex normals, based on triangle normals weighted by the
@@ -267,9 +266,9 @@ class Surface:
 class GetSurface:
     @staticmethod
     def get_cortical_surfaces(
-        cort_surf_direc: os.PathLike,
-        label_direc: os.PathLike,
-        region_index_mapping: RegionIndexMapping,
+            cort_surf_direc: os.PathLike,
+            label_direc: os.PathLike,
+            region_index_mapping: RegionIndexMapping,
     ) -> Surface:
         """
         Computes and formats a cortical Surface object.
@@ -307,7 +306,7 @@ class GetSurface:
 
     @staticmethod
     def get_subcortical_surfaces(
-        subcort_surf_direc: os.PathLike, region_index_mapping: RegionIndexMapping
+            subcort_surf_direc: os.PathLike, region_index_mapping: RegionIndexMapping
     ) -> Surface:
         """
         Computes and formats the subcortical Surface.
@@ -366,7 +365,7 @@ class GetSurface:
 
     @staticmethod
     def compute_region_params(
-        surface: Surface, subcortical: bool = False
+            surface: Surface, subcortical: bool = False
     ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
         """
         Computes the parameters required for each region (regions, areas, orientations, centers)

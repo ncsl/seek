@@ -12,9 +12,15 @@ sys.path.append("../../../")
 
 from neuroimg.base.utils import MatReader
 from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
-from neuroimg.localize_contacts.electrode_clustering.grouping import Cluster, CylindricalGroup
+from neuroimg.localize_contacts.electrode_clustering.grouping import (
+    Cluster,
+    CylindricalGroup,
+)
 from neuroimg.localize_contacts.electrode_clustering.postprocess import PostProcessor
-from neuroimg.localize_contacts.freecog_labeling.utils import convert_fsmesh2mlab, label_elecs
+from neuroimg.localize_contacts.freecog_labeling.utils import (
+    convert_fsmesh2mlab,
+    label_elecs,
+)
 
 
 def load_data(ct_scan, brainmask_ct):
@@ -79,7 +85,7 @@ def load_elecs_data(elecfile):
         for i in range(len(eleclabels)):
             elec_coords_mm[eleclabels[i][0].strip()] = elecmatrix[i]
 
-    print(f'Electrode labels: {elec_coords_mm.keys()}')
+    print(f"Electrode labels: {elec_coords_mm.keys()}")
 
     return elec_coords_mm
 
@@ -132,15 +138,22 @@ def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath, fs_lut_fpath):
 
     # Apply Atlases, white matter mask, and brainmask
     convert_fsmesh2mlab(subj_dir=os.path.abspath(os.path.dirname(fspatdir)), subj=patid)
-    elec_labels_destriuex = label_elecs(subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
-                                        subj=patid, hem="lh",
-                                        fs_lut_fpath=fs_lut_fpath,
-                                        elecfile_prefix=destriuexname, atlas_depth="destriuex"
-                                        )
-    elec_labels_DKT = label_elecs(subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
-                                  subj=patid, hem="lh", fs_lut_fpath=fs_lut_fpath,
-                                  elecfile_prefix=dktname, atlas_depth="desikan-killiany"
-                                  )
+    elec_labels_destriuex = label_elecs(
+        subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
+        subj=patid,
+        hem="lh",
+        fs_lut_fpath=fs_lut_fpath,
+        elecfile_prefix=destriuexname,
+        atlas_depth="destriuex",
+    )
+    elec_labels_DKT = label_elecs(
+        subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
+        subj=patid,
+        hem="lh",
+        fs_lut_fpath=fs_lut_fpath,
+        elecfile_prefix=dktname,
+        atlas_depth="desikan-killiany",
+    )
     return elec_labels_destriuex, elec_labels_DKT
 
 
@@ -208,14 +221,11 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
                 pt = apply_affine(affine, final_centroids_xyz[elec][chan])
                 wm_label[i] = wm_dat[list(map(int, pt))] > 0
                 bm_label[i] = bm_dat[list(map(int, pt))] > 0
-    anatomy[:, :anatomy_orig.shape[1]] = anatomy_orig
+    anatomy[:, : anatomy_orig.shape[1]] = anatomy_orig
     anatomy[:, anatomy_orig.shape[1]] = wm_label
     anatomy[:, anatomy_orig.shape[1] + 1] = bm_label
 
-    save_dict = {"elecmatrix": elecmatrix,
-                 "anatomy": anatomy,
-                 "eleclabels": eleclabels
-                 }
+    save_dict = {"elecmatrix": elecmatrix, "anatomy": anatomy, "eleclabels": eleclabels}
     scipy.io.savemat(atlasfilepath, mdict=save_dict)
     return anatomy
 
@@ -256,9 +266,11 @@ def main(ctimgfile, brainmaskfile, elecinitfile):
     clusters, numobj = np.array(clusterpipe.find_clusters(brainmasked_ct_data))
 
     # Cluster by cylindrical boundaries
-    clusters_by_cylinder, sparse_elec_labels, sparse_elec_coords = grouppipe.cylinder_filter(
-        elecvoxels_in_brain, clusters[threshold], radius
-    )
+    (
+        clusters_by_cylinder,
+        sparse_elec_labels,
+        sparse_elec_coords,
+    ) = grouppipe.cylinder_filter(elecvoxels_in_brain, clusters[threshold], radius)
 
     # Begin postprocessing steps
     processed_clusters = postprocesspipe.process_abnormal_clusters(
@@ -346,9 +358,12 @@ if __name__ == "__main__":
         os.mkdir(elecs_dir)
 
     # compute the final centroid voxels, centroid xyzs and the binarized CT image volume.
-    final_centroids_voxels, final_centroids_xyz, binarized_ct_img, elecvoxels_in_brain = main(
-        ct_nifti_img, brainmask_native_file, electrode_initialization_file
-    )
+    (
+        final_centroids_voxels,
+        final_centroids_xyz,
+        binarized_ct_img,
+        elecvoxels_in_brain,
+    ) = main(ct_nifti_img, brainmask_native_file, electrode_initialization_file)
 
     # save output files
     print(f"Saving clustered xyz coords to: {clustered_points_file}.")

@@ -128,18 +128,20 @@ See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hiera
 
 0.  Patient in FreeSurfer format explained:
 
-    * /patient_id = The subject directory for data ran through FS (e.g. "umf001")
-        - /mri/ = Includes the mri-derived image transformations, including the original mri image volume.
-        - /surf/ = Includes the computed surface files for each hemisphere (rh and lh), such as white matter (wm), volume, thickness, pial, and smoothed surfaces
-        - /label/ = Includes derived labels for each surface mesh. 
-        - /stats/ = Includes statistics computed for example for white matter, cortical volume.
-        - Additional Dirs Made Within to be compatible with FS
-        - /elecs/ = Localized contacts with xyz coordinates, anatomical mapping, etc.
-        - /CT/ = a directory to store the CT image volume and any transformations (e.g. mapped into T1 image volume)
-        - /ascii/ = ascii type files that show the subcortical volume.
-        - /Meshes/ = .mat files for the hemispheres and the triangular/vertices files for cortical and subcortical.
-        - /acpc/ = Anterior-commissure & posterior-commissure aligned image volumes. This is generally a common preprocessing step in many pipelines.
-        - /connectome/ = Any sort of connectome related files. For example, structural connectivity matrices used for The Virtual Brain.
+    * derivatives/
+        - freesurfer/
+            - patient_id/ = The subject directory for data ran through FS (e.g. "umf001")
+                - /mri/ = Includes the mri-derived image transformations, including the original mri image volume.
+                - /surf/ = Includes the computed surface files for each hemisphere (rh and lh), such as white matter (wm), volume, thickness, pial, and smoothed surfaces
+                - /label/ = Includes derived labels for each surface mesh. 
+                - /stats/ = Includes statistics computed for example for white matter, cortical volume.
+                - Additional Dirs Made Within to be compatible with FS
+                - /elecs/ = Localized contacts with xyz coordinates, anatomical mapping, etc.
+                - /CT/ = a directory to store the CT image volume and any transformations (e.g. mapped into T1 image volume)
+                - /ascii/ = ascii type files that show the subcortical volume.
+                - /Meshes/ = .mat files for the hemispheres and the triangular/vertices files for cortical and subcortical.
+                - /acpc/ = Anterior-commissure & posterior-commissure aligned image volumes. This is generally a common preprocessing step in many pipelines.
+                - /connectome/ = Any sort of connectome related files. For example, structural connectivity matrices used for The Virtual Brain.
         
 1. Change config.yaml file (local or cluster) to the respective
 data directories of your data. This is under pipeline/config/localconfig.yaml
@@ -235,8 +237,8 @@ At a high level, this pipeline is taking neuroimaging data of a patient to produ
     TBD
 
 # Localizing Electrodes Process 
-For NCSL specific Readme, check out: [link](docs/extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
-For general-purpose Readme, check out: [link](docs/extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
+For NCSL specific Readme, check out: [link](doc/extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
+For general-purpose Readme, check out: [link](doc/extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
 
 To only localize contacts using fieldtrip toolbox GUI, or img_pipe GUI, then follow these instructions:
 1.	Install SPM (preferably 12): https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
