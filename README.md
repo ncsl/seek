@@ -15,12 +15,17 @@ For incorporation of DTI data, see ndmeg: https://github.com/neurodata/ndmg
 
 <!-- MarkdownTOC -->
 
+- Features
 - Setup and Installation
+    - Modules to Install
+- Data Organization
 - Running Your Own Image Patients
-    - Docker and Singularity
 - Pipeline Description
 - Localizing Electrodes Process
+    - Running Localization GUI
+- Documentation
         - Pipeline Process Visualized
+- References:
 
 <!-- /MarkdownTOC -->
 
@@ -48,20 +53,29 @@ Anaconda and Python3.6+ :
         # optionally separate install
         conda config --add channels bioconda
         conda config --add channels conda-forge
-        conda install numpy scipy matplotlib pytest scikit-learn scikit-image pandas seaborn nibabel mne snakemake ipykernel
-        conda install -c flyem-forge/label/upgrade201904 marching_cubes
+        conda install numpy scipy matplotlib pytest scikit-learn scikit-image pandas seaborn nibabel mne snakemake ipykernel flask
         conda env export > environment.yml
         
-        cd pipeline/
+        cd neuroimg/pipeline/reconstruction/
         snakemake -n    
-    
-   ii. Install other libraries
    
-        conda install -c conda-forge pyvtk
-        pip install img-pipe==2019.3.15.2
-    
         
-## Modules to Install     
+## Modules to Install 
+0. Octave
+    Runs open-source. This runs various scripts for converting output files to object files for rendering visualizations.
+    Follow: https://www.gnu.org/software/octave/#install
+    
+   
+    brew install octave
+       
+0. Gawk
+    Runs command line tools.
+    https://brewinstall.org/Install-gawk-on-Mac-with-Brew/
+
+0. Blender
+    https://www.blender.org/download/Blender2.81/blender-2.81-linux-glibc217-x86_64.tar.bz2/
+
+>>>>>>> b1280a2d0eb781f68324f775c90586ba123d2cc7
 1. Reconstruction
     * Freesurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall)
     * This step is necessary to generate a parcellation and surface reconstruction of the patient's brain. The general requirements is just a 

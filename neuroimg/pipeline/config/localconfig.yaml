@@ -2,19 +2,20 @@
 # home directory that every dataset sits in -> fileutils sets the BIDS structure
 basedatadir:
 #  "/home/ksr/Desktop/contact_localization/efri/"
-  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/epilepsy/"
-#  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/epilepsy/"
+#  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/epilepsy/"
+  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/epilepsy/"
 
 rawdatadir:
 #    "/home/ksr/Desktop/contact_localization/efri/raw_msb/"
 # "/Users/ChesterHuynh/sarmalab/contact_localization_proj/rawdata"
  # "/home/adam2392/hdd2/data/neuroimaging/raw"
-  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/epilepsy/raw/"
-#  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/epilepsy/raw/"
+#  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/epilepsy/raw/"
+  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/epilepsy/raw/"
 ############# define list of files to run this for #############
 patients:
   [
-    "la04",
+    "PublicDataset",
+#    "la04",
 #      'efri02',
 #     'efri06',
 #      'efri10',
@@ -25,3 +26,6 @@ patients:
 #     'efri18',
 #      'efri20',
 ]
+
+blender_path: # type in 'which blender' in command line
+  "/usr/bin/blender/"
