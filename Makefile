@@ -67,5 +67,5 @@ black:
 	@echo "black passed"
 
 check:
-	@$(MAKE) -k black pydocstyle check-manifest
+	@$(MAKE) -k black pydocstyle
 

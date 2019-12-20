@@ -8,6 +8,15 @@ import scipy
 
 
 class ContactMapping(object):
+    """
+    Class of functions for mapping contacts.
+
+    Allows mapping to:
+    - different regions
+    - move electrodes in space
+    - find contacts in Euclidean space
+    """
+
     def __init__(self, chanxyz, chanlabels, conn=None):
         self.conn = conn
         self.chanlabels = chanlabels
@@ -15,8 +24,13 @@ class ContactMapping(object):
 
     def simplest_gain_matrix(self):
         """
-        This is a function to recompute a new gain matrix based on xyz that moved
+        Recompute a new gain matrix based on xyz.
+
         G = 1 / ( 4*pi * sum(sqrt(( X - X[:, new])^2))^2)
+
+        Returns
+        -------
+        gain_matrix :
         """
         # NOTE IF YOU MOVE SEEGXYZ ONTO REGXYZ, YOU DIVIDE BY 0, SO THERE IS A PROBLEM
         # reg_xyz = con.centres
@@ -37,6 +51,7 @@ class ContactMapping(object):
         self, vertices, regmapping, nregions, sensors, orientations, areas
     ):
         """
+        Compute gain matrix based on dipole orientations.
 
         Parameters
         ----------
@@ -47,10 +62,9 @@ class ContactMapping(object):
 
         Returns
         -------
-        np.ndarray of size m x n
+        gain_matrix : np.ndarray of size m x n
 
         """
-
         nverts = vertices.shape[0]
         nsens = self.chanxyz.shape[0]
 
@@ -74,7 +88,8 @@ class ContactMapping(object):
 
     def gain_matrix_inv_square(self, vertices, regmapping, areas):
         """
-        Computes a gain matrix using an inverse square fall off (like a mean field model)
+        Compute a gain matrix using an inverse square fall off (like a mean field model).
+
         Parameters
         ----------
         vertices             np.ndarray of floats of size n x 3, where n is the number of vertices
@@ -117,9 +132,7 @@ class ContactMapping(object):
         return gain_mtx_vert.dot(reg_map_mtx)
 
     def getallcontacts(self, seeg_contact):
-        """
-        Gets the entire electrode contacts' indices, so that we can modify the corresponding xyz
-        """
+        """Get the entire electrode contacts' indices, so that we can modify the corresponding xyz."""
         # get the elec label name
         isleftside = seeg_contact.find("'")
         contacts = []
@@ -149,7 +162,7 @@ class ContactMapping(object):
 
     def _cart2sph(self, x, y, z):
         """
-        Transform Cartesian coordinates to spherical
+        Transform Cartesian coordinates to spherical.
 
         Paramters:
         x           (float) X coordinate
@@ -172,7 +185,7 @@ class ContactMapping(object):
 
     def move_electrode(self, seegind, newloc):
         """
-        Helper function to move electrode to a new location.
+        Move electrode to a new location.
 
         :param seegind:
         :param newloc:
@@ -192,9 +205,7 @@ class ContactMapping(object):
         self.chanxyz[electrodeindices] = self.chanxyz[electrodeindices] + distancetomove
 
     def findclosestcontact(self, regionind):
-        """
-        This function finds the closest contact to an ezregion
-        """
+        """Find the closest contact to an ezregion."""
         # get the region's xyz coords we want to get
         regionxyz = self.conn.centres[regionind]
         # create a mask of the indices we already moved
@@ -213,8 +224,9 @@ class ContactMapping(object):
 
     def move_electrodetoreg(self, regionind, distance=-1):
         """
-        This function moves the contact and the entire electrode the correct distance, so that the contact
-        is on the ezregion now
+        Move the contact and the entire electrode the correct distance.
+
+        Makes it so that the contact is on the ezregion now
         """
         if regionind.size > 1:
             warnings.warn("Need to pass in one region index at a time!")

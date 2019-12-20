@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA
 
 sys.path.append("../../../")
 
-from neuroimg.base.utils import MatReader
+from neuroimg.base.utils.utils import MatReader
 from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
 
 

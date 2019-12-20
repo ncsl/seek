@@ -7,8 +7,8 @@ import scipy.io
 
 
 def nearest_electrode_vert(cortex_verts, elecmatrix):
-    """ Find the vertex on a mesh that is closest to the given electrode
-    coordinates.
+    """
+    Find the vertex on a mesh that is closest to the given electrode coordinates.
 
     Parameters
     ----------
@@ -25,7 +25,6 @@ def nearest_electrode_vert(cortex_verts, elecmatrix):
     nearest_verts : array-like
         Coordinates for the nearest cortical vertices
     """
-
     nchans = elecmatrix.shape[0]
     d = np.zeros((nchans, cortex_verts.shape[0]))
 
@@ -46,7 +45,9 @@ def nearest_electrode_vert(cortex_verts, elecmatrix):
 
 
 def convert_fsmesh2mlab(subj_dir, subj, mesh_name="pial"):
-    """Creates surface mesh triangle and vertex .mat files
+    """
+    Create surface mesh triangle and vertex .mat files.
+
     If no argument for mesh_name is given, lh.pial and rh.pial
     are converted into lh_pial_trivert.mat and rh_pial_trivert.mat
     in the Meshes directory (for use in python) and *_lh_pial.mat
@@ -97,7 +98,9 @@ def label_elecs(
     atlas_depth="destrieux",
     elecs_all=True,
 ):
-    """ Automatically labels electrodes based on the freesurfer annotation file.
+    """
+    Automatically labels electrodes based on the freesurfer annotation file.
+
     Assumes TDT_elecs_all.mat or clinical_elecs_all.mat files
     Uses both the Desikan-Killiany Atlas and the Destrieux Atlas, as described
     here: https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation

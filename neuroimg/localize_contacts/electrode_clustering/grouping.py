@@ -6,12 +6,14 @@ from skimage import measure
 
 
 class Cluster:
+    """Class of functions for clustering contacts into electrodes."""
+
     @classmethod
     def find_clusters(self, maskedCT, pointsOnly=True):
         """
-        Function to apply a thresholding based algorithm and then running
-        connected clustering using skimage. This will then return clusters
-        of voxels that belong to distinct contact groups.
+        Apply a thresholding based algorithm and then running connected clustering using skimage.
+
+        This will then return clusters of voxels that belong to distinct contact groups.
         http://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.label
 
         Parameters
@@ -94,11 +96,14 @@ class Cluster:
 
 
 class CylindricalGroup:
+    """Class of static functions for cylindrical grouping."""
+
     @classmethod
     def test_point_in_cylinder(self, pt1, pt2, r, q):
         """
-        Tests whether a point q lies within a cylinder with points
-        pt1 and pt2 that define the axis of the cylinder and a
+        Test whether a point q lies within a cylinder.
+
+        With points pt1 and pt2 that define the axis of the cylinder and a
         specified radius r. Used formulas provided here:
         https://www.flipcode.com/archives/Fast_Point-In-Cylinder_Test.shtml
 
@@ -138,8 +143,9 @@ class CylindricalGroup:
     @classmethod
     def points_in_cylinder(self, pt1, pt2, r, points_to_test):
         """
-        Tests whether a list of points lies within a cylinder with points pt1
-        and pt2 that define the axis of the cylinder and a specified radius r.
+        Test whether a list of points lies within a cylinder.
+
+        With points pt1 and pt2 that define the axis of the cylinder and a specified radius r.
 
         Parameters
         ----------
@@ -168,8 +174,9 @@ class CylindricalGroup:
     @classmethod
     def cylinder_filter(self, elec_in_brain, clusters, radius):
         """
-        Applies a cylindrical filtering on the raw threshold-based
-        clustering by generating bounding cylinders given a sparse
+        Apply a cylindrical filtering on the raw threshold-based clustering.
+
+        Generates bounding cylinders given a sparse
         collection of contact coordinates.
 
         Parameters

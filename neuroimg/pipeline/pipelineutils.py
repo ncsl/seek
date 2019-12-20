@@ -15,4 +15,3 @@ def reorient_img(img, orientation="RAS"):
 
     """
     pass
-

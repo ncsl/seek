@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import pickle
+
 # Data structure manipulations and conversions
 import re
 import subprocess
@@ -99,20 +100,20 @@ class NumpyEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if isinstance(
-                obj,
-                (
-                        np.int_,
-                        np.intc,
-                        np.intp,
-                        np.int8,
-                        np.int16,
-                        np.int32,
-                        np.int64,
-                        np.uint8,
-                        np.uint16,
-                        np.uint32,
-                        np.uint64,
-                ),
+            obj,
+            (
+                np.int_,
+                np.intc,
+                np.intp,
+                np.int8,
+                np.int16,
+                np.int32,
+                np.int64,
+                np.uint8,
+                np.uint16,
+                np.uint32,
+                np.uint64,
+            ),
         ):
             return int(obj)
         elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
@@ -202,7 +203,7 @@ def pial_to_verts_and_triangs(pial_surf) -> (np.ndarray, np.ndarray):
 
 
 def read_cortical_region_mapping(
-        label_direc: os.PathLike, hemisphere: Hemisphere, fs_to_conn: RegionIndexMapping
+    label_direc: os.PathLike, hemisphere: Hemisphere, fs_to_conn: RegionIndexMapping
 ) -> np.ndarray:
     """
     Reads the cortical region mapping file.

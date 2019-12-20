@@ -18,3 +18,5 @@ Maintainer, please confirm the following before merging:
 - [ ] [whats_new.rst](https://github.com/adam2392/neuroimg_pipeline/master/doc/whats_new.rst) is updated
 - [ ] PR description includes phrase "closes <#issue-number>"
 - [ ] Commit history does not contain any merge commits
+- [ ] If a new workflow is being added in Snakemake, is PIPELINE_DESCRIPTION.md updated?
+- [ ] If a new workflow is being added, does it dry-run at least?

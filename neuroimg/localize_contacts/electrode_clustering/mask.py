@@ -4,13 +4,15 @@ from nibabel.affines import apply_affine
 
 
 class MaskVolume:
+    """Class of functions of masking a neuroimaging volume."""
+
     @classmethod
     def apply_mask(self, mask_data, brain_img_data):
         """
-        Applies a binarized brain mask to an input CT image file
+        Apply a binarized brain mask to an input CT image file.
 
         Parameters
-        –---------
+        ----------
         mask_data: np.ndarray of 3 dimensions
             3D array of brain mask.
 
@@ -21,7 +23,6 @@ class MaskVolume:
         -------
             3D array of masked CT image that is the same shape as input arrays.
         """
-
         mask_data[mask_data > 0] = 1
         masked_brain = np.multiply(brain_img_data, mask_data)
 
@@ -30,11 +31,10 @@ class MaskVolume:
     @classmethod
     def filter_electrodes_bm(self, elec_coords_mm, brainmasked_ct_img):
         """
-        Filters out electrodes that do not fall within brain
-        matter of a CT image.
+        Filter out electrodes that do not fall within brain matter of a CT image.
 
         Parameters
-        –---------
+        ----------
         elec_coords_mm: dict()
             A dictionary of contact coordinates in mm space.
 
@@ -72,10 +72,10 @@ class MaskVolume:
     @classmethod
     def sort_contacts(self, elec_in_brain):
         """
-        Groups individual contacts by the electrode to which they correspond.
+        Group individual contacts by the electrode to which they correspond.
 
         Parameters
-        –---------
+        ----------
         elec_in_brain: dict()
             A dictionary of contact coordinates in CT voxels that fall
             within the brain matter.

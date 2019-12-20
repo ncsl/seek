@@ -30,27 +30,29 @@ def create_surface_main(
     include_unknown: bool = False,
 ):
     """
-        Parameters
-        ----------
-        cort_surf_direc: Directory that should contain:
-                           rh.pial
-                           lh.pial
-        label_direc: Directory that should contain:
-                       rh.aparc.annot
-                       lh.aparc.annot
-        subcort_surf_direc: Directory that should contain:
-                              aseg_<NUM>.srf
-                           for each <NUM> in SUBCORTICAL_REG_INDS
+    Create a zipped file with all relevant files for interacting with a Surface of the brain.
 
-        source_lut: File with the color look-up table used for the original parcellation
+    Parameters
+    ----------
+    cort_surf_direc: Directory that should contain:
+                       rh.pial
+                       lh.pial
+    label_direc: Directory that should contain:
+                   rh.aparc.annot
+                   lh.aparc.annot
+    subcort_surf_direc: Directory that should contain:
+                          aseg_<NUM>.srf
+                       for each <NUM> in SUBCORTICAL_REG_INDS
 
-        target_lut: File with the color look-up table used for the connectome generation
+    source_lut: File with the color look-up table used for the original parcellation
 
-        struct_zip_file: zip file containing TVB structural dataset to be created
+    target_lut: File with the color look-up table used for the connectome generation
 
-        out_surfaces_dir: directory where to put the surfaces and region mappings in TVB format
+    struct_zip_file: zip file containing TVB structural dataset to be created
 
-        include_unknown: include also unknown regions in the connectome
+    out_surfaces_dir: directory where to put the surfaces and region mappings in TVB format
+
+    include_unknown: include also unknown regions in the connectome
     """
     print("starting...")
     tic = time.time()

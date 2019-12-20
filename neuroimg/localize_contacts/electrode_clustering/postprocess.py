@@ -8,10 +8,12 @@ from sklearn.decomposition import PCA
 
 
 class PostProcessor:
+    """Class of postprocessor grouping functions."""
+
     @classmethod
     def _group_by_cylinder(self, cylindrical_filter_clusters):
         """
-        Groups clusters by electrodes according to cylindrical boundaries.
+        Group clusters by electrodes according to cylindrical boundaries.
 
         Parameters
         ----------
@@ -31,6 +33,8 @@ class PostProcessor:
     @classmethod
     def _label_cylinder_clusters(self, grouped_cylindrical_clusters, clusters):
         """
+        Label cylindrical clusters into dictionary ids.
+
         Parameters
         ----------
         grouped_cylindrical_clusters: dict()
@@ -59,8 +63,6 @@ class PostProcessor:
 
     @classmethod
     def _get_cluster_sizes(self, grouped_cylindrical_clusters, clusters):
-        """
-        """
         cluster_sizes_by_electrode = {}
         for electrode in grouped_cylindrical_clusters:
             cluster_sizes_by_electrode[electrode] = []
@@ -94,13 +96,14 @@ class PostProcessor:
         qtile=0.875,
     ):
         """
-        Truncates the clusters closest to the skull, which tend to be 
-        oversized, and separates clusters that appear to have grouped two 
+        Truncate the clusters closest to the skull.
+
+        These tend to be oversized, and separates clusters that appear to have grouped two
         contacts together. The cluster is filtered with 90% quantile filtering, 
         using a coordinate from user-input as the mean for the cluster.
 
         Parameters
-        –---------
+        ----------
         clusters: dict()
             Dictionary of clusters found at a given threshold.
 
@@ -231,10 +234,12 @@ class PostProcessor:
     @classmethod
     def fill_one_point(self, p1, p2):
         """
-        Computes midpoint.
+        Compute midpoint between two points.
+
+        TODO: refactor to use numpy
 
         Parameters
-        –---------
+        ----------
         p1: np.ndarray of dimension 1 x 3
             first point to compute midpoint.
 
@@ -250,7 +255,7 @@ class PostProcessor:
     @classmethod
     def fill_two_points(self, p1, p2):
         """
-        Computes trisection points.
+        Compute trisection points.
 
         Parameters
         ----------
@@ -269,10 +274,10 @@ class PostProcessor:
     @classmethod
     def fill_three_points(self, p1, p2):
         """
-        Computes quadrisection points.
+        Compute quadrisection points.
 
         Parameters
-        –---------
+        ----------
         p1: np.ndarray of dimension 1 x 3
             first point to compute quadrisection points.
 
@@ -292,8 +297,7 @@ class PostProcessor:
     @classmethod
     def shift_downstream_labels(self, electrode_name, idx, shift_factor, chan_dict):
         """
-        Helps to relabel downstream labels from a given index to maintain
-        sorted order.
+        Relabel downstream labels from a given index to maintain sorted order.
 
         Parameters
         ----------
@@ -326,8 +330,9 @@ class PostProcessor:
     @classmethod
     def compute_dists(self, centroid_dict):
         """
-        Compute the distances between a given channel and its immediate
-        neighbor on the right. The last channel has a distance set to 0.
+        Compute the distances between a given channel and its immediate neighbor on the right.
+
+        The last channel has a distance set to 0.
 
         Parameters
         ----------
@@ -342,7 +347,6 @@ class PostProcessor:
             dictionaries consisting of entries of channel names and their
             corresponding distances as described above.
         """
-
         dists = {elec: {} for elec in list(centroid_dict.keys())}
         for electrode in centroid_dict:
             channels = list(centroid_dict[electrode].keys())
@@ -376,8 +380,7 @@ class PostProcessor:
     @classmethod
     def reassign_labels(self, centroid_dict):
         """
-        Assigns labels which follow the standard labeling convention for SEEG
-        electrodes.
+        Assign labels which follow the standard labeling convention for SEEG electrodes.
 
         Parameters
         ----------
@@ -433,7 +436,7 @@ class PostProcessor:
         Assist in filling in gaps in clustering.
 
         Parameters
-        –---------
+        ----------
         final_centroids: dict()
             a dictionary with keys being electrode names and values being
             dictionaries consisting of entries of channel names and their
@@ -536,12 +539,10 @@ class PostProcessor:
     @classmethod
     def vox_2_xyz(self, final_centroids_voxels, affine):
         """
-        Convert finalized dictionary of centroids from CT voxel coordinates
-        to xyz coordinates.
+        Convert finalized dictionary of centroids from CT voxel coordinates to xyz coordinates.
 
         Parameters
         ----------
-
         final_centroids_voxels: dict()
             Properly labeled dictioanry of centroids in CT voxel coordinates.
 

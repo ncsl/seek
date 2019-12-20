@@ -10,7 +10,7 @@ from nibabel.affines import apply_affine
 
 sys.path.append("../../../")
 
-from neuroimg.base.utils import MatReader
+from neuroimg.base.utils.utils import MatReader
 from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
 from neuroimg.localize_contacts.electrode_clustering.grouping import (
     Cluster,

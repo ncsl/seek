@@ -8,9 +8,12 @@ import numpy as np
 
 from neuroimg.base.objects.neuroimaging.baseneuroimage import (
     Hemisphere,
-    RegionIndexMapping
+    RegionIndexMapping,
 )
-from neuroimg.base.utils import pial_to_verts_and_triangs, read_cortical_region_mapping
+from neuroimg.base.utils.utils import (
+    pial_to_verts_and_triangs,
+    read_cortical_region_mapping,
+)
 
 SUBCORTICAL_REG_INDS = [
     8,
@@ -35,8 +38,7 @@ SUBCORTICAL_REG_INDS = [
 
 class Surface:
     """
-    Class wrapper for the surface data used for being able to reconstruct
-    the surface geometry.
+    Class wrapper for the surface data used for being able to reconstruct the surface geometry.
 
     Takes in vertices, triangles and region_mappings to compute:
     1. vertex triangles
@@ -47,7 +49,7 @@ class Surface:
     """
 
     def __init__(
-            self, vertices: np.array, triangles: np.array, region_mapping: np.array
+        self, vertices: np.array, triangles: np.array, region_mapping: np.array
     ):
         assert vertices.ndim == 2
         assert triangles.ndim == 2
@@ -87,6 +89,14 @@ class Surface:
         )
 
     def save_surf_zip(self, filename):
+        """
+        Create a zipped file with the necessary .txt files to recreate the brain surfaces.
+
+        Parameters
+        ----------
+        filename :
+
+        """
         tmpdir = tempfile.TemporaryDirectory()
 
         # save vertices, triangles, and vertex normals
@@ -105,26 +115,31 @@ class Surface:
 
     def remap(self, remap_dict):
         """
-        Function to remap region mapping to another lookup table
-        :param remap_dict: The other lookup table
-        :return:
+        Remap region mapping to another lookup table.
+
+        Parameters
+        ----------
+        remap_dict : The other lookup table
+
         """
         for old_ind, new_ind in remap_dict.items():
             self.region_mapping[self.region_mapping == old_ind] = new_ind
 
     def save_region_mapping_txt(self, filename):
         """
-        Saves the region mapping as its own file.
+        Save the region mapping as its own file.
 
-        :param filename: (string) a filename.txt
-        :return:
+        Parameters
+        ----------
+        filename : (string) a filename.txt
+
         """
         np.savetxt(filename, self.region_mapping, fmt="%d")
 
     @staticmethod
     def compute_vertex_triangles(number_of_vertices, number_of_triangles, triangles):
         """
-        Computes the vertex triangles.
+        Compute the vertex triangles.
 
         :param number_of_vertices:
         :param number_of_triangles:
@@ -141,7 +156,8 @@ class Surface:
     @staticmethod
     def compute_triangle_normals(triangles, vertices):
         """
-        Calculates triangle normals.
+        Calculate triangle normals.
+
         :param triangles:
         :param vertices:
         :return:
@@ -152,7 +168,7 @@ class Surface:
 
         try:
             triangle_normals = (
-                    tri_norm / np.sqrt(np.sum(tri_norm ** 2, axis=1))[:, np.newaxis]
+                tri_norm / np.sqrt(np.sum(tri_norm ** 2, axis=1))[:, np.newaxis]
             )
         except FloatingPointError:
             # TODO: NaN generation would stop execution, however for normals this case could maybe be
@@ -163,7 +179,7 @@ class Surface:
     @staticmethod
     def compute_triangle_angles(vertices, number_of_triangles, triangles):
         """
-        Calculates the inner angles of all the triangles which make up a surface
+        Calculate the inner angles of all the triangles which make up a surface.
 
         TODO: Should be possible with arrays, ie not nested loops...
         A short profile indicates this function takes 95% of the time to compute normals
@@ -200,16 +216,15 @@ class Surface:
 
     @staticmethod
     def compute_vertex_normals(
-            number_of_vertices,
-            vertices,
-            vertex_triangles,
-            triangles,
-            triangle_angles,
-            triangle_normals,
+        number_of_vertices,
+        vertices,
+        vertex_triangles,
+        triangles,
+        triangle_angles,
+        triangle_normals,
     ):
         """
-        Estimates vertex normals, based on triangle normals weighted by the
-        angle they subtend at each vertex...
+        Estimates vertex normals, based on triangle normals weighted by the angle they subtend at each vertex.
 
         :param number_of_vertices: (int) the number of vertices to analyze
         :param vertices:
@@ -249,7 +264,7 @@ class Surface:
     @staticmethod
     def compute_triangle_areas(vertices, triangles):
         """
-        Calculates the area of triangles making up a surface.
+        Calculate the area of triangles making up a surface.
 
         :param vertices:
         :param triangles:
@@ -264,14 +279,16 @@ class Surface:
 
 
 class GetSurface:
+    """Class for surface functions."""
+
     @staticmethod
     def get_cortical_surfaces(
-            cort_surf_direc: os.PathLike,
-            label_direc: os.PathLike,
-            region_index_mapping: RegionIndexMapping,
+        cort_surf_direc: os.PathLike,
+        label_direc: os.PathLike,
+        region_index_mapping: RegionIndexMapping,
     ) -> Surface:
         """
-        Computes and formats a cortical Surface object.
+        Compute and format a cortical Surface object.
 
         :param cort_surf_direc: (string) The directory for the cortical surface with rh.pial and lh.pial
         :param label_direc: (string) The directory with the annotations such as rh.aparc.annot
@@ -306,10 +323,10 @@ class GetSurface:
 
     @staticmethod
     def get_subcortical_surfaces(
-            subcort_surf_direc: os.PathLike, region_index_mapping: RegionIndexMapping
+        subcort_surf_direc: os.PathLike, region_index_mapping: RegionIndexMapping
     ) -> Surface:
         """
-        Computes and formats the subcortical Surface.
+        Compute and format the subcortical Surface.
 
         :param subcort_surf_direc: The direcotry for the subcortical surface.
         :param region_index_mapping: (RegionIndexMapping) The region index mapping for subcortical structs
@@ -345,7 +362,7 @@ class GetSurface:
     @staticmethod
     def merge_surfaces(surfaces: List[Surface]) -> Surface:
         """
-        Helper method to merge a list of Surfaces into one Surface object.
+        Merge a list of Surfaces into one Surface object.
 
         :param surfaces: (list[Surface]) a list of surfaces
         :return: Surface
@@ -365,14 +382,19 @@ class GetSurface:
 
     @staticmethod
     def compute_region_params(
-            surface: Surface, subcortical: bool = False
+        surface: Surface, subcortical: bool = False
     ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
         """
-        Computes the parameters required for each region (regions, areas, orientations, centers)
+        Compute the parameters required for each region (regions, areas, orientations, centers).
 
-        :param surface: (Surface) the surface object.
-        :param subcortical: (bool) whether or not this surface is subcortical
-        :return: (tuple of np.ndarray) the regions, areas, orientations and the volume centers
+        Parameters
+        ----------
+        surface : (Surface) the surface object.
+        subcortical : (bool) whether or not this surface is subcortical
+
+        Returns
+        -------
+        regions, areas, orientations, centers : (tuple of np.ndarray) the regions, areas, orientations and the volume centers
         """
         verts, triangs, region_mapping = (
             surface.vertices,
@@ -393,8 +415,20 @@ class GetSurface:
 
     @staticmethod
     def compute_region_orientations(regions, vertex_normals, region_mapping):
-        """Compute the orientation of given regions from vertex_normals and region mapping"""
+        """
+        Compute the orientation of given regions from vertex_normals and region mapping.
 
+        Parameters
+        ----------
+        regions :
+        vertex_normals :
+        region_mapping :
+
+        Returns
+        -------
+        average_orientation :
+
+        """
         average_orientation = np.zeros((regions.size, 3))
         # Average orientation of the region
         for i, k in enumerate(regions):
@@ -409,8 +443,21 @@ class GetSurface:
 
     @staticmethod
     def compute_region_areas(regions, triangle_areas, vertex_triangles, region_mapping):
-        """Compute the areas of given regions"""
+        """
+        Compute the areas of given regions.
 
+        Parameters
+        ----------
+        regions :
+        triangle_areas :
+        vertex_triangles :
+        region_mapping :
+
+        Returns
+        -------
+        region_surface_area :
+
+        """
         region_surface_area = np.zeros(regions.size)
         avt = np.array(vertex_triangles)
         # NOTE: Slightly overestimates as it counts overlapping border triangles,
@@ -425,6 +472,19 @@ class GetSurface:
 
     @staticmethod
     def compute_region_centers(regions, vertices, region_mapping):
+        """
+        Compute region centers from their vertices and region mapping.
+
+        Parameters
+        ----------
+        regions :
+        vertices :
+        region_mapping :
+
+        Returns
+        -------
+        region_centers :
+        """
         region_centers = np.zeros((regions.size, 3))
         for i, k in enumerate(regions):
             vert = vertices[region_mapping == k, :]

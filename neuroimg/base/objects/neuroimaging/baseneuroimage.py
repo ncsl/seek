@@ -37,6 +37,13 @@ FS_LUT_RH_SHIFT = 2000
 
 
 class Hemisphere(enum.Enum):
+    """
+    An enumeration of the brain hemisphere.
+
+    Only includes right and left side.
+
+    """
+
     rh = "rh"
     lh = "lh"
 
@@ -46,15 +53,17 @@ class RegionIndexMapping(object):
     Class wrapper for a region index mapping.
 
     This maps each index of the source file to an index in the corresponding look up table.
+
+    Parameters
+    ----------
+    color_lut_src_file: The source lookup table
+    color_lut_trg_file: The target's lookup table.
+
     """
 
     def __init__(
-            self, color_lut_src_file: os.PathLike, color_lut_trg_file: os.PathLike
+        self, color_lut_src_file: os.PathLike, color_lut_trg_file: os.PathLike
     ):
-        """
-        :param color_lut_src_file: The source lookup table
-        :param color_lut_trg_file: The target's lookup table.
-        """
         self.src_table = ColorLut(color_lut_src_file)
         self.trg_table = ColorLut(color_lut_trg_file)
 
@@ -71,6 +80,18 @@ class RegionIndexMapping(object):
         )  # zero as the default unknown area
 
     def source_to_target(self, index):
+        """
+        Convert source index on the Source LUT to the Target LUT index.
+
+        Parameters
+        ----------
+        index :
+
+        Returns
+        -------
+        target_index
+
+        """
         return self.src_to_trg.get(index, self.unknown_ind)
 
 
@@ -79,13 +100,14 @@ class RegionIndexMappingLobe(object):
     Class wrapper for a region index mapping to lobes.
 
     This allows mapping of each index of source file to an index in lobe file.
+
     """
 
     def __init__(
-            self,
-            orig_annot_file: os.PathLike,
-            lobe_annot_file: os.PathLike,
-            hemisphere: Hemisphere,
+        self,
+        orig_annot_file: os.PathLike,
+        lobe_annot_file: os.PathLike,
+        hemisphere: Hemisphere,
     ):
         # read in the region mapping for each index in annotation file
         region_mapping, _, region_names = nibabel.freesurfer.io.read_annot(
@@ -116,6 +138,18 @@ class RegionIndexMappingLobe(object):
         self.src_to_trg = region_to_lobe_dict
 
     def source_to_target(self, index):
+        """
+        Convert source index on the Source LUT to the Target LUT index.
+
+        Parameters
+        ----------
+        index :
+
+        Returns
+        -------
+        target_index
+
+        """
         return self.src_to_trg.get(index, self.unknown_ind)
 
 
@@ -123,8 +157,9 @@ class ColorLut(object):
     """
     Class wrapper for the color lookup table.
 
-    each column represents:
+    Each column represents:
     id, name, R, G, B, A, shortname
+
     """
 
     def __init__(self, filename: os.PathLike):

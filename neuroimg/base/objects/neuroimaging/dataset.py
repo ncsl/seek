@@ -7,6 +7,18 @@ import numpy as np
 
 
 class StructuralDataset:
+    """
+    Class for a structural type dataset that encompasses brain surfaces.
+
+    Parameters
+    ----------
+    orientations :
+    areas :
+    centers :
+    cortical :
+    names :
+    """
+
     def __init__(
         self,
         orientations: np.ndarray,
@@ -31,6 +43,19 @@ class StructuralDataset:
         self.names = names
 
     def save_to_txt_zip(self, filename: os.PathLike):
+        """
+        Create a zipped file with the necessary .txt files to recreate the entire dataset.
+
+        Includes data for:
+        - areas of surface regions
+        - average_orientations of each surface region
+        - centres in xyz coordinates of each surface
+        - index labeling of the cortical
+
+        Parameters
+        ----------
+        filename :
+        """
         # create a temporary direcotry
         tmpdir = tempfile.TemporaryDirectory()
 
