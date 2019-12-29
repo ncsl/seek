@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 # FROM freesurfer/freesurfer:6.0
-MAINTAINER Adam Li <ali39@jhu.edu>
+LABEL authors="Adam Li <ali39@jhu.edu>"
 
 #############################################################################
 ############# FOR CREATING A FREESURFER, FSL, MRTRIX3 Pipeline ##############
@@ -8,24 +8,32 @@ MAINTAINER Adam Li <ali39@jhu.edu>
 
 # Core system capabilities required
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    git \
-    nano \
-    nodejs \
-    npm \
-    perl-modules \
-    python \
-    tar \
-    unzip \
-    wget \
-    libeigen3-dev \
-    zlib1g-dev \
-    libqt4-opengl-dev \
-    libgl1-mesa-dev \
-    libfftw3-dev \
-    libtiff5-dev \
-    g++ \
-    python-numpy 
+	build-essential \
+	git \
+	nano \
+	nodejs \
+	npm \
+	perl-modules \
+	python \
+	tar \
+	unzip \
+	wget \
+	libeigen3-dev \
+	zlib1g-dev \
+	libqt4-opengl-dev \
+	libgl1-mesa-dev \
+	libfftw3-dev \
+	libtiff5-dev \
+	g++ \
+	python-numpy \
+	curl \
+	bzip2 \
+	libfreetype6 \
+	libglu1-mesa \
+	libxi6 \
+	libxrender1 \
+	imagemagick \
+	jp2a
 
 RUN apt-get install git g++ python python-numpy libeigen3-dev zlib1g-dev libqt4-opengl-dev libgl1-mesa-dev libfftw3-dev libtiff5-dev
 RUN apt-get upgrade -y
@@ -33,11 +41,11 @@ RUN apt-get upgrade -y
 # ANTs installs tzdata as a dependency; however its installer is interactive
 # Therefore we need to do some shenanigans here to force it though
 RUN DEBIAN_FRONTEND=noninteractive \
-    apt-get install -y tzdata
+	apt-get install -y tzdata
 
 # NeuroDebian setup
 RUN wget -qO- http://neuro.debian.net/lists/bionic.us-nh.libre | \
-    tee /etc/apt/sources.list.d/neurodebian.sources.list
+	tee /etc/apt/sources.list.d/neurodebian.sources.list
 
 # Silences unnecessary warning regarding stdout not being a terminal
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
@@ -47,20 +55,20 @@ RUN apt-get update
 ###################### For FreeSurfer Setup: ######################
 
 RUN wget -qO- https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.0/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.0.tar.gz | \
-    tar zx -C /opt \
-    --exclude='freesurfer/trctrain' \
-    --exclude='freesurfer/subjects/fsaverage_sym' \
-    --exclude='freesurfer/subjects/fsaverage3' \
-    --exclude='freesurfer/subjects/fsaverage4' \
-    --exclude='freesurfer/subjects/fsaverage5' \
-    --exclude='freesurfer/subjects/fsaverage6' \
-    --exclude='freesurfer/subjects/cvs_avg35' \
-    --exclude='freesurfer/subjects/cvs_avg35_inMNI152' \
-    --exclude='freesurfer/subjects/bert' \
-    --exclude='freesurfer/subjects/V1_average' \
-    --exclude='freesurfer/average/mult-comp-cor' \
-    --exclude='freesurfer/lib/cuda' \
-    --exclude='freesurfer/lib/qt'
+	tar zx -C /opt \
+	--exclude='freesurfer/trctrain' \
+	--exclude='freesurfer/subjects/fsaverage_sym' \
+	--exclude='freesurfer/subjects/fsaverage3' \
+	--exclude='freesurfer/subjects/fsaverage4' \
+	--exclude='freesurfer/subjects/fsaverage5' \
+	--exclude='freesurfer/subjects/fsaverage6' \
+	--exclude='freesurfer/subjects/cvs_avg35' \
+	--exclude='freesurfer/subjects/cvs_avg35_inMNI152' \
+	--exclude='freesurfer/subjects/bert' \
+	--exclude='freesurfer/subjects/V1_average' \
+	--exclude='freesurfer/average/mult-comp-cor' \
+	--exclude='freesurfer/lib/cuda' \
+	--exclude='freesurfer/lib/qt'
 RUN apt-get install -y ants
 
 RUN apt-get update && ls
@@ -131,3 +139,12 @@ ENV PYTHONPATH=/mrtrix3/lib:$PYTHONPATH
 # remove unnecessary files copied over
 RUN rm fslinstaller.py
 COPY version /version
+
+
+# Download and install blender
+RUN mkdir /usr/local/blender && \
+	curl -SL https://www.blender.org/download/Blender2.81/blender-2.81a-linux-glibc217-x86_64.tar.bz2/ -o \
+	blender.tar.bz2 && tar -jxvf blender.tar.bz2 -C /usr/local/blender --strip-components=1 && \
+	rm blender.tar.bz2
+
+ENV PATH /usr/local/blender:$PATH
