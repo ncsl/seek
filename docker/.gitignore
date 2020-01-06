@@ -1,0 +1,10 @@
+# Temporary install files
+freesurfer*.gz
+blender*.bz2
+matlab.zip
+fslinstaller.py
+
+# matlab license & install instructions (installer_input.txt contains 
+license.lic
+installer_input.txt
+

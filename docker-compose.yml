@@ -1,0 +1,7 @@
+version: "3.7"
+services:
+  main:
+    env_file: docker/keys.env
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
