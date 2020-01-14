@@ -174,18 +174,18 @@ rule convert_eleccoords_mat_to_txt:
 # applying flirt rigid registration affine transformation to the xyz coordinates of the localized
 # contacts in CT space. This will convert them into the space of the T1 image.
 # """
-# rule convert_eleccoords_to_native_T1:
-#     input:
-#         # DEPENDENCY ON RECONSTRUCTION WORKFLOW
-#         # mapping matrix for post to pre in T1
-#         MAPPING_FILE_ORIG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt")),
-#         clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{patient_id}_elec_f.mat'),
-#     output:
-#         clustered_center_points_flirt = os.path.join(FSOUT_ELECS_FOLDER, '{patient_id}_flirt_elec_xyz.mat'),
-#     shell:
-#         "img2imgcoord -mm -src {input.clustered_center_points} \
-#                     -dest {output.clustered_center_points} -xfm {input.output_registration_file};"
-#
+rule convert_eleccoords_to_native_T1:
+    input:
+        # DEPENDENCY ON RECONSTRUCTION WORKFLOW
+        # mapping matrix for post to pre in T1
+        MAPPING_FILE_ORIG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt")),
+        clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{patient_id}_elec_f.mat'),
+    output:
+        clustered_center_points_flirt = os.path.join(FSOUT_ELECS_FOLDER, '{patient_id}_flirt_elec_xyz.mat'),
+    shell:
+        "img2imgcoord -mm -src {input.clustered_center_points} \
+                    -dest {output.clustered_center_points} -xfm {input.output_registration_file};"
+
 #
 # rule convert_coords_to_conformed_space:
 #     input:

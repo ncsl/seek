@@ -8,6 +8,8 @@ from sklearn.cluster import KMeans
 
 
 class PostProcessor:
+    """Class of postprocessor grouping functions."""
+
     @classmethod
     def _typeify_abnormalities(self, cyl_filtered_clusters):
         """
@@ -59,7 +61,9 @@ class PostProcessor:
         qtile
     ):
         """
-        Pare down skull clusters by only considering points close to the
+        Pare down skull clusters.
+        
+        Only considering points close to the
         centroid of the oversized cluster.
 
         Parameters
@@ -126,7 +130,9 @@ class PostProcessor:
         sparse_labeled_contacts,
     ):
         """
-        Unfuse merged clusters by using KMeans clustering to split the large
+        Unfuse merged clusters.
+        
+        By using KMeans clustering to split the large
         cluster into two.
 
         Parameters
@@ -183,8 +189,10 @@ class PostProcessor:
         qtile=0.875
     ):
         """
-        Truncates the clusters closest to the skull, which tend to be
-        oversized, and separates clusters that appear to have grouped two
+        Truncate the clusters closest to the skull.
+        
+        Which tend to be oversized, and separates clusters that 
+        appear to have grouped two
         contacts together. The cluster is filtered with 90% quantile filtering,
         using a coordinate from user-input as the mean for the cluster.
 
@@ -242,8 +250,9 @@ class PostProcessor:
     @classmethod
     def _compute_centroids(self, chanxyzvoxels):
         """
-        Function to return the centroids of each channel label given a list
-        of voxels per channel label.
+        Return the centroids of each channel label.
+        
+        Given a list of voxels per channel label.
 
         Parameters
         ----------
@@ -265,7 +274,9 @@ class PostProcessor:
     @classmethod
     def _order_clusters(self, clusters, first_contact):
         """
-        Order a dictionary of clusters based on distance of the centroid of
+        Order a dictionary of clusters.
+        
+        Based on distance of the centroid of
         the cluster from the contact labeled with the number 1 given from user
         input.
 
@@ -302,7 +313,9 @@ class PostProcessor:
     @classmethod
     def _fill(self, centroids, num_to_fill, dists, max_cluster_id):
         """
-        Insert new points between contacts that are far apart for a given
+        Insert new points between contacts.
+        
+        That are far apart for a given
         electrode and specified number of points to fill.
 
         Parameters
@@ -351,7 +364,9 @@ class PostProcessor:
     @classmethod
     def _interpolate_points(self, clusters, num_to_fill):
         """
-        Interpolate specified number of points to fill between each cluster
+        Interpolate specified number of points.
+        
+        To fill between each cluster
         for a given electrode.
 
         Parameters
@@ -403,6 +418,9 @@ class PostProcessor:
     ):
         """
         Assist in filling in gaps in clustering.
+
+        Compute the distances between a given channel and its immediate neighbor on the right.
+        The last channel has a distance set to 0.
 
         Parameters
         –---------
@@ -541,7 +559,9 @@ class PostProcessor:
     @classmethod
     def bruteforce_correction(self, labeled_clusters, sparse_labeled_contacts):
         """
-        Check for egregiously poor output by the algorithm. If it is large,
+        Check for egregiously poor output by the algorithm. 
+        
+        If it is large,
         use the brute force approach - use the provided contacts and
         interpolate specified number of evenly spaced poitns between the
         provided contacts.
@@ -629,6 +649,19 @@ class PostProcessor:
         ----------
             clusters: dict(str: dict(str: ndarray))
                 Dictionary of clusters grouped by electrode.
+            final_centroids: dict()
+                a dictionary with keys being electrode names and values being
+                dictionaries consisting of entries of channel names and their
+                corresponding centroid coordinates.
+            dists: dict()
+                a dictionary with keys being electrode names and values being
+                dictionaries consisting of entries of channel names and their
+                corresponding distance to their most immediate neighbor on their
+                right. The rightmost channel for a given electrode has a distance
+                set to 0.
+            gap_tolerance: dict()
+                maximum distance we will allow two adjacent contacts to be before
+                no longer considering them adjacent.
 
         Returns
         -------
@@ -643,8 +676,7 @@ class PostProcessor:
     @classmethod
     def vox_2_xyz(self, centroids_vox, affine):
         """
-        Convert finalized dictionary of centroids from CT voxel coordinates
-        to xyz coordinates.
+        Convert finalized dictionary of centroids from CT voxel coordinates to xyz coordinates.
 
         Parameters
         ----------

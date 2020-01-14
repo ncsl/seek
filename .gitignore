@@ -8,6 +8,8 @@ __pycache__/
 *.snakemake
 .idea*
 
+.vscode/*
+
 # C extensions
 *.so
 
@@ -69,7 +71,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+doc/_build/
 
 # PyBuilder
 target/

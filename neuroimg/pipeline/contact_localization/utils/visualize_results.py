@@ -14,7 +14,7 @@ from sklearn.decomposition import PCA
 
 sys.path.append("../../../")
 
-from neuroimg.base.utils import MatReader
+from neuroimg.base.utils.utils import MatReader
 from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
 
 
@@ -71,7 +71,6 @@ def summary_PCA_plots(figurefilepath, final_centroids, validation):
             marker="x",
             c="r"
         )
-
         axs[i].set(
             title=f"PCA Validation of Centroids (Electrode: {elec})",
             xlabel=f"PC Coordinates in Voxels along Electrode {elec}",

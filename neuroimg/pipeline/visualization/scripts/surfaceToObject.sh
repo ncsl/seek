@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 ./scripts/srf2obj $SUBJECTS_DIR/$1/rois/rh.pial_roi.0001.srf > $SUBJECTS_DIR/$1/obj/rh.bankssts.obj
 ./scripts/srf2obj $SUBJECTS_DIR/$1/rois/rh.pial_roi.0002.srf > $SUBJECTS_DIR/$1/obj/rh.caudalanteriorcingulate.obj
 ./scripts/srf2obj $SUBJECTS_DIR/$1/rois/rh.pial_roi.0003.srf > $SUBJECTS_DIR/$1/obj/rh.caudalmiddlefrontal.obj

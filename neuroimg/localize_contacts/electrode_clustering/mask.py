@@ -7,10 +7,12 @@ import numpy.linalg as npl
 
 
 class MaskVolume:
+    """Class of functions of masking a neuroimaging volume."""
+
     @classmethod
     def apply_mask(self, brain_img, mask_img):
         """
-        Applies a binarized brain mask to an input CT image file
+        Apply a binarized brain mask to an input CT image file.
 
         Parameters
         –---------
@@ -39,8 +41,7 @@ class MaskVolume:
     @classmethod
     def mask_electrodes(self, elec_coords_mm, brainmasked_ct_img):
         """
-        Filters out electrodes that do not fall within brain
-        matter of a CT image.
+        Filter out electrodes that do not fall within brain matter of a CT image.
 
         Parameters
         –---------
@@ -79,6 +80,7 @@ class MaskVolume:
     def group_contacts(self, elec_in_brain):
         """
         Groups individual contacts by the electrode to which they correspond.
+        
         Sorts the contacts using the corresponding labels.
 
         Parameters

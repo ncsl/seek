@@ -1,57 +1,156 @@
 import os
 import sys
 sys.path.append("../../../")
-from neuroimg.pipeline.fileutils import SCRIPTS_UTIL_DIR
-from neuroimg.pipeline.fileutils import get_freesurfer_patient_dir, get_freesurfer_dir, \
-    get_rawct_dir, get_rawmri_dir, get_rawacpc_dir
+
+from neuroimg.pipeline.fileutils import get_freesurfer_patient_dir, get_freesurfer_dir
 
 configfile: "../config/localconfig.yaml"
+BLENDER_PATH = config["blender_path"]
 FS_OUTPUT_DIR = get_freesurfer_dir(config)
 FS_PATIENT_OUTPUT_DIR = get_freesurfer_patient_dir(config)
 
-LH_PIAL_ASC = ""
-RH_PIAL_ASC = ""
-LH_ANNOT_FILE = ""
-RH_ANNOT_FILE = ""
-LH_PIAL_SRF = ""
-RH_PIAL_SRF = ""
+FS_SURF_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "surf")
+FS_LABEL_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "label")
+FS_ROI_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "rois")
+FS_ELECS_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "elecs")
+FS_OBJ_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "obj")
+
+LH_PIAL_ASC = os.path.join(FS_SURF_DIR, "ascii", "lh.pial.asc")
+RH_PIAL_ASC = os.path.join(FS_SURF_DIR, "ascii", "rh.pial.asc")
+LH_ANNOT_FILE = os.path.join(FS_LABEL_DIR, "lh.aparc.annot")
+RH_ANNOT_FILE = os.path.join(FS_LABEL_DIR, "rh.aparc.annot")
+LH_PIAL_SRF = os.path.join(FS_SURF_DIR, "lh.pial.srf")
+RH_PIAL_SRF = os.path.join(FS_SURF_DIR, "rh.pial.srf")
+
+BLENDER_PATH = "blender"
+# BLENDER_PATH = os.environ.get("blender")
+# print(BLENDER_PATH)
 
 rule all:
-	output:
-		"stuff",
+	input:
+		surface_scene_file = expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
+									patient_id=config["patients"]),
+		# surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
+		# surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
 	shell:
-		"echo 'Done!;'
+		"echo 'Done!;'"
+
+rule convert_asc_to_srf:
+	input:
+		LH_PIAL_ASC = LH_PIAL_ASC,
+		RH_PIAL_ASC = RH_PIAL_ASC,
+	output:
+		LH_PIAL_SRF = LH_PIAL_SRF,
+		RH_PIAL_SRF = RH_PIAL_SRF,
+	shell:
+		"cp {input.LH_PIAL_ASC} {output.LH_PIAL_SRF};"
+		"cp {input.RH_PIAL_ASC} {output.RH_PIAL_SRF};"
+
+rule convert_subcort_to_obj:
+	input:
+		subcort_success_flag_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_subcort_success.txt"),
+	params:
+		subject = "{patient_id}",
+		FS_OBJ_DIR = FS_OBJ_DIR,
+		fsdir = FS_OUTPUT_DIR,
+	output:
+		obj_success_flag_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_subcortobjects_success.txt"),
+	shell:
+		"export SUBJECTS_DIR={params.fsdir};"
+		# "mkdir {params.FS_OBJ_DIR};"
+		"./scripts/objMaker.sh {params.subject};"
+		"touch {output.obj_success_flag_file};"
+
+rule convert_annot_to_dpv:
+	input:
+		LH_ANNOT_FILE = LH_ANNOT_FILE,
+		RH_ANNOT_FILE = RH_ANNOT_FILE,
+	output:
+		LH_ANNOT_DPV = os.path.join(FS_LABEL_DIR, "lh.aparc.annot.dpv"),
+		RH_ANNOT_DPV = os.path.join(FS_LABEL_DIR, "rh.aparc.annot.dpv"),
+	shell:
+		"./scripts/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
+		"./scripts/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
+
+rule split_surfaces:
+	input:
+		LH_ANNOT_DPV = os.path.join(FS_LABEL_DIR, "lh.aparc.annot.dpv"),
+		RH_ANNOT_DPV = os.path.join(FS_LABEL_DIR, "rh.aparc.annot.dpv"),
+		LH_PIAL_SRF = LH_PIAL_SRF,
+		RH_PIAL_SRF = RH_PIAL_SRF,
+	params:
+		LH_PIAL_ROI = os.path.join(FS_ROI_DIR, "lh.pial_roi"),
+		RH_PIAL_ROI = os.path.join(FS_ROI_DIR, "rh.pial_roi"),
+	output:
+		roi_flag_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "surfaces_roi_flag_success.txt")
+	shell:
+		"cd ./scripts/;"
+		"./splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
+		"./splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
+		"touch {output.roi_flag_file};"
 
 rule create_surface_objects:
 	input:
-		stuff="",
+		roi_flag_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "surfaces_roi_flag_success.txt"),
+		electrode_fpath = os.path.join(FS_ELECS_DIR, "electrodes.txt"),
+		obj_success_flag_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_subcortobjects_success.txt"),
 	params:
-		stuff="",
+		LH_PIAL_ROI = os.path.join(FS_ROI_DIR, "lh.pial_roi"),
+		RH_PIAL_ROI = os.path.join(FS_ROI_DIR, "rh.pial_roi"),
+		fsdir = FS_OUTPUT_DIR,
+		subject = "{patient_id}",
+		materialcolors_file = os.path.join(os.getcwd(), "./scripts/materialColors.json"),
+		BLENDER_PATH = BLENDER_PATH,
 	output:
-		stuff="",
+		surface_scene_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
+		surface_fbx_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.fbx"),
+		# copied_surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
+		# copied_surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
 	shell:
-		"echo 'Creating surface objects for rendering!;"
-		
-rule create
-		
-rule aseg:
-	params:
-		subject = "derivatives/freesurfer/PublicDataset",
-		subjectName = "PublicDataset",
-		subjectDirectory = FS_OUTPUT_DIR
-	shell:
-		"./scripts/aseg2srf.sh -s {params.subject} && "
-		"./scripts/objMaker.sh {params.subject} && "
-		"mris_convert {params.subjectDirectory}/PublicDataset/surf/lh.pial {params.subjectDirectory}/PublicDataset/surf/lh.pial.asc && "
-		"mris_convert {params.subjectDirectory}/PublicDataset/surf/rh.pial {params.subjectDirectory}/PublicDataset/surf/rh.pial.asc && "
-		"cp {params.subjectDirectory}/{params.subjectName}/surf/lh.pial.asc {params.subjectDirectory}/{params.subjectName}/surf/lh.pial.srf && "
-		"cp {params.subjectDirectory}/{params.subjectName}/surf/rh.pial.asc {params.subjectDirectory}/{params.subjectName}/surf/rh.pial.srf && "
-		"./scripts/annot2dpv {params.subjectDirectory}/{params.subjectName}/label/lh.aparc.annot {params.subjectDirectory}/{params.subjectName}/label/lh.aparc.annot.dpv && "
-		"./scripts/annot2dpv {params.subjectDirectory}/{params.subjectName}/label/rh.aparc.annot {params.subjectDirectory}/{params.subjectName}/label/rh.aparc.annot.dpv && "
-		"./scripts/splitsrf {params.subjectDirectory}/{params.subjectName}/surf/lh.pial.srf {params.subjectDirectory}/{params.subjectName}/label/lh.aparc.annot.dpv {params.subjectDirectory}/{params.subjectName}/rois/lh.pial_roi &&"
-		"./scripts/splitsrf {params.subjectDirectory}/{params.subjectName}/surf/rh.pial.srf {params.subjectDirectory}/{params.subjectName}/label/rh.aparc.annot.dpv {params.subjectDirectory}/{params.subjectName}/rois/rh.pial_roi &&"
-		"./scripts/surfaceToObject.sh {params.subject} && "
-		"/usr/local/blender/blender --background --python scripts/sceneCreator.py -- {params.subjectDirectory}/{params.subjectName} True False"
+		"echo 'Creating surface objects for rendering!';"
+		"export SUBJECTS_DIR={params.fsdir};"
+		"./scripts/surfaceToObject.sh {params.subject};"
+		"{params.BLENDER_PATH} --background --python ./scripts/sceneCreator.py -- " \
+																"{params.fsdir} " \
+																"{params.subject} " \
+																"{input.electrode_fpath} " \
+																"True False " \
+																"{output.surface_fbx_file} " \
+																"{output.surface_scene_file} " \
+		"{params.materialcolors_file};"
+		# "cp {output.surface_scene_file} {output.copied_surface_scene_file};"
+		# "cp {output.surface_fbx_file} {output.copied_surface_fbx_file};"
+
+# rule copy_rendering_files:
+# 	input:
+# 		surface_scene_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.glb"),
+# 		surface_fbx_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "blender_objects", "reconstruction.fbx"),
+# 	output:
+# 		surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
+# 		surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
+# 	shell:
+# 		"cp {input.surface_scene_file} {output.surface_scene_file};"
+# 		"cp {input.surface_fbx_file} {output.surface_fbx_file};"
+# 		"python ./webserver/server.py;"
+
+# rule aseg:
+# 	params:
+# 		subject = "derivatives/freesurfer/PublicDataset",
+# 		subjectName = "PublicDataset",
+# 		subjectDirectory = FS_OUTPUT_DIR
+# 	shell:
+# 		"./scripts/aseg2srf.sh -s {params.subject} && "
+# 		"./scripts/objMaker.sh {params.subject} && "
+# 		"mris_convert {params.subjectDirectory}/PublicDataset/surf/lh.pial {params.subjectDirectory}/PublicDataset/surf/lh.pial.asc && "
+# 		"mris_convert {params.subjectDirectory}/PublicDataset/surf/rh.pial {params.subjectDirectory}/PublicDataset/surf/rh.pial.asc && "
+# 		"cp {params.subjectDirectory}/{params.subjectName}/surf/lh.pial.asc {params.subjectDirectory}/{params.subjectName}/surf/lh.pial.srf && "
+# 		"cp {params.subjectDirectory}/{params.subjectName}/surf/rh.pial.asc {params.subjectDirectory}/{params.subjectName}/surf/rh.pial.srf && "
+# 		"./scripts/annot2dpv {params.subjectDirectory}/{params.subjectName}/label/lh.aparc.annot {params.subjectDirectory}/{params.subjectName}/label/lh.aparc.annot.dpv && "
+# 		"./scripts/annot2dpv {params.subjectDirectory}/{params.subjectName}/label/rh.aparc.annot {params.subjectDirectory}/{params.subjectName}/label/rh.aparc.annot.dpv && "
+# 		"./scripts/splitsrf {params.subjectDirectory}/{params.subjectName}/surf/lh.pial.srf {params.subjectDirectory}/{params.subjectName}/label/lh.aparc.annot.dpv {params.subjectDirectory}/{params.subjectName}/rois/lh.pial_roi &&"
+# 		"./scripts/splitsrf {params.subjectDirectory}/{params.subjectName}/surf/rh.pial.srf {params.subjectDirectory}/{params.subjectName}/label/rh.aparc.annot.dpv {params.subjectDirectory}/{params.subjectName}/rois/rh.pial_roi &&"
+# 		"./scripts/surfaceToObject.sh {params.subject} && "
+# 		"/usr/local/blender/blender --background --python scripts/sceneCreator.py -- {params.subjectDirectory}/{params.subjectName} True False"
 
 
 
