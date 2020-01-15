@@ -43,10 +43,7 @@ def summary_PCA_plots(figurefilepath, final_centroids, validation):
 
     sns.set(font_scale=1.1)
     fig, axs = plt.subplots(
-        nrows=int(np.ceil(numelectrodes / 2)),
-        ncols=2,
-        figsize=(20, 20),
-        dpi=100
+        nrows=int(np.ceil(numelectrodes / 2)), ncols=2, figsize=(20, 20), dpi=100
     )
     axs = axs.flatten()
 
@@ -58,23 +55,19 @@ def summary_PCA_plots(figurefilepath, final_centroids, validation):
         pred_pca = pca.transform(pred_centroids)
         val_pca = pca.transform(val_centroids)
 
-        axs[i].scatter(
-            val_pca[:, 0],
-            np.zeros_like(val_pca[:, 0]),
-            label="expected"
-        )
+        axs[i].scatter(val_pca[:, 0], np.zeros_like(val_pca[:, 0]), label="expected")
 
         axs[i].scatter(
             pred_pca[:, 0],
             np.zeros_like(pred_pca[:, 0]),
             label="observed",
             marker="x",
-            c="r"
+            c="r",
         )
         axs[i].set(
             title=f"PCA Validation of Centroids (Electrode: {elec})",
             xlabel=f"PC Coordinates in Voxels along Electrode {elec}",
-            ylim=[-0.005, 0.005]
+            ylim=[-0.005, 0.005],
         )
         axs[i].legend()
         for j, chan in enumerate(final_centroids[elec]):
@@ -119,15 +112,12 @@ def l2_error(figurefilepath, final_centroids, validation):
                 abs_error = npl.norm(pred - val)
                 errors_per_channel[elec][chan] = abs_error
             else:
-                print(f'Channel {chan} not found - saving error as NaN.')
+                print(f"Channel {chan} not found - saving error as NaN.")
                 errors_per_channel[elec][chan] = np.nan
 
     sns.set(font_scale=1.1)
     fig, axs = plt.subplots(
-        nrows=int(np.ceil(numelectrodes / 2)),
-        ncols=2,
-        figsize=(15, 15),
-        dpi=100
+        nrows=int(np.ceil(numelectrodes / 2)), ncols=2, figsize=(15, 15), dpi=100
     )
     axs = axs.flatten()
 
@@ -146,7 +136,7 @@ def l2_error(figurefilepath, final_centroids, validation):
             xticks=y_pos,
             xticklabels=list(final_centroids[elec].keys()),
             ylabel="Distance",
-            ylim=[ymin, ymax]
+            ylim=[ymin, ymax],
         )
         axs[i].set_xlabel("Channel")
         axs[i].set_ylabel("Distance")
@@ -252,9 +242,7 @@ if __name__ == "__main__":
     brainmasked_ct_img = maskpipe.apply_mask(ct_img, bm_ct_img)
 
     # Filtering out electrodes not within brainmask
-    elec_in_brain_vox = maskpipe.mask_electrodes(
-        elec_coords_mm, brainmasked_ct_img
-    )
+    elec_in_brain_vox = maskpipe.mask_electrodes(elec_coords_mm, brainmasked_ct_img)
 
     elec_in_brain_mm = {
         label: apply_affine(ct_img.affine, contact)

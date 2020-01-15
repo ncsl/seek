@@ -83,9 +83,7 @@ def load_elecs_data(elecfile):
                 elif len(row) == 6:
                     eleccoords_mm[row[1]] = np.array(list(map(float, row[2:5])))
                 else:
-                    raise ValueError(
-                        "Unrecognized electrode coordinate text format"
-                    )
+                    raise ValueError("Unrecognized electrode coordinate text format")
     else:
         matreader = MatReader()
         data = matreader.loadmat(elecfile)
@@ -267,9 +265,7 @@ def main(ctimgfile, brainmaskfile, elecinitfile):
         )
     else:
         brainmasked_ct_data = ct_img.get_fdata()
-        elecvoxels_in_brain = maskpipe.mask_electrodes(
-            elec_coords_mm, ct_img
-        )
+        elecvoxels_in_brain = maskpipe.mask_electrodes(elec_coords_mm, ct_img)
     ct_affine = ct_img.affine
 
     # Get all voxel clouds per electrode in sorted order
@@ -288,39 +284,29 @@ def main(ctimgfile, brainmaskfile, elecinitfile):
 
     # Begin postprocessing steps
     processed_clusters = postprocesspipe.process_abnormal_clusters(
-        bound_clusters,
-        sparse_labeled_contacts
+        bound_clusters, sparse_labeled_contacts
     )
 
     # Compute centroids for filling gaps
     final_clusters = postprocesspipe.fill_gaps(
-        processed_clusters,
-        gap_tolerance,
-        sparse_labeled_contacts
+        processed_clusters, gap_tolerance, sparse_labeled_contacts
     )
 
     # Assign channel labels to the clusters found
     final_labeled_clusters = postprocesspipe.assign_labels(
-        final_clusters,
-        sparse_labeled_contacts
+        final_clusters, sparse_labeled_contacts
     )
 
     # Correct egregious errors with linearly interpolated points
     final_labeled_clusters = postprocesspipe.bruteforce_correction(
-        final_labeled_clusters,
-        sparse_labeled_contacts
+        final_labeled_clusters, sparse_labeled_contacts
     )
 
     # Compute centroids for each cluster
-    final_centroids_vox = postprocesspipe.cluster_2_centroids(
-        final_labeled_clusters
-    )
+    final_centroids_vox = postprocesspipe.cluster_2_centroids(final_labeled_clusters)
 
     # Convert final voxels to xyz coordinates
-    final_centroids_xyz = postprocesspipe.vox_2_xyz(
-        final_centroids_vox,
-        ct_affine
-    )
+    final_centroids_xyz = postprocesspipe.vox_2_xyz(final_centroids_vox, ct_affine)
 
     return (
         final_centroids_vox,

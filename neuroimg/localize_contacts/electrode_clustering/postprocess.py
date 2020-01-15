@@ -34,7 +34,6 @@ class PostProcessor:
                 Dictionary of cluster ids thought to be large due to lack of
                 sufficient separation between two channels in image.
         """
-
         skull_cluster_ids, merged_cluster_ids = {}, {}
 
         for elec, clusters in cyl_filtered_clusters.items():
@@ -54,11 +53,7 @@ class PostProcessor:
 
     @classmethod
     def _pare_clusters(
-        self,
-        cyl_filtered_clusters,
-        skull_cluster_ids,
-        sparse_labeled_contacts,
-        qtile
+        self, cyl_filtered_clusters, skull_cluster_ids, sparse_labeled_contacts, qtile
     ):
         """
         Pare down skull clusters.
@@ -91,7 +86,6 @@ class PostProcessor:
         -------
             cyl_filtered_clusters: dict(str: dict(str: ndarray))
                 Dictionary of skull clusters that have been resized.
-
         """
         for elec in skull_cluster_ids:
             # Get the coordinate for the outermost labeled channel from user in
@@ -124,10 +118,7 @@ class PostProcessor:
 
     @classmethod
     def _unfuse_clusters(
-        self,
-        cyl_filtered_clusters,
-        merged_cluster_ids,
-        sparse_labeled_contacts,
+        self, cyl_filtered_clusters, merged_cluster_ids, sparse_labeled_contacts,
     ):
         """
         Unfuse merged clusters.
@@ -183,10 +174,7 @@ class PostProcessor:
 
     @classmethod
     def process_abnormal_clusters(
-        self,
-        cyl_filtered_clusters,
-        sparse_labeled_clusters,
-        qtile=0.875
+        self, cyl_filtered_clusters, sparse_labeled_clusters, qtile=0.875
     ):
         """
         Truncate the clusters closest to the skull.
@@ -197,7 +185,7 @@ class PostProcessor:
         using a coordinate from user-input as the mean for the cluster.
 
         Parameters
-        –---------
+        ----------
             cyl_filtered_clusters: dict(str: dict(str: ndarray))
                 Dictionary of clusters sorted by the cylinder/electrode
                 in which they fall. The keys of the dictionary are electrode
@@ -231,18 +219,13 @@ class PostProcessor:
 
         # Resize skull clusters
         cyl_filtered_clusters = self._pare_clusters(
-            cyl_filtered_clusters,
-            skull_cluster_ids,
-            sparse_labeled_clusters,
-            qtile
+            cyl_filtered_clusters, skull_cluster_ids, sparse_labeled_clusters, qtile
         )
 
         # Separate fused clusters into two new clusters and store them
         # in a dictionary
         cyl_filtered_clusters = self._unfuse_clusters(
-            cyl_filtered_clusters,
-            merged_cluster_ids,
-            sparse_labeled_clusters
+            cyl_filtered_clusters, merged_cluster_ids, sparse_labeled_clusters
         )
 
         return cyl_filtered_clusters
@@ -299,8 +282,7 @@ class PostProcessor:
 
         # Sort based on proximity to most medial (innermost) contact
         sorted_centroids = sorted(
-            centroids.items(),
-            key=lambda x: npl.norm(x[1] - first_contact)
+            centroids.items(), key=lambda x: npl.norm(x[1] - first_contact)
         )
 
         sorted_centroids = dict(sorted_centroids)
@@ -349,7 +331,7 @@ class PostProcessor:
         new_pts = {}
         for i, num in enumerate(num_to_fill):
             for portion in range(1, num + 1):
-                frac = (portion / (num + 1))
+                frac = portion / (num + 1)
 
                 # Add fraction of the distance along direction to next
                 # immediate neighbor
@@ -398,10 +380,7 @@ class PostProcessor:
 
         # Obtain dictionary of interpolated points
         new_pts = self._fill(
-            centroid_coords[idxs],
-            num_to_fill[idxs],
-            dists[idxs],
-            max_cluster_id
+            centroid_coords[idxs], num_to_fill[idxs], dists[idxs], max_cluster_id
         )
 
         # Merge the dictionary of interpolated points into clusters
@@ -410,12 +389,7 @@ class PostProcessor:
         return clusters
 
     @classmethod
-    def fill_gaps(
-        self,
-        processed_clusters,
-        gap_tolerance,
-        sparse_labeled_contacts
-    ):
+    def fill_gaps(self, processed_clusters, gap_tolerance, sparse_labeled_contacts):
         """
         Assist in filling in gaps in clustering.
 
@@ -423,7 +397,7 @@ class PostProcessor:
         The last channel has a distance set to 0.
 
         Parameters
-        –---------
+        ----------
             processed_clusters: dict(str: dict(str: ndarray))
                 Dictionary with keys being electrode names and values being
                 dictionaries consisting of entries of channel names and their
@@ -460,8 +434,7 @@ class PostProcessor:
             # Order clusters for an electrode based on proximity to the
             # innermost contact given by the user
             processed_clusters[elec] = self._order_clusters(
-                processed_clusters[elec],
-                first_coord
+                processed_clusters[elec], first_coord
             )
 
             # In rare case when there is only one cluster that belongs to a
@@ -471,7 +444,7 @@ class PostProcessor:
 
                 processed_clusters[elec] = {
                     max_id + 1: np.array([first_coord]),
-                    max_id + 2: np.array([last_coord])
+                    max_id + 2: np.array([last_coord]),
                 }
                 first_num = int(re.findall(r"\d+", first_label)[0])
                 last_num = int(re.findall(r"\d+", last_label)[0])
@@ -492,14 +465,12 @@ class PostProcessor:
 
             # Update the dictionary to include the new interpolated points
             processed_clusters[elec] = self._interpolate_points(
-                processed_clusters[elec],
-                num_to_fill
+                processed_clusters[elec], num_to_fill
             )
 
             # Re-sort after adding interpolated points
             processed_clusters[elec] = self._order_clusters(
-                processed_clusters[elec],
-                first_coord
+                processed_clusters[elec], first_coord
             )
 
         return processed_clusters
@@ -507,8 +478,9 @@ class PostProcessor:
     @classmethod
     def assign_labels(self, final_clusters, sparse_labeled_contacts):
         """
-        Assign stereo-EEG electrode labels to clusters using labeling given by
-        user.
+        Assign stereo-EEG electrode labels to clusters.
+
+        Using labeling given by user.
 
         Parameters
         ----------
@@ -518,6 +490,7 @@ class PostProcessor:
             sparse_labeled_contacts: dict(str: dict(str: ndarray))
                 Sparse dictionary of labeled channels from user input. This
                 dictionary contains exactly two channels for each electrode.
+
         Returns
         -------
             labeled_clusters: dict(str: dict(str: ndarray))
@@ -527,14 +500,13 @@ class PostProcessor:
         labeled_clusters = {}
         for elec in final_clusters:
             # Obtain innermost contact from user specified contacts
-            first_contact = sparse_labeled_contacts[elec].get(elec+"1", [])
+            first_contact = sparse_labeled_contacts[elec].get(elec + "1", [])
             if not len(first_contact):
                 raise KeyError(f"Need innermost contact for electrode {elec}")
 
             # Ensure that the clusters are well-ordered
             final_clusters[elec] = self._order_clusters(
-                final_clusters[elec],
-                first_contact
+                final_clusters[elec], first_contact
             )
 
             # Convert to numpy array to make indexing easier
@@ -544,14 +516,13 @@ class PostProcessor:
                 # Electrode is inserted into left of brain, so we add in
                 # forward order
                 labeled_clusters[elec] = {
-                    elec + str(i+1): clusters[i]
-                    for i in range(len(clusters))
+                    elec + str(i + 1): clusters[i] for i in range(len(clusters))
                 }
             else:
                 # Electrode is inserted into left of brain, so we add in
                 # reverse order
                 labeled_clusters[elec] = {
-                    elec + str(i+1): clusters[i]
+                    elec + str(i + 1): clusters[i]
                     for i in range(len(clusters) - 1, -1, -1)
                 }
         return labeled_clusters
@@ -559,7 +530,7 @@ class PostProcessor:
     @classmethod
     def bruteforce_correction(self, labeled_clusters, sparse_labeled_contacts):
         """
-        Check for egregiously poor output by the algorithm. 
+        Check for egregiously poor output by the algorithm.
         
         If it is large,
         use the brute force approach - use the provided contacts and
@@ -617,7 +588,7 @@ class PostProcessor:
             # user provided inpute
             labeled_clusters[elec] = {
                 1: np.array([first_coord]),
-                2: np.array([last_coord])
+                2: np.array([last_coord]),
             }
 
             # Compute the number of points to linearly interpolate
@@ -628,15 +599,11 @@ class PostProcessor:
 
             # Interpolate the points and update the dictionary
             labeled_clusters[elec] = self._interpolate_points(
-                labeled_clusters[elec],
-                num_to_fill
+                labeled_clusters[elec], num_to_fill
             )
 
         # Reassign SEEG labels
-        labeled_clusters = self.assign_labels(
-            labeled_clusters,
-            sparse_labeled_contacts
-        )
+        labeled_clusters = self.assign_labels(labeled_clusters, sparse_labeled_contacts)
 
         return labeled_clusters
 

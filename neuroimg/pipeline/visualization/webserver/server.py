@@ -11,11 +11,11 @@ app._static_folder = os.path.abspath("templates/static")
 def home():
     return render_template("threeD.html")
 
-  
-@app.route('/brain')
+
+@app.route("/brain")
 def api_articles():
-	  return send_file('./templates/static/reconstruction.glb')
+    return send_file("./templates/static/reconstruction.glb")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
-

@@ -37,10 +37,7 @@ class Cluster:
 
         # Label voxels with ID corresponding to the cluster it belongs to
         cluster_labels, numobj = measure.label(
-            maskedCT / 255 > threshold,
-            background=0,
-            return_num=True,
-            connectivity=2,
+            maskedCT / 255 > threshold, background=0, return_num=True, connectivity=2,
         )
 
         print(f"{threshold} \t\t {numobj}")

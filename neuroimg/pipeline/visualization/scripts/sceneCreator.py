@@ -97,7 +97,7 @@ def main(
         )
         mat = bpy.data.materials.new("brainMaterial")
         mat.diffuse_color = (float(245 / 255), float(245 / 255), float(245 / 255), 1)
-        
+
         o = bpy.context.selected_objects[0]
         o.active_material = mat
 

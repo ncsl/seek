@@ -15,7 +15,7 @@ class MaskVolume:
         Apply a binarized brain mask to an input CT image file.
 
         Parameters
-        –---------
+        ----------
             brain_img: NiBabel Image Object
                 CT brain image - NIFTI formatting standard.
 
@@ -44,7 +44,7 @@ class MaskVolume:
         Filter out electrodes that do not fall within brain matter of a CT image.
 
         Parameters
-        –---------
+        ----------
             elec_coords_mm: dict(str: ndarray)
                 Dictionary that maps contact label to corresponding
                 xyz coordinates.
@@ -79,12 +79,12 @@ class MaskVolume:
     @classmethod
     def group_contacts(self, elec_in_brain):
         """
-        Groups individual contacts by the electrode to which they correspond.
+        Group individual contacts by the electrode to which they correspond.
         
         Sorts the contacts using the corresponding labels.
 
         Parameters
-        –---------
+        ----------
             elec_in_brain: dict(str: ndarray)
                 Dictionary of contact coordinates in CT voxels that fall within
                 the brain matter.
@@ -106,7 +106,7 @@ class MaskVolume:
         for elec in labeled_contacts:
             sorted_chans = sorted(
                 labeled_contacts[elec].items(),
-                key=lambda x: int(re.findall(r"\d+", x[0])[0])
+                key=lambda x: int(re.findall(r"\d+", x[0])[0]),
             )
             labeled_contacts[elec] = dict(sorted_chans)
 
