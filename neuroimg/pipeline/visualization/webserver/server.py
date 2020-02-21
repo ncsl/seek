@@ -12,9 +12,12 @@ def home():
 
 
 @app.route("/brain")
-def api_articles():
-
+def api_brain():
     return send_file("./templates/static/reconstruction.glb")
+
+@app.route("/nifti")
+def api_nifti():
+    return send_file("./templates/static/brain.mgz")
 
 
 if __name__ == "__main__":
