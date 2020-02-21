@@ -8,6 +8,8 @@ import nibabel as nb
 import numpy as np
 import numpy.linalg as npl
 import seaborn as sns
+
+from nibabel.affines import apply_affine
 from sklearn.decomposition import PCA
 
 sys.path.append("../../../")
@@ -16,7 +18,7 @@ from neuroimg.base.utils.utils import MatReader
 from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
 
 
-def summary_PCA_plots(figurefilepath, final_centroids, elec_in_brain):
+def summary_PCA_plots(figurefilepath, final_centroids, validation):
     """
     Construct PCA plots to visually show deviations in predicted centroids
     and manually labeled centroids.
@@ -30,7 +32,7 @@ def summary_PCA_plots(figurefilepath, final_centroids, elec_in_brain):
             Dictionary of the centroids for each contact along an electrode
             found by clustering algorithm.
 
-        elec_in_brain: dict()
+        validation: dict()
             Dictionary of manually labeled centroids
     """
     if not os.path.exists(os.path.dirname(figurefilepath)):
@@ -40,56 +42,36 @@ def summary_PCA_plots(figurefilepath, final_centroids, elec_in_brain):
     print(f"Plotting results for {numelectrodes} electrodes.")
 
     sns.set(font_scale=1.1)
-    fig, axs = plt.subplots(int(np.ceil(numelectrodes / 2)), 2, figsize=(20, 20))
+    fig, axs = plt.subplots(
+        nrows=int(np.ceil(numelectrodes / 2)), ncols=2, figsize=(20, 20), dpi=100
+    )
     axs = axs.flatten()
 
-    grouped_chans_labeled = {}
-    for label, contact in elec_in_brain.items():
-        if label[1] == "'":
-            electrode_name = label[:2]  # If electrode name has a '
-        else:
-            electrode_name = label[0]  # If electrode name has no '
-        if electrode_name not in grouped_chans_labeled.keys():
-            grouped_chans_labeled[electrode_name] = {}
-        grouped_chans_labeled[electrode_name][label] = elec_in_brain[label]
-    validation = {}
-    for electrode in grouped_chans_labeled:
-        validation[electrode] = []
-        for channel in grouped_chans_labeled[electrode]:
-            validation[electrode].append(grouped_chans_labeled[electrode][channel])
+    for i, elec in enumerate(final_centroids):
+        pred_centroids = np.array(list(final_centroids[elec].values()))
+        val_centroids = np.array(list(validation[elec].values()))
 
-    for i, electrode in enumerate(final_centroids):
-        # plot stuff
-        pca = PCA()
-        pca.fit(np.array(list(final_centroids[electrode].values())))
+        pca = PCA(n_components=1).fit(pred_centroids)
+        pred_pca = pca.transform(pred_centroids)
+        val_pca = pca.transform(val_centroids)
 
-        centroids_pca = pca.transform(
-            np.array(list(final_centroids[electrode].values()))
-        )
-        centroids_new = pca.inverse_transform(centroids_pca)
+        axs[i].scatter(val_pca[:, 0], np.zeros_like(val_pca[:, 0]), label="expected")
+
         axs[i].scatter(
-            centroids_new[:, 0], np.zeros_like(centroids_new[:, 0]), label="observed"
-        )
-        axs[i].set_title(f"PCA Visualization of Electrode {electrode}")
-        pca.fit(validation[electrode])
-
-        expected_centroids_pca = pca.transform(validation[electrode])
-        expected_centroids_new = pca.inverse_transform(expected_centroids_pca)
-        axs[i].scatter(
-            expected_centroids_new[:, 0],
-            np.zeros_like(expected_centroids_new[:, 0]),
+            pred_pca[:, 0],
+            np.zeros_like(pred_pca[:, 0]),
+            label="observed",
             marker="x",
             c="r",
-            label="expected",
         )
         axs[i].set(
-            title=f"PCA Validation of Centroids (Electrode: {electrode})",
-            xlabel=f"PC Coordinates in Voxels along Electrode {electrode}",
+            title=f"PCA Validation of Centroids (Electrode: {elec})",
+            xlabel=f"PC Coordinates in Voxels along Electrode {elec}",
             ylim=[-0.005, 0.005],
         )
         axs[i].legend()
-        for j, chan in enumerate(final_centroids[electrode]):
-            axs[i].annotate(chan, (centroids_new[j, 0], 0.0005), size=8.5)
+        for j, chan in enumerate(final_centroids[elec]):
+            axs[i].annotate(chan, (pred_pca[j, 0], 0.0005), size=9)
 
         # set plot paramsx
     fig.tight_layout()
@@ -99,7 +81,7 @@ def summary_PCA_plots(figurefilepath, final_centroids, elec_in_brain):
     return fig, axs
 
 
-def l2_error(figurefilepath, final_centroids, elec_in_brain):
+def l2_error(figurefilepath, final_centroids, validation):
     """
     Function that computes the Euclidean distance (L2) between centroids
     computed by algorithm and the validation data, which are centroids
@@ -110,7 +92,8 @@ def l2_error(figurefilepath, final_centroids, elec_in_brain):
     final_centroids: dict()
         dictionary of properly labeled centroids grouped by electrode
         in CT voxels.
-    elec_in_brain: dict()
+
+    validation: dict()
         electrode coordinates in CT voxels
 
     Returns
@@ -120,40 +103,38 @@ def l2_error(figurefilepath, final_centroids, elec_in_brain):
     numelectrodes = len(final_centroids.keys())
 
     errors_per_channel = {}
-    for electrode in final_centroids:
-        errors_per_channel[electrode] = {}
-        for channel in final_centroids[electrode]:
-            observed = final_centroids[electrode][
-                channel
-            ]  # The coordinates detected by clustering algorithm
-            if channel in elec_in_brain:
-                expected = elec_in_brain[channel]  # Manually labeled point
-                abs_error = npl.norm(observed - expected)
-                errors_per_channel[electrode][channel] = abs_error
+    for elec in validation:
+        errors_per_channel[elec] = {}
+        for chan in validation[elec]:
+            val = validation[elec][chan]  # Coordinates detected by algorithm
+            pred = final_centroids[elec].get(chan, [])
+            if len(pred):
+                abs_error = npl.norm(pred - val)
+                errors_per_channel[elec][chan] = abs_error
             else:
-                print(
-                    f"Channel {channel} from prediction not in brain - saving error as NaN."
-                )
-                errors_per_channel[electrode][channel] = np.nan
+                print(f"Channel {chan} not found - saving error as NaN.")
+                errors_per_channel[elec][chan] = np.nan
 
     sns.set(font_scale=1.1)
-    fig, axs = plt.subplots(int(np.ceil(numelectrodes / 2.0)), 2, figsize=(15, 15))
+    fig, axs = plt.subplots(
+        nrows=int(np.ceil(numelectrodes / 2)), ncols=2, figsize=(15, 15), dpi=100
+    )
     axs = axs.flatten()
 
     ymin, ymax = 0, 20
-    for i, electrode in enumerate(errors_per_channel.keys()):
-        y_pos = np.arange(len(errors_per_channel[electrode]))
+    for i, elec in enumerate(errors_per_channel):
+        y_pos = np.arange(len(errors_per_channel[elec]))
         axs[i].bar(
             y_pos,
-            list(errors_per_channel[electrode].values()),
+            np.array(list(errors_per_channel[elec].values())),
             align="center",
             alpha=0.9,
         )
         axs[i].set(
-            title="Abs. Error By Channel in Electrode {electrode} After Filling Gaps",
+            title=f"Absolute Error By Channel in Electrode {elec}",
             xlabel="Channel",
             xticks=y_pos,
-            xticklabels=list(final_centroids[electrode].keys()),
+            xticklabels=list(final_centroids[elec].keys()),
             ylabel="Distance",
             ylim=[ymin, ymax],
         )
@@ -246,8 +227,6 @@ if __name__ == "__main__":
     # Load image data and get the image volumes
     bm_ct_img = nb.load(brainmaskfile)
     ct_img = nb.load(ctfile)
-    ct_data = ct_img.get_fdata()
-    bm_ct_data = bm_ct_img.get_fdata()
 
     # load elecs data
     print("LOADING ELECS DATA FROM: ", final_centroids_xyz_file)
@@ -260,11 +239,17 @@ if __name__ == "__main__":
     maskpipe = MaskVolume()
 
     # Apply masking
-    brainmasked_ct_data = maskpipe.apply_mask(bm_ct_data, ct_data)
-    brainmasked_ct_img = nb.Nifti1Image(brainmasked_ct_data, bm_ct_img.affine)
+    brainmasked_ct_img = maskpipe.apply_mask(ct_img, bm_ct_img)
 
     # Filtering out electrodes not within brainmask
-    elec_in_brain = maskpipe.filter_electrodes_bm(elec_coords_mm, brainmasked_ct_img)
+    elec_in_brain_vox = maskpipe.mask_electrodes(elec_coords_mm, brainmasked_ct_img)
+
+    elec_in_brain_mm = {
+        label: apply_affine(ct_img.affine, contact)
+        for label, contact in elec_in_brain_vox.items()
+    }
+
+    elec_in_brain = maskpipe.group_contacts(elec_in_brain_vox)
 
     """   SUMMARY PLOTS  """
     # create generated figures to check
