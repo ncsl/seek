@@ -31,7 +31,6 @@ For incorporation of DTI data, see ndmeg: https://github.com/neurodata/ndmg
 # Features
 - [ ] Add support for MRICloud running using R-script. Possibly convert to Python script.
 - [ ] Create unit and integration tests using pytest that test: pipeline in both snakemake and Python
-- [ ] Add Docker container for project
 
 # Setup and Installation
 See [INSTALLATION GUIDE](./INSTALLATION.md)
