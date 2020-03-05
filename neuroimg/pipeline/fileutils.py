@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 # get the environment variable for freesurfer - for use in getting access to lut's
 FREESURFER_HOME = os.getenv("FREESURFER_HOME") or ""
@@ -16,7 +17,7 @@ resamp_target = "fsaverage5"
 
 def get_freesurfer_dir(config):
     """
-    Function to return the FreeSurfer directory based on a config file. Wraps a wildcard for patient_id.
+    Function to return the FreeSurfer directory based on a config file. Wraps a wildcard for subject.
 
     Parameters
     ----------
@@ -29,14 +30,14 @@ def get_freesurfer_dir(config):
     """
     """ USER DEFINED DIRECTORIES TO STORE FINAL DATA IN ORGANIZED SUBFOLDERS """
     FS_PATIENT_OUTPUT_DIR = os.path.join(
-        config["basedatadir"], "derivatives", "freesurfer"
+        config['bids_root'], "derivatives", "freesurfer"
     )
-    return FS_PATIENT_OUTPUT_DIR
+    return Path(FS_PATIENT_OUTPUT_DIR)
 
 
-def get_freesurfer_patient_dir(config, patient_wildcard="{patient_id}"):
+def get_freesurfer_patient_dir(config, patient_wildcard="{subject}"):
     """
-    Function to return the FreeSurfer directory based on a config file. Wraps a wildcard for patient_id.
+    Function to return the FreeSurfer directory based on a config file. Wraps a wildcard for subject.
 
     Parameters
     ----------
@@ -49,18 +50,18 @@ def get_freesurfer_patient_dir(config, patient_wildcard="{patient_id}"):
     """
     """ USER DEFINED DIRECTORIES TO STORE FINAL DATA IN ORGANIZED SUBFOLDERS """
     FS_PATIENT_OUTPUT_DIR = os.path.join(
-        config["basedatadir"], "derivatives", "freesurfer", patient_wildcard
+        config["bids_root"], "derivatives", "freesurfer", patient_wildcard
     )
-    return FS_PATIENT_OUTPUT_DIR
+    return Path(FS_PATIENT_OUTPUT_DIR)
 
 
-def get_rawmri_dir(config, patient_wildcard="{patient_id}"):
-    return os.path.join(config["rawdatadir"], patient_wildcard, "premri")
+def get_rawmri_dir(config, patient_wildcard="{subject}"):
+    return os.path.join(config["bids_root"], 'sourcedata', patient_wildcard, "premri")
 
 
-def get_rawct_dir(config, patient_wildcard="{patient_id}"):
-    return os.path.join(config["rawdatadir"], patient_wildcard, "postct")
+def get_rawct_dir(config, patient_wildcard="{subject}"):
+    return os.path.join(config["bids_root"], 'sourcedata', patient_wildcard, "postct")
 
 
-def get_rawacpc_dir(config, patient_wildcard="{patient_id}"):
-    return os.path.join(config["rawdatadir"], patient_wildcard, "acpc")
+def get_rawacpc_dir(config, patient_wildcard="{subject}"):
+    return os.path.join(config["bids_root"], 'sourcedata', patient_wildcard, "acpc")

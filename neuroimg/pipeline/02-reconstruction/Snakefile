@@ -34,18 +34,18 @@ FSOUT_SURF_FOLDER = os.path.join(FS_PATIENT_OUTPUT_DIR, "surf")
 # First rule
 rule all:
     input:
-        outsuccess_file=expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_recon_success.txt"),
-                               patient_id=config['patients']),
+        outsuccess_file=expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "{subject}_recon_success.txt"),
+                               subject=config['patients']),
         brainmask_nifti = expand(os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
-                               patient_id=config['patients']),
+                               subject=config['patients']),
         lhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
-                                patient_id=config['patients']),
+                                subject=config['patients']),
         rhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
-                                patient_id=config['patients']),
-        subcort_success_flag_file = expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_subcort_success.txt"),
-                                patient_id=config['patients']),
+                                subject=config['patients']),
+        subcort_success_flag_file = expand(os.path.join(FS_PATIENT_OUTPUT_DIR, "{subject}_subcort_success.txt"),
+                                subject=config['patients']),
         MRI_NIFTI_IMG = expand(os.path.join(FSOUT_MRI_FOLDER, "origT1.nii"),
-                               patient_id=config['patients']),
+                               subject=config['patients']),
     shell:
         "echo 'done'"
 
@@ -100,9 +100,9 @@ Use ACPC aligned T1 image. Comment out if not using.
 """
 # rule use_acpc_specified_input:
 #     params:
-#         ACPC_IMAGE = os.path.join(RAW_MRIACPC_FOLDER, "{patient_id}_MR_acpc.nii"),
+#         ACPC_IMAGE = os.path.join(RAW_MRIACPC_FOLDER, "{subject}_MR_acpc.nii"),
 #     output:
-#         FS_ACPC_IMAGE = os.path.join(FSOUT_ACPC_FOLDER, "{patient_id}_MR_acpc.nii"),
+#         FS_ACPC_IMAGE = os.path.join(FSOUT_ACPC_FOLDER, "{subject}_MR_acpc.nii"),
 #         MRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
 #     shell:
 #         "cp {params.ACPC_IMAGE} {output.FS_ACPC_IMAGE};"
@@ -140,10 +140,10 @@ rule reconstruction:
     input:
         MRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
     params:
-        patient="{patient_id}",
+        patient="{subject}",
         SUBJECTS_DIR=FS_OUTPUT_DIR,
     output:
-        outsuccess_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_recon_success.txt")
+        outsuccess_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{subject}_recon_success.txt")
     shell:
         "echo 'hi';"
         "export SUBJECTS_DIR={params.SUBJECTS_DIR};" \
@@ -161,7 +161,7 @@ Rule for converting the pial surfaces to ascii data, so that it is readable by p
 """
 rule convert_pial_surface_files_ascii:
     input:
-        outsuccess_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_recon_success.txt")
+        outsuccess_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{subject}_recon_success.txt")
     params:
         lhpial = os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
         rhpial = os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
@@ -177,7 +177,7 @@ Rule for converting brainmask image volume from MGZ to Nifti.
 """
 rule convert_brainmask_to_nifti:
     input:
-        outsuccess_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_recon_success.txt")
+        outsuccess_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "{subject}_recon_success.txt")
     params:
         brainmask_mgz = os.path.join(FSOUT_MRI_FOLDER, "brainmask.mgz")
     output:
@@ -193,13 +193,13 @@ Rule for extracting the subcortical regions
 """
 rule create_subcortical_volume:
     input:
-        outsuccess_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_recon_success.txt")
+        outsuccess_file = os.path.join(FS_PATIENT_OUTPUT_DIR, "{subject}_recon_success.txt")
     params:
         fs_dir = FS_OUTPUT_DIR,
-        patient="{patient_id}",
+        patient="{subject}",
         scripts_dir=SCRIPTS_UTIL_DIR,
     output:
-        subcort_success_flag_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{patient_id}_subcort_success.txt"),
+        subcort_success_flag_file=os.path.join(FS_PATIENT_OUTPUT_DIR, "{subject}_subcort_success.txt"),
     shell:
         # generate subcortical region volume bounding surfaces
         "export SUBJECTS_DIR={params.fs_dir};"

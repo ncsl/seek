@@ -1,5 +1,7 @@
 import os
 import sys
+from pathlib import Path
+
 sys.path.append("../../../")
 from neuroimg.pipeline.fileutils import get_freesurfer_patient_dir, get_freesurfer_dir
 
@@ -8,7 +10,7 @@ BLENDER_PATH = config["blender_path"]
 FS_OUTPUT_DIR = get_freesurfer_dir(config)
 FS_PATIENT_OUTPUT_DIR = get_freesurfer_patient_dir(config)
 
-FS_SURF_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "surf")
+FS_SURF_DIR = Path(FS_PATIENT_OUTPUT_DIR / "surf")
 FS_LABEL_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "label")
 FS_ROI_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "rois")
 FS_ELECS_DIR = os.path.join(FS_PATIENT_OUTPUT_DIR, "elecs")
@@ -136,7 +138,7 @@ rule create_surface_objects:
 # 	params:
 # 		subject = "derivatives/freesurfer/PublicDataset",
 # 		subjectName = "PublicDataset",
-# 		subjectDirectory = FS_OUTPUT_DIR
+# 		subjectDirectory = FS_DIR
 # 	shell:
 # 		"./scripts/aseg2srf.sh -s {params.subject} && "
 # 		"./scripts/objMaker.sh {params.subject} && "

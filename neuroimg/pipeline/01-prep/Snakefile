@@ -1,0 +1,78 @@
+import os
+import sys
+from pathlib import Path
+
+from mne_bids import make_bids_basename
+
+sys.path.append("../../../")
+from neuroimg.pipeline.fileutils import get_freesurfer_patient_dir, get_freesurfer_dir, \
+    get_rawct_dir, get_rawmri_dir
+from neuroimg.format.bids import bids_conversion
+
+"""
+export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
+
+A snakemake file for running reconstructions on the neuroimaging data.
+
+snakemake --dag | dot -Tpdf > dag_pipeline_reconstruction.pdf
+
+Runs tests to ensure data is all in the corresponding format: BIDS iEEG
+
+If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
+"""
+configfile: "../config/localconfig.yaml"
+
+# get the freesurfer patient directory
+FS_DIR = get_freesurfer_dir(config)
+RAW_CT_FOLDER = get_rawct_dir(config)
+RAW_MRI_FOLDER = get_rawmri_dir(config)
+
+_FS_SUBJECT_DIR = get_freesurfer_patient_dir(config)
+FSOUT_MRI_FOLDER = Path(_FS_SUBJECT_DIR / "mri")
+FSOUT_CT_FOLDER = Path(_FS_SUBJECT_DIR / "ct")
+
+# RAW_MRIACPC_FOLDER = get_rawacpc_dir(config)
+# FSOUT_ACPC_FOLDER = Path(_FS_SUBJECT_DIR, "acpc")
+
+def _get_bids_basename(subject, imgtype):
+    """Wildcard function to get bids_basename."""
+    bids_fname = make_bids_basename(subject,
+                                    session='seizure',
+                                    suffix=f"{imgtype}.nii.gz")
+    return bids_fname
+
+def _get_subject_dir(bids_root, subject):
+    return os.path.join(bids_root, f"sub-{subject}")
+
+def _get_anat_bids_dir(bids_root, subject):
+    return os.path.join(_get_subject_dir(bids_root, subject), 'ses-seizure', 'anat')
+
+
+# First rule
+rule all:
+    input:
+        MRI_NIFTI_IMG = expand(os.path.join(_get_anat_bids_dir(config['bids_root'], "{subject}"),
+                                            _get_bids_basename("{subject}", imgtype='T1w')),
+                               subject=config['patients']),
+    shell:
+        "echo 'done'"
+
+"""
+Rule for prepping fs_recon by converting dicoms -> NIFTI images.
+
+They are reoriented into 'LAS' orientation. For more information, see
+BIDS specification.
+"""
+rule convert_dicom_to_bids:
+    params:
+        CT_FOLDER = RAW_CT_FOLDER,
+        MRI_FOLDER = RAW_MRI_FOLDER,
+        bids_root = config['bids_root']
+    output:
+        CT_bids_fname = os.path.join(_get_anat_bids_dir(config['bids_root'], "{subject}"),
+                                     _get_bids_basename("{subject}", imgtype='CT')),
+        MRI_bids_fname = os.path.join(_get_anat_bids_dir(config['bids_root'],  "{subject}"),
+                                     _get_bids_basename("{subject}", imgtype='T1w'))
+    run:
+        bids_conversion._convert_dicom_to_nifti(params.CT_FOLDER, output.CT_bids_fname)
+        bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)

@@ -1,21 +1,23 @@
 ############## define directories that we work with #############
 # home directory that every dataset sits in -> fileutils sets the BIDS structure
-basedatadir:
+bids_root:
 #  "/home/ksr/Desktop/contact_localization/efri/"
 #  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/epilepsy/"
-  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/epilepsy/"
+#  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/epilepsy/"
+  '/Users/adam2392/Downloads/neuroimg/'
 
-rawdatadir:
+derivatives_output_dir:
 #    "/home/ksr/Desktop/contact_localization/efri/raw_msb/"
 # "/Users/ChesterHuynh/sarmalab/contact_localization_proj/rawdata"
- # "/home/adam2392/hdd2/data/neuroimaging/raw"
+  "/Users/adam2392/Downloads/neuroimg/derivatives/"
 #  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/epilepsy/raw/"
-  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/epilepsy/raw/"
+#  "/home/adam2392/Documents/Dropbox/phd_research/data/neuroimaging_results/epilepsy/derivatives/"
 
 ############# define list of files to run this for #############
 patients:
   [
-    "PublicDataset",
+#    "PublicDataset",
+    'la02',
 #    "la04",
 #      'efri02',
 #     'efri06',
