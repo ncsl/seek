@@ -7,26 +7,33 @@ Anaconda and Python3.6+ :
    * Conda (https://docs.anaconda.com/anaconda/install/)
    * This is mainly necessary to run img_pipe (ECoG localization with Chang Lab repo), snakemake, and any Python wrapper code
     
-    i. Conda env
-    
+    i. 
+        conda env create -f environment.yml --name=seek
+        source activate seek
+        conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
+        pip install coverage-badge anybadge
+        # dev versions of mne-python, mne-bids
+        pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
+        pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
+        
+    ii. Conda env
     
         # create environment
-        conda create -n neuroimgpipe
-        conda activate neuroimgpipe
+        conda create -n seek
+        conda activate seek
         
         # optionally separate install
         conda config --add channels bioconda
         conda config --add channels conda-forge
         conda install numpy scipy matplotlib scikit-learn scikit-image pandas seaborn nibabel mne snakemake mne-bids flask
         conda install pytest black check-manifest pytest-cov pydocstyle
-        conda env export > environment.yml
         
         # check if installation worked
         cd neuroimg/pipeline/reconstruction/
         snakemake -n    
    
 
-## 3rd Party Modules to Install 
+## 3rd Party Modules to Install (Docker Coming)
 0. Octave
     Runs open-source. This runs various scripts for converting output files to object files for rendering visualizations.
     Follow: https://www.gnu.org/software/octave/#install
