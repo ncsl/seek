@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.append("../../../")
+
 from neuroimg.pipeline.fileutils import get_freesurfer_patient_dir, get_freesurfer_dir
 
 configfile: "../config/localconfig.yaml"

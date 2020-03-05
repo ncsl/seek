@@ -32,3 +32,4 @@ patients:
 
 blender_path: # type in 'which blender' in command line
   "/usr/bin/blender/"
+

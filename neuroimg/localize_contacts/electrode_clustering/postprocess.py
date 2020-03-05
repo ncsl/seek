@@ -1,561 +1,671 @@
-import copy
+import re
 
 import numpy as np
 import numpy.linalg as npl
 from nibabel.affines import apply_affine
 from scipy.stats import norm
-from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 
 
 class PostProcessor:
     """Class of postprocessor grouping functions."""
 
     @classmethod
-    def _group_by_cylinder(self, cylindrical_filter_clusters):
+    def _typeify_abnormalities(self, cyl_filtered_clusters):
         """
-        Group clusters by electrodes according to cylindrical boundaries.
+        Classify the abnormal clusters that are extremely large.
 
         Parameters
         ----------
-        cylindrical_filter_clusters: dict()
-            Dictionary of clusters that have been cylindrically filtered.
-            All points outside the cylindrical filter are zeroed out.
-        """
-        grouped_clusters = {}
-        for electrode in cylindrical_filter_clusters:
-            grouped_clusters[electrode] = []
-            for cluster_id in cylindrical_filter_clusters[electrode]:
-                for i in range(len(cylindrical_filter_clusters[electrode][cluster_id])):
-                    point = cylindrical_filter_clusters[electrode][cluster_id][i]
-                    grouped_clusters[electrode].append(point)
-        return grouped_clusters
-
-    @classmethod
-    def _label_cylinder_clusters(self, grouped_cylindrical_clusters, clusters):
-        """
-        Label cylindrical clusters into dictionary ids.
-
-        Parameters
-        ----------
-        grouped_cylindrical_clusters: dict()
-            Nested dictionary of contacts and their point clouds
-            grouped by electrode.
-
-        clusters: dict()
-            Dictionary of cluster ids to point clouds.
+            cyl_filtered_clusters: dict(str: dict(str: ndarray))
+                Dictionary of clusters sorted by the cylinder/electrode
+                in which they fall. The keys of the dictionary are electrode
+                labels, the values of the dictionary are the cluster points
+                from the threshold-based clustering algorithm that fell
+                into a cylinder.
 
         Returns
         -------
-        Cluster labeling replaced with channel labels rather than
-        numerical id's
+            skull_cluster_ids: dict(str: List[int])
+                Dictionary of cluster ids thought to be large due to close
+                proximity to the skull.
+
+            merged_cluster_ids: dict(str: List[int])
+                Dictionary of cluster ids thought to be large due to lack of
+                sufficient separation between two channels in image.
         """
-        cluster_labels_per_electrode = {}
-        for electrode in grouped_cylindrical_clusters:
-            cluster_labels_per_electrode[electrode] = []
-            for cluster_id in clusters:
-                # Convert every cluster into tuples to be hashable
-                a = map(tuple, clusters[cluster_id])
-                b = map(tuple, grouped_cylindrical_clusters[electrode])
-                intxn = list(set(a) & set(b))
-                if len(intxn) > 0:
-                    cluster_labels_per_electrode[electrode].append(cluster_id)
-        return cluster_labels_per_electrode
+        skull_cluster_ids, merged_cluster_ids = {}, {}
+
+        for elec, clusters in cyl_filtered_clusters.items():
+            for cluster_id, points in clusters.items():
+                # Average size of normal cluster is around 20-25 points
+                cluster_size = len(points)
+
+                # Skull clusters are likely to be very large
+                if cluster_size > 200:
+                    skull_cluster_ids.setdefault(elec, []).append(cluster_id)
+
+                # Merged clusters are likely to be moderately large
+                elif 50 <= cluster_size <= 200:
+                    merged_cluster_ids.setdefault(elec, []).append(cluster_id)
+
+        return skull_cluster_ids, merged_cluster_ids
 
     @classmethod
-    def _get_cluster_sizes(self, grouped_cylindrical_clusters, clusters):
-        cluster_sizes_by_electrode = {}
-        for electrode in grouped_cylindrical_clusters:
-            cluster_sizes_by_electrode[electrode] = []
-            for cluster_id in grouped_cylindrical_clusters[electrode]:
-                cluster = clusters[cluster_id]
-                cluster_sizes_by_electrode[electrode].append(len(cluster))
-        return cluster_sizes_by_electrode
-
-    @classmethod
-    def _typeify_abnormalities(
-        self, grouped_cylindrical_clusters, cluster_sizes_by_electrode
+    def _pare_clusters(
+        self, cyl_filtered_clusters, skull_cluster_ids, sparse_labeled_contacts, qtile
     ):
-        merged_clusters, skull_clusters = [], []
-        for electrode, cluster_sizes in cluster_sizes_by_electrode.items():
-            for i in range(len(cluster_sizes)):
-                # Hyperparameters: threshold for which we consider a cluster
-                # to be a skull cluster or fused cluster
-                if cluster_sizes[i] > 200:
-                    skull_clusters.append(grouped_cylindrical_clusters[electrode][i])
-                elif cluster_sizes[i] >= 50 and cluster_sizes[i] <= 200:
-                    merged_clusters.append(grouped_cylindrical_clusters[electrode][i])
-        return merged_clusters, skull_clusters
+        """
+        Pare down skull clusters.
+        
+        Only considering points close to the
+        centroid of the oversized cluster.
+
+        Parameters
+        ----------
+            cyl_filtered_clusters: dict(str: dict(str: ndarray))
+                Dictionary of clusters sorted by the cylinder/electrode
+                in which they fall. The keys of the dictionary are electrode
+                labels, the values of the dictionary are the cluster points
+                from the threshold-based clustering algorithm that fell
+                into a cylinder.
+
+            skull_cluster_ids: dict(str: List[int])
+                Dictionary of cluster ids thought to be large due to close
+                proximity to the skull.
+
+            sparse_labeled_contacts: dict(str: dict(str: ndarray))
+                Sparse dictionary of labeled channels from user input. This
+                dictionary contains exactly two channels for each electrode.
+
+            qtile: float
+                The upper bound quantile distance that we will consider for
+                being a part of the resulting pared clusters.
+
+        Returns
+        -------
+            cyl_filtered_clusters: dict(str: dict(str: ndarray))
+                Dictionary of skull clusters that have been resized.
+        """
+        for elec in skull_cluster_ids:
+            # Get the coordinate for the outermost labeled channel from user in
+            last_chan_coord = list(sparse_labeled_contacts[elec].values())[1]
+            for cluster_id in skull_cluster_ids[elec]:
+
+                points = cyl_filtered_clusters[elec][cluster_id]
+                var = np.var(points, axis=0)
+
+                # Include points that have a z-score within specified quantile
+                if var.all():
+                    pared_cluster = []
+                    cyl_filtered_clusters[elec][cluster_id]
+
+                    for pt in points:
+                        # Assuming the spatial distribution of points is
+                        # approximately Gaussian, the outermost channel will be
+                        # approximately the centroid of this cluster.
+                        diff = pt - last_chan_coord
+                        z = npl.norm(np.divide(diff, np.sqrt(var)))
+                        if norm.cdf(z) <= qtile:
+                            pared_cluster.append(pt)
+
+                    # Sanity check that we still have a non-empty list
+                    if pared_cluster:
+                        pared_cluster = np.array(pared_cluster)
+                        cyl_filtered_clusters[elec][cluster_id] = pared_cluster
+
+        return cyl_filtered_clusters
+
+    @classmethod
+    def _unfuse_clusters(
+        self, cyl_filtered_clusters, merged_cluster_ids, sparse_labeled_contacts,
+    ):
+        """
+        Unfuse merged clusters.
+        
+        By using KMeans clustering to split the large
+        cluster into two.
+
+        Parameters
+        ----------
+            cyl_filtered_clusters: dict(str: dict(str: ndarray))
+                Dictionary of clusters sorted by the cylinder/electrode
+                in which they fall. The keys of the dictionary are electrode
+                labels, the values of the dictionary are the cluster points
+                from the threshold-based clustering algorithm that fell
+                into a cylinder.
+
+            merged_cluster_ids: dict(str: List[int])
+                Dictionary of cluster ids thought to be large due to lack of
+                sufficient separation between two channels in image.
+
+            sparse_labeled_contacts: dict(str: dict(str: ndarray))
+                Sparse dictionary of labeled channels from user input. This
+                dictionary contains exactly two channels for each electrode.
+
+        Returns
+        -------
+            cyl_filtered_clusters: dict(str: dict(str: ndarray))
+                Dictionary of skull clusters that have been resized.
+
+        """
+        for elec in merged_cluster_ids:
+            # We need to be sure not to overwrite any clusters, so using values
+            # greater than the max cluster ID will guarantee that
+            max_cluster_id = max(cyl_filtered_clusters[elec])
+
+            for cluster_id in merged_cluster_ids[elec]:
+                # Use KMeans to separate cluster into two clusters
+                cluster = cyl_filtered_clusters[elec][cluster_id]
+                kmeans = KMeans(n_clusters=2, random_state=0).fit(cluster)
+                y = kmeans.labels_
+
+                # Obtain points in each cluster
+                cluster0, cluster1 = cluster[y == 0], cluster[y == 1]
+
+                # Update the dictionary to separate the two clusters
+                cyl_filtered_clusters[elec][max_cluster_id + 1] = cluster0
+                cyl_filtered_clusters[elec][max_cluster_id + 2] = cluster1
+                del cyl_filtered_clusters[elec][cluster_id]
+
+                max_cluster_id += 2
+
+        return cyl_filtered_clusters
 
     @classmethod
     def process_abnormal_clusters(
-        self,
-        clusters,
-        elec_in_brain,
-        cylindrical_filter_clusters,
-        sparse_elec_labels,
-        qtile=0.875,
+        self, cyl_filtered_clusters, sparse_labeled_clusters, qtile=0.875
     ):
         """
         Truncate the clusters closest to the skull.
-
-        These tend to be oversized, and separates clusters that appear to have grouped two
-        contacts together. The cluster is filtered with 90% quantile filtering, 
+        
+        Which tend to be oversized, and separates clusters that 
+        appear to have grouped two
+        contacts together. The cluster is filtered with 90% quantile filtering,
         using a coordinate from user-input as the mean for the cluster.
 
         Parameters
         ----------
-        clusters: dict()
-            Dictionary of clusters found at a given threshold.
+            cyl_filtered_clusters: dict(str: dict(str: ndarray))
+                Dictionary of clusters sorted by the cylinder/electrode
+                in which they fall. The keys of the dictionary are electrode
+                labels, the values of the dictionary are the cluster points
+                from the threshold-based clustering algorithm that fell
+                into a cylinder.
 
-        elec_in_brain: dict()
-            Dictionary of all the contacts found within the brain.
+            sparse_labeled_contacts: dict(str: dict(str: ndarray))
+                Sparse dictionary of labeled channels from user input. This
+                dictionary contains exactly two channels for each electrode.
 
-        cylindrical_filter_clusters: dict()
-            Dictionary of points first sorted by the cylindrical electrode
-            in which they fall and then the cluster in which they fall.
-            The keys of the dictionary are electrode labels, the values of
-            the dictionary are the cluster points from the threshold-based
-            clustering algorithm that fell into a cylinder.
-
-        sparse_elec_labels: dict()
-            sparse dictionary of electrode labels given by user input
+            qtile: float
+                The upper bound quantile distance that we will consider for
+                being a part of the resulting pared clusters.
 
         Returns
         -------
-            Updated dictionary of clusters found along each electrode
-            with the skull clusters having been resized through quantile 
-            filtering and large clusters having been separated.
+            cyl_filtered_clusters: dict(str: dict(str: ndarray))
+                Updated dictionary of clusters found along each electrode
+                with the skull clusters having been resized through quantile
+                filtering and large clusters having been separated.
 
         """
-        # Group the cylindrically bounded clusters by electrodes
-        grouped_cylindrical_clusters = self._group_by_cylinder(
-            cylindrical_filter_clusters
-        )
-        grouped_cylindrical_clusters = self._label_cylinder_clusters(
-            grouped_cylindrical_clusters, clusters
-        )
-        cluster_sizes_by_electrode = self._get_cluster_sizes(
-            grouped_cylindrical_clusters, clusters
-        )
-
         # Identify abnormal clusters
-        merged_clusters, skull_clusters = self._typeify_abnormalities(
-            grouped_cylindrical_clusters, cluster_sizes_by_electrode
+        skull_cluster_ids, merged_cluster_ids = self._typeify_abnormalities(
+            cyl_filtered_clusters
         )
-        result = copy.deepcopy(cylindrical_filter_clusters)
 
-        print(f"Oversized clusters: {skull_clusters}")
-        print(f"Merged clusters: {merged_clusters}")
+        print(f"Oversized clusters: {skull_cluster_ids}")
+        print(f"Merged clusters: {merged_cluster_ids}")
 
         # Resize skull clusters
-        resized_clusters = {}
-        for cluster_id in skull_clusters:
-            cluster_points = clusters[cluster_id]
-            var = np.var(cluster_points, axis=0)
-            for electrode in grouped_cylindrical_clusters:
-                if cluster_id in grouped_cylindrical_clusters[electrode]:
-                    last_contact_label = sparse_elec_labels[electrode][-1]
-                    last_contact = elec_in_brain[last_contact_label]
-                    resized_clusters[cluster_id] = []
-                    for point in cluster_points:
-                        z = npl.norm(np.divide((point - last_contact), np.sqrt(var)))
-                        # Only accept up to 87.5% quantile
-                        if norm.cdf(z) <= qtile:
-                            resized_clusters[cluster_id].append(point)
-                    if not resized_clusters[cluster_id]:
-                        del resized_clusters[cluster_id]
-
-        # Update resulting dictionary after resizing skull clusters
-        for electrode in result:
-            for cluster_id in resized_clusters:
-                if cluster_id in result[electrode].keys():
-                    result[electrode][cluster_id] = resized_clusters[cluster_id]
+        cyl_filtered_clusters = self._pare_clusters(
+            cyl_filtered_clusters, skull_cluster_ids, sparse_labeled_clusters, qtile
+        )
 
         # Separate fused clusters into two new clusters and store them
         # in a dictionary
-        unmerged_clusters = {}
-        max_cluster_id = max(clusters.keys())
-        for cluster_id in merged_clusters:
-            pts = clusters[cluster_id]
-            var = np.var(pts, axis=0)
-            var = npl.norm(var)
-            for electrode in grouped_cylindrical_clusters:
-                if cluster_id in grouped_cylindrical_clusters[electrode]:
-                    if len(sparse_elec_labels[electrode]) < 2:
-                        raise ValueError(
-                            f"Unable to split merged cluster for "
-                            f"electrode {electrode}. "
-                            f"Please manually label "
-                            f"the second innermost channel."
-                        )
-                    first_contact_label = sparse_elec_labels[electrode][0]
-                    second_contact_label = sparse_elec_labels[electrode][1]
-                    first_contact = elec_in_brain[first_contact_label]
-                    second_contact = elec_in_brain[second_contact_label]
-                    unmerged_clusters[electrode] = {}
-                    unmerged_clusters[electrode][max_cluster_id + 1] = []
-                    unmerged_clusters[electrode][max_cluster_id + 2] = []
-                    for point in pts:
-                        z1 = npl.norm(np.divide((point - first_contact), np.sqrt(var)))
-                        z2 = npl.norm(np.divide((point - second_contact), np.sqrt(var)))
-                        if norm.cdf(z1) <= qtile:
-                            unmerged_clusters[electrode][max_cluster_id + 1].append(
-                                point
-                            )
-                        if norm.cdf(z2) <= qtile:
-                            unmerged_clusters[electrode][max_cluster_id + 2].append(
-                                point
-                            )
-                    max_cluster_id += 2
-
-        # Update cluster dictionary
-        for electrode in result:
-            # delete the merged cluster id's
-            for cluster_id in merged_clusters:
-                if cluster_id in result[electrode].keys():
-                    del result[electrode][cluster_id]
-            # add the corresponding unmerged cluster id's
-            if electrode in unmerged_clusters.keys():
-                for cluster_id in unmerged_clusters[electrode]:
-                    result[electrode][cluster_id] = unmerged_clusters[electrode][
-                        cluster_id
-                    ]
-
-        relabeled_clusters = {}
-        for electrode in result:
-            num = 1
-            relabeled_clusters[electrode] = {}
-            for cluster_id in result[electrode]:
-                new_id = electrode + str(num)
-                relabeled_clusters[electrode][new_id] = result[electrode][cluster_id]
-                num += 1
-        return relabeled_clusters
-
-    @classmethod
-    def fill_one_point(self, p1, p2):
-        """
-        Compute midpoint between two points.
-
-        TODO: refactor to use numpy
-
-        Parameters
-        ----------
-        p1: np.ndarray of dimension 1 x 3
-            first point to compute midpoint.
-
-        p2: np.ndarray of dimension 1 x 3
-            second point to compute midpoint.
-
-        Returns
-        -------
-            midpoint of the two specified points.
-        """
-        return (p1 + p2) / 2
-
-    @classmethod
-    def fill_two_points(self, p1, p2):
-        """
-        Compute trisection points.
-
-        Parameters
-        ----------
-        p1: np.ndarray of dimension 1 x 3
-            first point to compute trisection points.
-
-        p2: np.ndarray of dimension 1 x 3
-            second point to compute trisection points.
-
-        Returns
-        -------
-            Two points which trisect the line segment formed by p1 and p2.
-        """
-        return ((2 / 3) * p1 + (1 / 3) * p2, (1 / 3) * p1 + (2 / 3) * p2)
-
-    @classmethod
-    def fill_three_points(self, p1, p2):
-        """
-        Compute quadrisection points.
-
-        Parameters
-        ----------
-        p1: np.ndarray of dimension 1 x 3
-            first point to compute quadrisection points.
-
-        p2: np.ndarray of dimension 1 x 3
-            second point to compute qaudrisection points.
-
-        Returns
-        -------
-            Three points which quadrisect the line segment formed by p1 and p2.
-        """
-        return (
-            (1 / 4) * p1 + (3 / 4) * p2,
-            self.fill_one_point(p1, p2),
-            (3 / 4) * p1 + (1 / 4) * p2,
+        cyl_filtered_clusters = self._unfuse_clusters(
+            cyl_filtered_clusters, merged_cluster_ids, sparse_labeled_clusters
         )
 
+        return cyl_filtered_clusters
+
     @classmethod
-    def shift_downstream_labels(self, electrode_name, idx, shift_factor, chan_dict):
+    def _compute_centroids(self, chanxyzvoxels):
         """
-        Relabel downstream labels from a given index to maintain sorted order.
+        Return the centroids of each channel label.
+        
+        Given a list of voxels per channel label.
 
         Parameters
         ----------
-        electrode_name: str
-            string that contains electrode name (e.g. L')
-
-        idx: int
-            index from which shifting should start
-
-        shift_factor: int
-            how much to shift downstream labels by
-
-        chan_dict: dict
-            dictionary of channels with standard labeling and their
-            corresponding coordinates.
+            chanxyzvoxels: dict()
+                dictionary of electrodes and corresponding dictionary of
+                channels to centroid xyz coordinates.
 
         Returns
         -------
-            Updated version of chan_dict with shifted labels to allow
-            for easy insertion.
+            centroids: dict()
+                dictionary of channels and corresponding centroid coordinates.
         """
-        start = len(list(chan_dict.keys()))
-        for i in range(start, idx - 1, -1):
-            cur_id = electrode_name + str(i)
-            new_id = electrode_name + str(i + shift_factor)
-            chan_dict[new_id] = chan_dict[cur_id]
-            del chan_dict[cur_id]
-        return chan_dict
+        centroids = {}
+        for label, coords in chanxyzvoxels.items():
+            coords = np.array(coords)
+            centroids[label] = np.mean(coords, axis=0)
+        return centroids
 
     @classmethod
-    def compute_dists(self, centroid_dict):
+    def _order_clusters(self, clusters, first_contact):
         """
-        Compute the distances between a given channel and its immediate neighbor on the right.
+        Order a dictionary of clusters.
+        
+        Based on distance of the centroid of
+        the cluster from the contact labeled with the number 1 given from user
+        input.
 
+        Parameters
+        ----------
+            clusters: dict(str: ndarray)
+                Dictionary of clusters for an electrode.
+
+            first_contact: ndarray
+                1x3 Numpy array of coordinates for the most medial labeled
+                contact from user input.
+
+        Returns
+        -------
+            sorted_clusters: dict(str: ndarray)
+                Dictionary of clusters for an electrode sorted based on
+                proximity to the specified first_contact.
+        """
+        centroids = self._compute_centroids(clusters)
+
+        # Sort based on proximity to most medial (innermost) contact
+        sorted_centroids = sorted(
+            centroids.items(), key=lambda x: npl.norm(x[1] - first_contact)
+        )
+
+        sorted_centroids = dict(sorted_centroids)
+
+        # Restore clusters, now in sorted order
+        sorted_clusters = {k: clusters[k] for k in sorted_centroids}
+
+        return sorted_clusters
+
+    @classmethod
+    def _fill(self, centroids, num_to_fill, dists, max_cluster_id):
+        """
+        Insert new points between contacts.
+        
+        That are far apart for a given
+        electrode and specified number of points to fill.
+
+        Parameters
+        ----------
+            centroids: ndarray
+                Numpy array of centroid coordinates along an electrode that
+                need to have points interpolated between them. The centroids
+                are ordered based on proximity to the first contact along the
+                electrode, with the entry at index 0 being the contact closest
+                to first contact.
+
+            num_to_fill: ndarray
+                Numpy array consisting of the number of points to interpolate
+                between each centroid, i.e. num_to_fill[i] specifies the number
+                of points to interpolate between centroids[i] and its immediate
+                neighbor that is farther from the first contact along the
+                electrode.
+
+            dists: ndarray
+                Numpy array consisting of the distances between each contact
+                and its neighbor in the original spatial ordering, i.e.
+                dists[i] is the L2 distance between centroids[i] and its
+                immediate neighbor that is farther from the first contact along
+                the electrode.
+
+        Returns
+        -------
+            new_pts: dict(int: ndarray)
+                Dictionary of new interpolated centroids to add.
+        """
+        new_pts = {}
+        for i, num in enumerate(num_to_fill):
+            for portion in range(1, num + 1):
+                frac = portion / (num + 1)
+
+                # Add fraction of the distance along direction to next
+                # immediate neighbor
+                new_pt = centroids[i] + (frac * dists[i])
+                new_pts[max_cluster_id + portion] = np.array([new_pt])
+
+                # Update the max_cluster_id to avoid overwriting any clusters
+                max_cluster_id += num
+
+        return new_pts
+
+    @classmethod
+    def _interpolate_points(self, clusters, num_to_fill):
+        """
+        Interpolate specified number of points.
+        
+        To fill between each cluster
+        for a given electrode.
+
+        Parameters
+        ----------
+            clusters: dict(str: ndarray)
+                Dictionary of clusters for a given electrode.
+
+            num_to_fill: ndarray
+                Numpy array specifying the number of clusters to interpolate
+                between each cluster centroid, i.e. num_to_fill[i] is the
+                number of points to interpolate between the centroid of
+                clusters[i] and clusters[i+1].
+
+        Returns
+        -------
+            clusters: dict(str: ndarray)
+                Updated dictionary of clusters for a given electrode, now
+                containing interpolated points.
+        """
+        max_cluster_id = max(clusters.keys())
+        idxs = np.nonzero(num_to_fill)
+
+        # Obtain centroids
+        centroids = self._compute_centroids(clusters)
+        centroid_coords = np.array(list(centroids.values()))
+
+        # Compute distance from each contact to its next immediate neighbor
+        dists = np.diff(centroid_coords, axis=0)
+
+        # Obtain dictionary of interpolated points
+        new_pts = self._fill(
+            centroid_coords[idxs], num_to_fill[idxs], dists[idxs], max_cluster_id
+        )
+
+        # Merge the dictionary of interpolated points into clusters
+        clusters.update(new_pts)
+
+        return clusters
+
+    @classmethod
+    def fill_gaps(self, processed_clusters, gap_tolerance, sparse_labeled_contacts):
+        """
+        Assist in filling in gaps in clustering.
+
+        Compute the distances between a given channel and its immediate neighbor on the right.
         The last channel has a distance set to 0.
 
         Parameters
         ----------
-        centroid_dict: dict()
-            a dictionary with keys being electrode names and values being
-            dictionaries consisting of entries of channel names and their
-            corresponding centroid coordinates.
+            processed_clusters: dict(str: dict(str: ndarray))
+                Dictionary with keys being electrode names and values being
+                dictionaries consisting of entries of channel names and their
+                corresponding centroid coordinates.
+
+            gap_tolerance: float
+                Max L2 distance (in voxel space) between adjacent centroids.
+
+            sparse_labeled_contacts: dict(str: dict(str: ndarray))
+                Sparse dictionary of labeled channels from user input. This
+                dictionary contains exactly two channels for each electrode.
 
         Returns
         -------
-            a dictionary with keys being electrode names and values being
-            dictionaries consisting of entries of channel names and their
-            corresponding distances as described above.
+            processed_clusters: dict(str: dict(str: ndarray))
+                Updated versions of final_centroids with adjusted labeling and
+                dists with updated distances.
         """
-        dists = {elec: {} for elec in list(centroid_dict.keys())}
-        for electrode in centroid_dict:
-            channels = list(centroid_dict[electrode].keys())
-            num_chans = len(channels)
-            centrs = centroid_dict[electrode]
-            for i in range(num_chans - 1):
-                cur = np.array(centrs[channels[i]])
-                nxt = np.array(centrs[channels[i + 1]])
-                dists[electrode][channels[i]] = npl.norm(cur - nxt)
-            dists[electrode][channels[-1]] = 0
-        return dists
+        for elec in processed_clusters:
+            # Obtain labeled contacts given by user
+            labeled_chans = list(sparse_labeled_contacts[elec].items())
+            first, last = labeled_chans[0], labeled_chans[-1]
 
-    @classmethod
-    def _strip_nans(self, channels):
-        """
-        Strip any nan values from a channel array.
+            first_label, first_coord = first
+            last_label, last_coord = last
 
-        Parameters
-        ----------
-        channels: np.ndarray of dimension 1 x n
-            numpy array of channels and possibly nan values.
+            # Raise error if labeled channels from user input were not given
+            if not len(first_coord):
+                raise KeyError(f"Need innermost contact for electrode {elec}")
 
-        Returns
-        -------
-            numpy array with the same channels excluding nan values.
-        """
-        channels = np.array(channels)
-        temp = [chan for chan in channels if not np.isnan(chan).all()]
-        return temp
+            if not len(last_coord):
+                raise KeyError(f"Need outermost contact for electrode {elec}")
 
-    @classmethod
-    def reassign_labels(self, centroid_dict):
-        """
-        Assign labels which follow the standard labeling convention for SEEG electrodes.
+            # Order clusters for an electrode based on proximity to the
+            # innermost contact given by the user
+            processed_clusters[elec] = self._order_clusters(
+                processed_clusters[elec], first_coord
+            )
 
-        Parameters
-        ----------
-            centroid_dict: dict()
-                A dictionary where the keys are each electrode name and values
-                are dictionaries with entries of channels (does not necessarily
-                have to follow standard labeling convention) and their
-                corresponding coordinates.
+            # In rare case when there is only one cluster that belongs to a
+            # given electrode, we exclusively use the user specified contacts
+            if len(processed_clusters[elec]) < 2:
+                max_id = max(processed_clusters[elec].keys())
 
-        Returns
-        -------
-            A dictionary where channels are correctly assigned and sorted in
-            order. If the electrode name has a ', then the first entry in the
-            dictionary will be the smallest number (usually 1) and every
-            subsequent entry will be larger. Otherwise, the first entry
-            in the dictionary will be the largest number and every subsequent
-            entry will be smaller.
-        """
-        pca = PCA()
-        result = {}
-        for electrode in centroid_dict:
-            result[electrode] = {}
-            chans = np.array(list(centroid_dict[electrode].values()))
-            stripped_chans = self._strip_nans(chans)
-            pca.fit(stripped_chans)
-            centroids_pca = pca.transform(stripped_chans)
-            centroids_new = pca.inverse_transform(centroids_pca)
-            sorted_idxs = np.argsort(centroids_new[:, 0])
-            sorted_orig_ids = np.array(list(centroid_dict[electrode].keys()))[
-                sorted_idxs
-            ]
+                processed_clusters[elec] = {
+                    max_id + 1: np.array([first_coord]),
+                    max_id + 2: np.array([last_coord]),
+                }
+                first_num = int(re.findall(r"\d+", first_label)[0])
+                last_num = int(re.findall(r"\d+", last_label)[0])
+                diff = last_num - first_num
+                num_to_fill = np.array([diff - 1])
 
-            # assert len(sorted_idxs) == len(centroid_dict[electrode].keys())
-            # Left side of the brain
-            if electrode[-1] == "'":
-                for i, chan in enumerate(sorted_idxs):
-                    new_id = electrode + str(i + 1)
-                    result[electrode][new_id] = centroid_dict[electrode][
-                        sorted_orig_ids[i]
-                    ]
-            # Right side of the brain
             else:
-                for i, chan in enumerate(sorted_idxs):
-                    new_id = electrode + str(len(sorted_orig_ids) - i)
-                    result[electrode][new_id] = centroid_dict[electrode][
-                        sorted_orig_ids[i]
-                    ]
-        return result
+                # Obtain centroid coordinates
+                centroids = self._compute_centroids(processed_clusters[elec])
+                centroid_coords = np.array(list(centroids.values()))
+
+                # Compute L2 distance between adjacent centroids
+                dists = npl.norm(np.diff(centroid_coords, axis=0), axis=1)
+
+                # Compute the number of points to interpolate based on
+                # specified gap tolerance
+                num_to_fill = np.array(dists // gap_tolerance, dtype=np.uint16)
+
+            # Update the dictionary to include the new interpolated points
+            processed_clusters[elec] = self._interpolate_points(
+                processed_clusters[elec], num_to_fill
+            )
+
+            # Re-sort after adding interpolated points
+            processed_clusters[elec] = self._order_clusters(
+                processed_clusters[elec], first_coord
+            )
+
+        return processed_clusters
 
     @classmethod
-    def fill_gaps(self, final_centroids, dists, gap_tolerance):
+    def assign_labels(self, final_clusters, sparse_labeled_contacts):
         """
-        Assist in filling in gaps in clustering.
+        Assign stereo-EEG electrode labels to clusters.
+
+        Using labeling given by user.
 
         Parameters
         ----------
-        final_centroids: dict()
-            a dictionary with keys being electrode names and values being
-            dictionaries consisting of entries of channel names and their
-            corresponding centroid coordinates.
-        dists: dict()
-            a dictionary with keys being electrode names and values being
-            dictionaries consisting of entries of channel names and their
-            corresponding distance to their most immediate neighbor on their
-            right. The rightmost channel for a given electrode has a distance
-            set to 0.
-        gap_tolerance: dict()
-            maximum distance we will allow two adjacent contacts to be before
-            no longer considering them adjacent.
+            final_clusters: dict(str: dict(str: ndarray))
+                Dictionary of clusters grouped by electrode.
+
+            sparse_labeled_contacts: dict(str: dict(str: ndarray))
+                Sparse dictionary of labeled channels from user input. This
+                dictionary contains exactly two channels for each electrode.
 
         Returns
         -------
-            Updated versions of final_centroids with adjusted labeling and
-            dists with updated distances.
+            labeled_clusters: dict(str: dict(str: ndarray))
+                Dictionary of clusters grouped by electrode labeled with
+                stereo-EEG labeling convention.
         """
-        for electrode in dists:
-            for i, chan in enumerate(dists[electrode]):
-                if i == len(list(dists[electrode].keys())) - 1:
-                    continue
-                chan_list = np.array(list(dists[electrode].keys()))
-                # Hyperparameters: What distance to consider having skipped
-                # one, two, or three channels
-                # Need to fill in one channel
-                if (
-                    dists[electrode][chan] > gap_tolerance
-                    and dists[electrode][chan] <= 2 * gap_tolerance
-                ):
-                    midpt = self.fill_one_point(
-                        final_centroids[electrode][chan_list[i]],
-                        final_centroids[electrode][chan_list[i + 1]],
-                    )
-                    # Shift downstream labels by one
-                    midpt_idx = i + 1
-                    midpt_id = electrode + str(i + 1)
-                    print(f"Interpolating points for channels: " f"{midpt_id}")
-                    shift = 1
-                    final_centroids[electrode] = self.shift_downstream_labels(
-                        electrode, midpt_idx, shift, final_centroids[electrode]
-                    )
-                    # Insert midpoint into dictionary
-                    final_centroids[electrode][midpt_id] = midpt
+        labeled_clusters = {}
+        for elec in final_clusters:
+            # Obtain innermost contact from user specified contacts
+            first_contact = sparse_labeled_contacts[elec].get(elec + "1", [])
+            if not len(first_contact):
+                raise KeyError(f"Need innermost contact for electrode {elec}")
 
-                # Need to fill in two channels
-                elif (
-                    dists[electrode][chan] > 2 * gap_tolerance
-                    and dists[electrode][chan] <= 3 * gap_tolerance
-                ):
-                    pt1, pt2 = self.fill_two_points(
-                        final_centroids[electrode][chan_list[i]],
-                        final_centroids[electrode][chan_list[i + 1]],
-                    )
-                    # Shift downstream labels by two
-                    pt1_idx = i + 1
-                    pt1_id = electrode + str(i + 1)
-                    pt2_id = electrode + str(i + 2)
-                    print(
-                        f"Interpolating points for channels: " f"{pt1_id}, " f"{pt2_id}"
-                    )
-                    shift = 2
-                    final_centroids[electrode] = self.shift_downstream_labels(
-                        electrode, pt1_idx, shift, final_centroids[electrode]
-                    )
-                    final_centroids[electrode][pt1_id] = pt1
-                    final_centroids[electrode][pt2_id] = pt2
-                # Need to fill in three channels
-                elif dists[electrode][chan] > 3 * gap_tolerance:
-                    pt1, pt2, pt3 = self.fill_three_points(
-                        final_centroids[electrode][chan_list[i]],
-                        final_centroids[electrode][chan_list[i + 1]],
-                    )
-                    # Shift downstream labels by three
-                    pt1_idx = i + 1
-                    pt1_id = electrode + str(i + 1)
-                    pt2_id = electrode + str(i + 2)
-                    pt3_id = electrode + str(i + 3)
-                    print(
-                        f"Interpolating points for channels: "
-                        f"{pt1_id}, "
-                        f"{pt2_id}, "
-                        f"{pt3_id}. "
-                    )
-                    shift = 3
-                    final_centroids[electrode] = self.shift_downstream_labels(
-                        electrode, pt1_idx, shift, final_centroids[electrode]
-                    )
-                    final_centroids[electrode][pt1_id] = pt1
-                    final_centroids[electrode][pt2_id] = pt2
-                    final_centroids[electrode][pt3_id] = pt3
-                else:
-                    continue
-        # Update labeling and ordering for centroids
-        final_centroids = self.reassign_labels(final_centroids)
-        dists = self.compute_dists(final_centroids)
-        return final_centroids, dists
+            # Ensure that the clusters are well-ordered
+            final_clusters[elec] = self._order_clusters(
+                final_clusters[elec], first_contact
+            )
+
+            # Convert to numpy array to make indexing easier
+            clusters = np.array(list(final_clusters[elec].values()))
+
+            if "'" in elec:
+                # Electrode is inserted into left of brain, so we add in
+                # forward order
+                labeled_clusters[elec] = {
+                    elec + str(i + 1): clusters[i] for i in range(len(clusters))
+                }
+            else:
+                # Electrode is inserted into left of brain, so we add in
+                # reverse order
+                labeled_clusters[elec] = {
+                    elec + str(i + 1): clusters[i]
+                    for i in range(len(clusters) - 1, -1, -1)
+                }
+        return labeled_clusters
 
     @classmethod
-    def vox_2_xyz(self, final_centroids_voxels, affine):
+    def bruteforce_correction(self, labeled_clusters, sparse_labeled_contacts):
+        """
+        Check for egregiously poor output by the algorithm.
+        
+        If it is large,
+        use the brute force approach - use the provided contacts and
+        interpolate specified number of evenly spaced poitns between the
+        provided contacts.
+
+        Parameters
+        ----------
+            labeled_clusters: dict(str: dict(str: ndarray))
+                Dictionary of clusters grouped by electrode labeled with
+                stereo-EEG labeling convention.
+
+            sparse_labeled_contacts: dict(str: dict(str: ndarray))
+                Sparse dictionary of labeled channels from user input. This
+                dictionary contains exactly two channels for each electrode.
+
+        Returns
+        -------
+            labeled_clusters: dict(str: dict(str: ndarray))
+                Updated dictionary of clusters grouped by electrode labeled
+                with stereo-EEG labeling convention with high error electrodes
+                being replaced with the brute force approximation.
+        """
+        for elec in sparse_labeled_contacts:
+            # Obtain user provided contacts
+            first, last = list(sparse_labeled_contacts[elec].items())
+            first_label, first_coord = first
+            last_label, last_coord = last
+
+            # Compute centroids for this electrode
+            centroids = self._compute_centroids(labeled_clusters[elec])
+
+            # Use the first and last centroid to compute error metric
+            first_centroid = centroids.get(first_label, [])
+            last_centroid = centroids.get(last_label, [])
+
+            # Compute L2 distance between algorithm's prediction and provided
+            # coordinates
+            err_first = err_last = count = 0
+            if len(first_centroid):
+                err_first = npl.norm(first_centroid - first_coord)
+                count += 1
+            if len(last_centroid):
+                err_last = npl.norm(last_centroid - last_coord)
+                count += 1
+
+            # Compute average of errors successfully computed
+            err = (err_first + err_last) / count
+
+            # Ignore errors smaller than 5.0
+            if err <= 5.0:
+                continue
+
+            # Overwrite the algorithm's output for this electrode with the
+            # user provided inpute
+            labeled_clusters[elec] = {
+                1: np.array([first_coord]),
+                2: np.array([last_coord]),
+            }
+
+            # Compute the number of points to linearly interpolate
+            first_num = int(re.findall(r"\d+", first_label)[0])
+            last_num = int(re.findall(r"\d+", last_label)[0])
+            diff = last_num - first_num
+            num_to_fill = np.array([diff - 1])
+
+            # Interpolate the points and update the dictionary
+            labeled_clusters[elec] = self._interpolate_points(
+                labeled_clusters[elec], num_to_fill
+            )
+
+        # Reassign SEEG labels
+        labeled_clusters = self.assign_labels(labeled_clusters, sparse_labeled_contacts)
+
+        return labeled_clusters
+
+    @classmethod
+    def cluster_2_centroids(self, clusters):
+        """
+        Compute and store the centroid for each cluster.
+
+        Parameters
+        ----------
+            clusters: dict(str: dict(str: ndarray))
+                Dictionary of clusters grouped by electrode.
+            final_centroids: dict()
+                a dictionary with keys being electrode names and values being
+                dictionaries consisting of entries of channel names and their
+                corresponding centroid coordinates.
+            dists: dict()
+                a dictionary with keys being electrode names and values being
+                dictionaries consisting of entries of channel names and their
+                corresponding distance to their most immediate neighbor on their
+                right. The rightmost channel for a given electrode has a distance
+                set to 0.
+            gap_tolerance: dict()
+                maximum distance we will allow two adjacent contacts to be before
+                no longer considering them adjacent.
+
+        Returns
+        -------
+            centroids: dict(str: dict(str: ndarray))
+                Dictionary of centroids grouped by electrode.
+        """
+        centroids = {}
+        for elec in clusters:
+            centroids[elec] = self._compute_centroids(clusters[elec])
+        return centroids
+
+    @classmethod
+    def vox_2_xyz(self, centroids_vox, affine):
         """
         Convert finalized dictionary of centroids from CT voxel coordinates to xyz coordinates.
 
         Parameters
         ----------
-        final_centroids_voxels: dict()
-            Properly labeled dictioanry of centroids in CT voxel coordinates.
+            centroids_vox: dict(str: dict(str: ndarray))
+                Properly labeled dictioanry of centroids in CT voxel
+                coordinates.
+
+            affine: ndarray
+                Transformation matrix for applying affine transformation to
+                coordinates to convert CT voxel coordinates to xyz coordinates.
 
         Returns
         -------
-            Properly labeled dictionary of centroids in xyz coordinates
+            centroids_xyz: dict(str: dict(str: ndarray))
+                Properly labeled dictionary of centroids in xyz coordinates.
         """
-        final_centroids_xyz = {}
-        for electrode in final_centroids_voxels.keys():
-            final_centroids_xyz[electrode] = {}
-            for chan in final_centroids_voxels[electrode]:
-                final_centroids_xyz[electrode][chan] = apply_affine(
-                    affine, final_centroids_voxels[electrode][chan]
+        centroids_xyz = {}
+        for elec in centroids_vox.keys():
+            centroids_xyz[elec] = {}
+            for chan in centroids_vox[elec]:
+                centroids_xyz[elec][chan] = apply_affine(
+                    affine, centroids_vox[elec][chan]
                 )
 
-        return final_centroids_xyz
+        return centroids_xyz
