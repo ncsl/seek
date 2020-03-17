@@ -113,3 +113,4 @@ venv.bak/
 # VSCode settings
 .vscode/
 neuroimg/.vscode/
+Dockerfile_old
