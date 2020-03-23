@@ -92,3 +92,12 @@ RUN unzip -q /home/matlab.zip -d /home/matlab
 ENV DISPLAY=192.168.1.156:0.0
 
 RUN /home/matlab/install
+
+RUN wget https://www.fil.ion.ucl.ac.uk/spm/download/restricted/eldorado/spm12.zip -O /home/spm12.zip
+RUN unzip -q /home/spm12.zip -d /home/spm12
+
+RUN apt-get install gawk -y
+RUN wget ftp://ftp.fieldtriptoolbox.org/pub/fieldtrip/fieldtrip-20200302.zip -O /home/fieldtrip
+
+
+# RUN echo "conda activate neuroimgpipe" > ~/.bashrc
