@@ -1,19 +1,14 @@
 """Untested API for converting neuroimaging files to BIDS format."""
-import logging
 import os
 import platform
-
-from pathlib import Path
-from typing import Union
 import tempfile
+from pathlib import Path
 
-
-from mne.utils import run_subprocess
-from mne_bids import make_bids_basename, write_anat
-from mne_bids.utils import _parse_bids_filename
-
-import nibabel as nb
 import dicom2nifti
+import nibabel as nb
+from mne.utils import run_subprocess
+from mne_bids import write_anat
+from mne_bids.utils import _parse_bids_filename
 
 
 def bids_validate(bids_root):
@@ -32,24 +27,34 @@ def bids_validate(bids_root):
 
     return _validate(bids_root)
 
-def _convert_dicom_to_nifti(original_dicom_directory, output_fpath):
+
+def _convert_dicom_to_nifti(original_dicom_directory, output_fpath, verbose=True):
+    if verbose:
+        print(f"Reading in dicoms from {original_dicom_directory}")
+        print(f"Saving to {output_fpath}")
+
     # try to run mrconvert and reorient to `LAS` direction
-    output_dict = dicom2nifti.dicom_series_to_nifti(original_dicom_directory,
-                                                    output_fpath,
-                                                    reorient_nifti=True)
-    nb_img = output_dict['NII']
-    image_input = output_dict['NII_FILE']
+    output_dict = dicom2nifti.dicom_series_to_nifti(
+        original_dicom_directory, output_fpath, reorient_nifti=True
+    )
+    nb_img = output_dict["NII"]
+    image_input = output_dict["NII_FILE"]
 
     img = nb.load(image_input)
     print("Reoriented image to ", nb.aff2axcodes(img.affine))
 
     return image_input
 
-def convert_img_to_bids(image_input, bids_root, bids_fname):
+
+def convert_img_to_bids(image_input, bids_root, bids_fname, verbose=True):
     """Run Bids Conversion script to be updated.
 
     Just to show example run locally.
     """
+    if verbose:
+        print(f"bids_root is {bids_root}")
+        print(f"Reading in image files from: {image_input}")
+
     # create temporary filepath to store the nifti file
     with tempfile.TemporaryDirectory() as tmpdir:
         output_fpath = Path(tmpdir, "tmp.nii").as_posix()
@@ -65,8 +70,8 @@ def convert_img_to_bids(image_input, bids_root, bids_fname):
         print(image_input)
         # determine the BIDS identifiers
         params = _parse_bids_filename(bids_fname, verbose=True)
-        subject = params['sub']
-        session = params['ses']
+        subject = params["sub"]
+        session = params["ses"]
 
         # write to BIDS
         anat_dir = write_anat(
@@ -88,8 +93,6 @@ def convert_img_to_bids(image_input, bids_root, bids_fname):
     except Exception as e:
         print(e)
 
-
-
     # Plot it
     # from nilearn.plotting import plot_anat
     # import matplotlib.pyplot as plt
@@ -98,6 +101,7 @@ def convert_img_to_bids(image_input, bids_root, bids_fname):
     # for point_idx, label in enumerate(("LPA", "NAS", "RPA")):
     #     plot_anat(Path(anat_dir, bids_fname), axes=axs[point_idx], title=label)
     # plt.show()
+
 
 if __name__ == "__main__":
     # bids root to write BIDS data to
@@ -122,8 +126,3 @@ if __name__ == "__main__":
     # define BIDS identifiers
     task = "monitor"
     session = "seizure"
-
-    # run main bids conversion
-    main(
-        bids_root, subject_ids, session,
-    )
