@@ -73,6 +73,7 @@ def convert_img_to_bids(image_input, bids_root, bids_fname, verbose=True):
         subject = params["sub"]
         session = params["ses"]
 
+        print("\n\nWriting now to BIDS...")
         # write to BIDS
         anat_dir = write_anat(
             bids_root,
