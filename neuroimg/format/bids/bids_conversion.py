@@ -88,10 +88,10 @@ def convert_img_to_bids(image_input, bids_root, bids_fname, verbose=True):
     # print(img)
     # print("Reoriented image to ", nb.aff2axcodes(img.affine))
     # validate that this is bids valid dataset
-    try:
-        bids_validate(bids_root)
-    except Exception as e:
-        print(e)
+    # try:
+    #     bids_validate(bids_root)
+    # except Exception as e:
+    #     print(e)
 
     # Plot it
     # from nilearn.plotting import plot_anat
