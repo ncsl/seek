@@ -110,7 +110,7 @@ rule convert_CT_eleccoords_to_txt:
     output:
         clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
     run:
-        "python ./utils/convert_to_txt.py {input.clustered_center_points_mat} {output.clustered_center_points};"
+        "python ./convert_to_txt.py {input.clustered_center_points_mat} {output.clustered_center_points};"
 
 
 rule compress_CT_img:
