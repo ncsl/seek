@@ -53,7 +53,7 @@ def load_data(ct_scan, brainmask_ct=None):
 
 
 def compute_electrode_voxel_clouds(
-        elec_coords_mm, ct_img, bm_ct_img=None, output_bm_fpath=None
+    elec_coords_mm, ct_img, bm_ct_img=None, output_bm_fpath=None
 ):
     """Compute electrode voxel clouds via Grouping algo and apply brainmask."""
 
@@ -113,7 +113,7 @@ def apply_threshold_clustering(brainmasked_ct_data, grouped_contacts_vox, **kwar
 
 
 def apply_postprocessing_on_clusters(
-        bound_clusters, sparse_labeled_contacts, ct_affine, **kwargs
+    bound_clusters, sparse_labeled_contacts, ct_affine, **kwargs
 ):
     gap_tolerance = kwargs.get(
         "gap_tolerance", 13
