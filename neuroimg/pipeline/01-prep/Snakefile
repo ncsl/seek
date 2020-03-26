@@ -44,7 +44,7 @@ def _get_subject_dir(bids_root, subject):
     return os.path.join(bids_root, f"sub-{subject}")
 
 def _get_anat_bids_dir(bids_root, subject):
-    return os.path.join(_get_subject_dir(bids_root, subject), 'ses-seizure', 'anat')
+    return os.path.join(_get_subject_dir(bids_root, subject), 'ses-veeg', 'anat')
 
 
 # First rule
