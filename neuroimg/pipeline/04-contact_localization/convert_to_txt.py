@@ -61,6 +61,9 @@ if __name__ == "__main__":
     # read in electrodes file
     electxt = read_label_coords(clustered_points_file)
 
+    print("Saving electrode coordinates as a txt file!")
+    print(electxt)
+
     # write the output to a txt file
     with open(outputcoordsfile, "w") as f:
         for i, name in enumerate(electxt.keys()):
