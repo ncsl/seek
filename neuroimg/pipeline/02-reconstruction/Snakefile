@@ -50,8 +50,6 @@ def _get_anat_bids_dir(bids_root, subject):
 
 
 subworkflow prep_workflow:
-    # workdir:
-    #     ".."
     snakefile:
         "../01-prep/Snakefile"
     configfile:
@@ -105,7 +103,7 @@ rule prep_recon:
         "mkdir -p {params.elecsdir};"
         "mkdir -p {params.acpcdir};"
         "mkdir -p {params.INPUT_FS_ORIG_DIR};"
-        "cp {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
+        "mrconvert {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
         "mrconvert {input.MRI_NIFTI_IMG} {output.MRI_MGZ_IMG};"
 
 

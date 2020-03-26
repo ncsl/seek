@@ -1,7 +1,6 @@
 import argparse
 import os
 import sys
-from pathlib import Path
 
 import nibabel as nb
 import numpy as np
@@ -9,17 +8,10 @@ import numpy.linalg as npl
 import scipy.io
 from nibabel.affines import apply_affine
 from mne_bids.tsv_handler import _from_tsv
-from .utils.io import save_organized_elecdict_asmat, load_elecs_data
+from neuroimg.base.utils.io import load_elecs_data
 
 sys.path.append("../../../")
 
-from neuroimg.base.utils.utils import MatReader
-from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
-from neuroimg.localize_contacts.electrode_clustering.grouping import (
-    Cluster,
-    CylindricalGroup,
-)
-from neuroimg.localize_contacts.electrode_clustering.postprocess import PostProcessor
 from neuroimg.localize_contacts.freecog_labeling.utils import (
     convert_fsmesh2mlab,
     label_elecs,

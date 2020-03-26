@@ -18,6 +18,9 @@ import nibabel as nb
 import numpy as np
 import scipy.io
 
+from neuroimg.base.objects.neuroimaging.baseneuroimage import Hemisphere
+from neuroimg.base.objects.neuroimaging.baseneuroimage import RegionIndexMapping
+
 
 class MatReader:
     """

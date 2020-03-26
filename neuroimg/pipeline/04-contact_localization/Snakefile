@@ -73,16 +73,12 @@ ct_voxel_electrodes_fname = ct_electrodes_fname.replace("electrodes", "voxelelec
 ct_voxel_electrodes_fname = ct_voxel_electrodes_fname.replace(".tsv", ".mat")
 
 subworkflow reconstruction_workflow:
-    # workdir:
-    #     ".."
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:
         "../config/localconfig.yaml"
 
 subworkflow coregistration_workflow:
-    # workdir:
-    #     ".."
     snakefile:
         "../03-coregistration/Snakefile"
     configfile:
@@ -117,15 +113,27 @@ rule convert_CT_eleccoords_to_txt:
         "python ./utils/convert_to_txt.py {input.clustered_center_points_mat} {output.clustered_center_points};"
 
 
-rule find_electrodes_on_CT:
+rule compress_CT_img:
     input:
         # DEPENDENCY ON RECONSTRUCTION WORKFLOW
-        CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
+        CT_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
+    output:
+        CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii.gz"),
+    shell:
+        "mrconvert {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
+
+"""Semi-automated algorithm to find electrode contacts on CT image.
+
+Requires at least 2 contacts on each electrode.
+"""
+rule find_electrodes_on_CT:
+    input:
+        CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii.gz"),
         brainmask_inct_file = os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
         # list of channel points (at least 2 per electrode)
         electrode_initialization_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
     params:
-        FSPATIENT_DIR = FSPATIENT_SUBJECT_DIR,
+        FSPATIENT_DIR = FSPATIENT_SUBJECT_DIR.as_posix(),
     output:
         clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(ct_electrodes_fname)),
         clustered_center_voxels = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(ct_voxel_electrodes_fname)),
@@ -139,7 +147,7 @@ rule find_electrodes_on_CT:
             "{output.clustered_center_points} " \
             "{output.clustered_center_voxels} " \
             "{output.binarized_ct_volume} " \
-            "{params.FSPATIENT_DIR} " \
+            "{params.FSPATIENT_DIR};" \
 
 """
 Rule for image space conversion CT -> T1
