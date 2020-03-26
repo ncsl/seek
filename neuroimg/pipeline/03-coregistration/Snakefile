@@ -23,7 +23,7 @@ subject_wildcard = "{subject}"
 FS_DIR = bids_root.freesurfer_dir
 FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
 FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "mri")
-FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "ct")
+FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "CT")
 
 subworkflow reconstruction_workflow:
     workdir:
@@ -56,7 +56,7 @@ E.g. useful for CT, and DTI images to be coregistered
 """
 rule coregistert1_ct_to_pre:
     input:
-        PREMRI_NIFTI_IMG_MGZ = os.path.join(FSOUT_MRI_FOLDER, "origT1.nii"),
+        PREMRI_NIFTI_IMG_MGZ = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
         CT_NIFTI_IMG_MGZ = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
     output:
         # mapped image from CT -> MRI

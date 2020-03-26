@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from neuroimg.pipeline.fileutils import SCRIPTS_UTIL_DIR
@@ -27,10 +28,33 @@ subject_wildcard = "{subject}"
 FS_DIR = bids_root.freesurfer_dir
 FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
 FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "mri")
-FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "ct")
+FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "CT")
 FSOUT_ELECS_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "elecs")
 FSOUT_ACPC_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "acpc")
 FSOUT_SURF_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "surf")
+
+
+def _get_bids_basename(subject, imgtype):
+    """Wildcard function to get bids_basename."""
+    bids_fname = make_bids_basename(subject,
+                                    session='seizure',
+                                    suffix=f"{imgtype}.nii.gz")
+    return bids_fname
+
+def _get_subject_dir(bids_root, subject):
+    return os.path.join(bids_root, f"sub-{subject}")
+
+def _get_anat_bids_dir(bids_root, subject):
+    return os.path.join(_get_subject_dir(bids_root, subject), 'ses-seizure', 'anat')
+
+
+subworkflow prep_workflow:
+    # workdir:
+    #     ".."
+    snakefile:
+        "../01-prep/Snakefile"
+    configfile:
+        "../config/localconfig.yaml"
 
 # First rule
 rule all:
@@ -62,6 +86,9 @@ Rule for converting .dicom -> .niftiPUT_DIR,
 
 """
 rule prep_recon:
+    input:
+        MRI_NIFTI_IMG = prep_workflow(os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
+                                    _get_bids_basename(subject_wildcard, imgtype='T1w'))),
     params:
         CTDIR = FSOUT_CT_FOLDER,
         elecsdir = FSOUT_ELECS_FOLDER,
@@ -74,7 +101,7 @@ rule prep_recon:
         "mkdir -p {params.elecsdir};"
         "mkdir -p {params.acpcdir};"
         "mkdir -p {params.INPUT_FS_ORIG_DIR};"
-        "mrconvert {params.MRI_MGZ_IMG} {output.MRI_MGZ_IMG};"
+        "mrconvert {input.MRI_NIFTI_IMG} {output.MRI_MGZ_IMG};"
 
 
 """

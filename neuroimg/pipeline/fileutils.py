@@ -45,6 +45,9 @@ class BidsRoot:
         else:
             self.derivatives_dir = Path(derivatives_dir)
 
+    def __repr__(self):
+        return self.bids_root
+
     @property
     def freesurfer_dir(self):
         return Path(self.derivatives_dir / "freesurfer")

@@ -1,25 +1,26 @@
 import os
+from pathlib import Path
 import sys
 sys.path.append("../../../")
-from neuroimg.pipeline.fileutils import SCRIPTS_UTIL_DIR
-from neuroimg.pipeline.fileutils import get_freesurfer_patient_dir, get_freesurfer_dir, \
-    get_rawct_dir, get_rawmri_dir, get_rawacpc_dir
+from neuroimg.pipeline.fileutils import BidsRoot
 
 
 configfile: "../config/localconfig.yaml"
 
 # get the freesurfer patient directory
-FS_OUTPUT_DIR = get_freesurfer_dir(config)
-FS_PATIENT_OUTPUT_DIR = get_freesurfer_patient_dir(config)
-RAW_CT_FOLDER = get_rawct_dir(config)
-RAW_MRI_FOLDER = get_rawmri_dir(config)
-RAW_MRIACPC_FOLDER = get_rawacpc_dir(config)
+bids_root = BidsRoot(config['bids_root'])
+subject_wildcard = "{subject}"
 
-FSOUT_MRI_FOLDER = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri")
-FSOUT_CT_FOLDER = os.path.join(FS_PATIENT_OUTPUT_DIR, "CT")
-FSOUT_ELECS_FOLDER = os.path.join(FS_PATIENT_OUTPUT_DIR, "elecs")
-FSOUT_ACPC_FOLDER = os.path.join(FS_PATIENT_OUTPUT_DIR, "acpc")
-FSOUT_SURF_FOLDER = os.path.join(FS_PATIENT_OUTPUT_DIR, "surf")
+
+# initialize directories that we access in this snakemake
+FS_DIR = bids_root.freesurfer_dir
+FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
+FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "mri")
+FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "ct")
+FSOUT_ELECS_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "elecs")
+FSOUT_ACPC_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "acpc")
+FSOUT_SURF_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "surf")
+
 
 # First rule
 rule all:

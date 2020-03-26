@@ -4,6 +4,8 @@ import scipy.io
 
 
 def loadmat(filename):
+    """Load .mat file into RAM."""
+
     def _check_keys(dict):
         for key in dict:
             if isinstance(dict[key], scipy.io.matlab.mio5_params.mat_struct):
@@ -26,6 +28,7 @@ def loadmat(filename):
 
 
 def read_label_coords(elecfilemat):
+    """Convert coords to 4 x C array."""
     print("Reading ", elecfilemat)
 
     elecmat = loadmat(elecfilemat)

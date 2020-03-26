@@ -30,7 +30,7 @@ FS_DIR = bids_root.freesurfer_dir
 RAW_CT_FOLDER = bids_root.get_rawct_dir(subject_wildcard)
 RAW_MRI_FOLDER = bids_root.get_premri_dir(subject_wildcard)
 FSOUT_MRI_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard) / "mri")
-FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard) / "ct")
+FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard) / "CT")
 
 
 def _get_bids_basename(subject, imgtype):

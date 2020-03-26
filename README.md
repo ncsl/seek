@@ -7,7 +7,7 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/adam2392/neuroimg_pipeline)
 [![DOI](https://zenodo.org/badge/160566959.svg)](https://zenodo.org/badge/latestdoi/160566959)
 
-This repo describes Sarma lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
+This repo describes Sarma/Crone lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). 
 
 For incorporation of DTI data, see ndmeg: https://github.com/neurodata/ndmg
