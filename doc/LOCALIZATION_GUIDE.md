@@ -1,7 +1,7 @@
 # Semi-Automated Localizing Electrodes Process 
 
-For NCSL specific Readme, check out: [link](doc/extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
-For general-purpose Readme, check out: [link](doc/extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
+For NCSL specific Readme, check out: [link](extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
+For general-purpose Readme, check out: [link](extra_docs/contact_localization/localizingelectrodes_instructions.pdf)
 
 To only localize contacts using fieldtrip toolbox GUI, or img_pipe GUI, then follow these instructions:
 1.	Install SPM (preferably 12): https://www.fil.ion.ucl.ac.uk/spm/software/spm12/

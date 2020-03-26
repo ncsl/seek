@@ -1,0 +1,299 @@
+import os
+import sys
+from pathlib import Path
+
+from mne_bids import make_bids_basename, make_bids_folders
+
+sys.path.append("../../../")
+from neuroimg.pipeline.fileutils import BidsRoot
+
+"""
+A snakemake file for running contact localizations workflow on the neuroimaging data.
+
+snakemake --dag | dot -Tpdf > dag_pipeline_contactlocalize.pdf
+
+Runs tests to ensure data is all in the corresponding format: BIDS iEEG
+"""
+
+configfile: "../config/localconfig.yaml"
+
+# get the freesurfer patient directory
+bids_root = BidsRoot(config['bids_root'])
+subject_wildcard = "{subject}"
+
+METADATA_FOLDER = "../../../data/"
+
+# initialize directories that we access in this snakemake
+FS_DIR = bids_root.freesurfer_dir
+FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
+FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "mri")
+FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "CT")
+FSOUT_ELECS_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "elecs")
+FSOUT_ACPC_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "acpc")
+FSOUT_SURF_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "surf")
+
+FIGDIR = os.path.join(FSOUT_ELECS_FOLDER, "figs")
+
+
+def _get_bids_basename(subject, acquisition):
+    """Wildcard function to get bids_basename."""
+    bids_fname = make_bids_basename(subject,
+                                    acquisition=acquisition,
+                                    suffix=f"electrodes.tsv")
+    return bids_fname
+
+
+def get_electrodes_and_coordsystem_fpath(bids_root, subject_id, session_id, acquisition, verbose=True):
+    if acquisition in ['ecog', 'seeg']:
+        kind = 'ieeg'
+    elif acquisition == 'eeg':
+        kind = 'eeg'
+
+    data_path = make_bids_folders(subject=subject_id, session=session_id,
+                                  kind=kind, bids_root=bids_root, make_dir=False,
+                                  overwrite=False, verbose=verbose)
+    coordsystem_fname = make_bids_basename(
+        subject=subject_id, session=session_id, acquisition=acquisition,
+        suffix='coordsystem.json', prefix=data_path)
+    electrodes_fname = make_bids_basename(
+        subject=subject_id, session=session_id, acquisition=acquisition,
+        suffix='electrodes.tsv', prefix=data_path)
+    return coordsystem_fname, electrodes_fname
+
+# extract coordinate system filename and electrodes filename
+coordsystem_fname, electrodes_fname = get_electrodes_and_coordsystem_fpath(str(bids_root.bids_root),
+                                                                           subject_wildcard,
+                                                                           session_id='veeg',
+                                                                           acquisition='seeg')
+voxel_electrodes_fname = electrodes_fname.replace("electrodes", "voxelelectrodes")
+
+# for electrode files in CT image space
+ct_electrodes_fname = electrodes_fname.replace("electrodes", "ctelectrodes")
+ct_voxel_electrodes_fname = ct_electrodes_fname.replace("electrodes", "voxelelectrodes")
+ct_voxel_electrodes_fname = ct_voxel_electrodes_fname.replace(".tsv", ".mat")
+
+subworkflow reconstruction_workflow:
+    # workdir:
+    #     ".."
+    snakefile:
+        "../02-reconstruction/Snakefile"
+    configfile:
+        "../config/localconfig.yaml"
+
+subworkflow coregistration_workflow:
+    # workdir:
+    #     ".."
+    snakefile:
+        "../03-coregistration/Snakefile"
+    configfile:
+        "../config/localconfig.yaml"
+
+# First rule
+rule all:
+    input:
+        # clustered_center_points_flirt = expand(os.path.join(FSOUT_CT_FOLDER,
+        #                                              '{subject}_native_flirt_elec_xyz.txt'),
+        #                                     subject = config['patients']),
+        # clustered_center_voxels = expand(os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels.mat'), subject = config['patients']),
+        # figure_file = expand(os.path.join(FIGDIR, "summary_pca_elecs.png"),
+        #                      subject = config['patients']),
+        bids_electrodes_file = expand(os.path.join(electrodes_fname),
+                                    subject = config['patients']),
+    shell:
+        "echo 'done'"
+
+"""
+Rule for conversion .mat -> .txt
+
+Converts output of fieldtrip toolbox .mat files named accordingly into txt files. 
+Note: This file should contain at least two contacts per electrode.
+"""
+rule convert_CT_eleccoords_to_txt:
+    input:
+        clustered_center_points_mat = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elec_f.mat'),
+    output:
+        clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
+    shell:
+        "python ./utils/convert_to_txt.py {input.clustered_center_points_mat} {output.clustered_center_points};"
+
+
+rule find_electrodes_on_CT:
+    input:
+        # DEPENDENCY ON RECONSTRUCTION WORKFLOW
+        CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
+        brainmask_inct_file = os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
+        # list of channel points (at least 2 per electrode)
+        electrode_initialization_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
+    params:
+        FSPATIENT_DIR = FSPATIENT_SUBJECT_DIR,
+    output:
+        clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(ct_electrodes_fname)),
+        clustered_center_voxels = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(ct_voxel_electrodes_fname)),
+        binarized_ct_volume = os.path.join(FSOUT_CT_FOLDER, "{subject}_binarized_ct.nii.gz")
+    shell:
+        "echo 'RUNNING CLUSTERING ALGORITHM';"
+        "python ./electrode_clustering.py " \
+            "{input.CT_NIFTI_IMG} " \
+            "{input.brainmask_inct_file} " \
+            "{input.electrode_initialization_file} " \
+            "{output.clustered_center_points} " \
+            "{output.clustered_center_voxels} " \
+            "{output.binarized_ct_volume} " \
+            "{params.FSPATIENT_DIR} " \
+
+"""
+Rule for image space conversion CT -> T1
+
+applying flirt rigid registration affine transformation to the xyz coordinates of the localized
+contacts in CT space. This will convert them into the space of the T1 image.
+"""
+rule convert_eleccoords_to_native_T1:
+    input:
+        CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
+        MRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
+        # DEPENDENCY ON RECONSTRUCTION WORKFLOW
+        # mapping matrix for post to pre in T1
+        MAPPING_FILE = coregistration_workflow(os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt")),
+        clustered_center_points_file = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(ct_electrodes_fname)),
+        clustered_center_voxels_file = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(ct_voxel_electrodes_fname)),
+    output:
+        clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(electrodes_fname)),
+        clustered_center_voxels = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(voxel_electrodes_fname)),
+    shell:
+        "python ./utils/convert_coordspace.py " \
+        "{input.CT_NIFTI_IMG} " \
+        "{input.MRI_NIFTI_IMG} " \
+        "{input.MAPPING_FILE} " \
+        "{input.clustered_center_points_file} " \
+        "{input.clustered_center_voxels_file};"
+
+
+rule apply_anatomicalatlas_to_electrodes:
+    input:
+        fs_lut_fpath = os.path.join(METADATA_FOLDER, "FreeSurferColorLUT.txt"),
+        clustered_center_points_file = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(electrodes_fname)),
+        clustered_center_voxels_file = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(voxel_electrodes_fname)),
+    params:
+        FSPATIENT_DIR = FSPATIENT_SUBJECT_DIR,
+    output:
+        bids_electrodes_file = os.path.join(electrodes_fname),
+    shell:
+        "echo 'Applying anatomical atlas to electrode points...';"
+        "python ./apply_anat_to_electrodes.py " \
+        "{input.clustered_center_points_file} " \
+        "{input.clustered_center_voxels_file} " \
+        "{output.bids_electrodes_file} " \
+        "{params.FSPATIENT_DIR} " \
+        "{input.fs_lut_fpath};"
+
+# rule apply_whitematteratlas_to_electrodes:
+#     input:
+#         WM_IMG_FPATH =  ,
+#     params:
+#         FSPATIENT_DIR = FSPATIENT_SUBJECT_DIR,
+#     output:
+#         bids_electrodes_file = os.path.join(electrodes_fname),
+#     shell:
+#         "echo 'Applying anatomical atlas to electrode points...';"
+#         "python ./apply_anat_to_electrodes.py " \
+#         "{input.clustered_center_points_file} " \
+#         "{input.clustered_center_voxels_file} " \
+#         "{output.bids_electrodes_file} " \
+#         "{params.FSPATIENT_DIR} " \
+#         "{input.WM_IMG_FPATH};"
+
+"""
+Rule to plot:
+- parcellated nodes in space with the surface shown transparently
+- surface shown transparent with different regions colored
+- parcellated nodes in space with the contacts.xyz (centers) plotted
+"""
+rule visualize_results:
+    input:
+        centroids_voxels_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_xyz.mat'),
+        centroids_xyz_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels.mat'),
+        # DEPENDENCY ON RECONSTRUCTION WORKFLOW
+        ctfile = os.path.join(FSPATIENT_SUBJECT_DIR, "CT", "CT.nii"),
+        brainmaskfile = os.path.join(FSPATIENT_SUBJECT_DIR, "CT", "brainmask_inct.nii.gz"),
+        organizedclustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_xyz_dict.mat'),
+        organizedclustered_center_voxels = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels_dict.mat'),
+        # list of channel points (at least 2 per electrode)
+        electrode_initialization_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz.txt'),
+    params:
+        fsdir = FSPATIENT_SUBJECT_DIR,
+    output:
+        pcafigure_file = os.path.join(FIGDIR, "summary_pca_elecs.png"),
+        l2figure_file = os.path.join(FIGDIR, "summary_euclidean_distance_errors.png"),
+    shell:
+        "echo 'RUNNING VISUALIZATION CHECKS';"
+        "python ./utils/visualize_results.py {input.centroids_voxels_file} " \
+                                            "{input.centroids_xyz_file} " \
+                                            "{input.organizedclustered_center_points} " \
+                                            "{input.organizedclustered_center_voxels} " \
+                                            "{input.ctfile} " \
+                                            "{input.brainmaskfile} "
+                                            "{params.fsdir} " \
+                                            "{output.pcafigure_file} {output.l2figure_file} {input.electrode_initialization_file};"
+
+
+
+
+# rule validate_electrodes_on_CT:
+#     input:
+#         # DEPENDENCY ON RECONSTRUCTION WORKFLOW
+#         CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
+#         brainmask_inct_file = os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
+#         chanxyz_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz.txt'), # list of channel points (at least 2 per electrode)
+#     params:
+#         fsdir = FSPATIENT_SUBJECT_DIR,
+#         patid = "{subject}"
+#     output:
+#         clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_xyz.mat'),
+#         clustered_center_voxels = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels.mat'),
+#         organizedclustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_xyz_dict.mat'),
+#         organizedclustered_center_voxels = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels_dict.mat'),
+#         binarized_ct_volume = os.path.join(FSOUT_CT_FOLDER, "{subject}_binarized_ct.nii.gz")
+#     shell:
+#         "echo 'RUNNING CLUSTERING ALGORITHM';"
+#         "python ./electrode_clustering.py " \
+#             "{input.CT_NIFTI_IMG} " \
+#             "{input.brainmask_inct_file} " \
+#             "{input.electrode_initialization_file} " \
+#             "{output.clustered_center_points} " \
+#             "{output.clustered_center_voxels} " \
+#             "{output.organizedclustered_center_points} " \
+#             "{output.organizedclustered_center_voxels} " \
+#             "{output.binarized_ct_volume} " \
+#             "{params.fsdir} " \
+#             "{params.patid};"
+
+
+#
+# rule convert_coords_to_conformed_space:
+#     input:
+#         # DEPENDENCY ON RECONSTRUCTION WORKFLOW
+#         # mapping matrix for post to pre in T1
+#         MAPPING_FILE_ORIG = coregistration_workflow(os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt")),
+#         clustered_center_points = os.path.join(FSOUT_CT_FOLDER, '{subject}_elecxyz.txt'),
+#         # clustered_center_voxels = os.path.join(FSOUT_CT_FOLDER,
+#         #                                        '{subject}_elec_voxels.mat'),
+#         CT_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii.gz")),
+#         MRI_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "origT1.nii")),
+#         CONFORM_MRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.conform.nii.gz")
+#     output:
+#         clustered_center_points_flirt = os.path.join(FSOUT_CT_FOLDER, '{subject}_native_flirt_elec_xyz.txt'),
+#     shell:
+#         "python -m ./dev/convert_coordspace " \
+#                         "{input.CT_NIFTI_IMG} " \
+#                         "{input.MRI_NIFTI_IMG} " \
+#                         "{input.MAPPING_FILE_ORIG} " \
+#                         "{input.clustered_center_points} " \
+#                         "{output.clustered_center_points_flirt};"
+#
+#         # runs additional transformation to map things into the conformed space of FS
+#         # "python -m conform_coordspace " \
+#         #                 "{input.CONFORM_MRI_NIFTI_IMG} " \
+#         #                 "{input.MRI_NIFTI_IMG} " \
+#         #                 "{input.register_conformed_file} " \
+#         #                 "{output.clustered_center_points_flirt} " \
+#         #                 "{output.conformed_center_points_flirt};"

@@ -1,6 +1,3 @@
-# Copied from cronelab/FreesurferMeshGenerator
-
-
 # MRIs to Meshes
 
 Converts a T1 MR into a segmented and parcellated 3D object file.
@@ -35,10 +32,17 @@ This project is essentially feature complete.
 
 ### Instructions:
 
-- Create a new folder in the Freesurfer subject directory
-- Place a T1.nii in that folder
-- Place a CT.nii in that folder
-- Place a Bioimage Suite 
+- Create a new folder in the Freesurfer subject directory and place the following files:
+- T1.nii
+- CT.nii
+- electrodes.txt (from Bioimage Suite)
+- T2.nii (optional)
+- DTI and corresponding bvec/bval (optional)
+
+### Issues:
+- Freesurfer dev branch is required for hippocampal/amygdal/thalamic segmentation.
+- Freesurfer 6.0 is required for trac-all
+(No idea why. Something having to do with the bval/bvec file and/or flirt)
 
 ### Example:
 

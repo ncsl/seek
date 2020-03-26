@@ -5,8 +5,7 @@ from pathlib import Path
 from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
-from neuroimg.pipeline.fileutils import get_freesurfer_patient_dir, get_freesurfer_dir, \
-    get_rawct_dir, get_rawmri_dir
+from neuroimg.pipeline.fileutils import BidsRoot
 from neuroimg.format.bids import bids_conversion
 
 """
@@ -23,16 +22,16 @@ If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
 configfile: "../config/localconfig.yaml"
 
 # get the freesurfer patient directory
-FS_DIR = get_freesurfer_dir(config)
-RAW_CT_FOLDER = get_rawct_dir(config)
-RAW_MRI_FOLDER = get_rawmri_dir(config)
+bids_root = BidsRoot(config['bids_root'])
+subject_wildcard = "{subject}"
 
-_FS_SUBJECT_DIR = get_freesurfer_patient_dir(config)
-FSOUT_MRI_FOLDER = Path(_FS_SUBJECT_DIR / "mri")
-FSOUT_CT_FOLDER = Path(_FS_SUBJECT_DIR / "ct")
+# initialize directories that we access in this snakemake
+FS_DIR = bids_root.freesurfer_dir
+RAW_CT_FOLDER = bids_root.get_rawct_dir(subject_wildcard)
+RAW_MRI_FOLDER = bids_root.get_premri_dir(subject_wildcard)
+FSOUT_MRI_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard) / "mri")
+FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard) / "CT")
 
-# RAW_MRIACPC_FOLDER = get_rawacpc_dir(config)
-# FSOUT_ACPC_FOLDER = Path(_FS_SUBJECT_DIR, "acpc")
 
 def _get_bids_basename(subject, imgtype):
     """Wildcard function to get bids_basename."""
@@ -51,9 +50,9 @@ def _get_anat_bids_dir(bids_root, subject):
 # First rule
 rule all:
     input:
-        MRI_NIFTI_IMG = expand(os.path.join(_get_anat_bids_dir(config['bids_root'], "{subject}"),
-                                            _get_bids_basename("{subject}", imgtype='T1w')),
-                               subject=config['patients']),
+        MRI_NIFTI_IMG = expand(os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
+                                            _get_bids_basename(subject_wildcard, imgtype='T1w')),
+                                            subject=config['patients']),
     shell:
         "echo 'done'"
 
@@ -69,10 +68,10 @@ rule convert_dicom_to_bids:
         MRI_FOLDER = RAW_MRI_FOLDER,
         bids_root = config['bids_root']
     output:
-        CT_bids_fname = os.path.join(_get_anat_bids_dir(config['bids_root'], "{subject}"),
-                                     _get_bids_basename("{subject}", imgtype='CT')),
-        MRI_bids_fname = os.path.join(_get_anat_bids_dir(config['bids_root'],  "{subject}"),
-                                     _get_bids_basename("{subject}", imgtype='T1w'))
+        CT_bids_fname = os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
+                                     _get_bids_basename(subject_wildcard, imgtype='CT')),
+        MRI_bids_fname = os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
+                                     _get_bids_basename(subject_wildcard, imgtype='T1w'))
     run:
         bids_conversion._convert_dicom_to_nifti(params.CT_FOLDER, output.CT_bids_fname)
         bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)

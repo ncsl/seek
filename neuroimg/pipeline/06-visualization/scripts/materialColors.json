@@ -42,6 +42,17 @@
     "CC_Mid_Anterior": [0, 0, 208],
     "CC_Anterior": [0, 0, 255],
 
+	"Right-non-WM-hypointensities": [164, 108, 226],
+	"Right-vessel":[160, 32,  240],
+	"Left-non-WM-hypointensities":[164, 108, 226],
+	"Left-WM-hypointensities": [255, 148, 10],
+	"Right-WM-hypointensities": [255, 148, 10],
+	"Left-Thalamus": [0,   118, 14],
+	"Right-Thalamus": [0,   118, 14],
+	"5th-Ventricle": [120, 190, 150],
+	"non-WM-hypointensities": [164, 108, 226],
+	
+
 
     "rh.bankssts": [25, 100, 40],
     "rh.caudalanteriorcingulate": [125, 100, 160],
