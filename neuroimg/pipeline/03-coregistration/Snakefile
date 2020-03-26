@@ -27,9 +27,9 @@ FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "CT")
 
 subworkflow reconstruction_workflow:
     workdir:
-        "../reconstruction/"
+        "../02-reconstruction/"
     snakefile:
-        "../reconstruction/Snakefile"
+        "../02-reconstruction/Snakefile"
     configfile:
         "../config/localconfig.yaml"
 
@@ -57,7 +57,7 @@ E.g. useful for CT, and DTI images to be coregistered
 rule coregistert1_ct_to_pre:
     input:
         PREMRI_NIFTI_IMG_MGZ = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
-        CT_NIFTI_IMG_MGZ = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
+        CT_NIFTI_IMG_MGZ = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
     output:
         # mapped image from CT -> MRI
         CT_IN_PRE_NIFTI_IMG_ORIGgz = os.path.join(FSOUT_CT_FOLDER, "rCT.nii.gz"),
@@ -75,7 +75,7 @@ Rule for converting brainmask image volume from MGZ to Nifti
 """
 rule convert_brainmask_to_nifti:
     input:
-        recon_success_file = os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+        recon_success_file = reconstruction_workflow(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")),
     params:
         brainmask_mgz = os.path.join(FSOUT_MRI_FOLDER, "brainmask.mgz")
     output:
