@@ -88,7 +88,7 @@ Rule for converting .dicom -> .niftiPUT_DIR,
 """
 rule prep_recon:
     input:
-        CT_bids_fname = prep_workflow(os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
+        CT_NIFTI_IMG = prep_workflow(os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
                                      _get_bids_basename(subject_wildcard, imgtype='CT'))),
         MRI_NIFTI_IMG = prep_workflow(os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
                                     _get_bids_basename(subject_wildcard, imgtype='T1w'))),
