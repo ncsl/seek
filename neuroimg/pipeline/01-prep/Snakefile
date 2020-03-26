@@ -36,7 +36,7 @@ FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard) / 
 def _get_bids_basename(subject, imgtype):
     """Wildcard function to get bids_basename."""
     bids_fname = make_bids_basename(subject,
-                                    session='seizure',
+                                    session='veeg',
                                     suffix=f"{imgtype}.nii.gz")
     return bids_fname
 

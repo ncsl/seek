@@ -3,15 +3,15 @@
 bids_root:
 #  "/home/ksr/Desktop/contact_localization/efri/"
 #  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/epilepsy/"
-  "/home/adam2392/hdd2/epilepsy_bids/"
-#  '/Users/adam2392/Downloads/neuroimg/'
+#  "/home/adam2392/hdd2/epilepsy_bids/"
+  '/Users/adam2392/Downloads/neuroimg/'
 
 derivatives_output_dir:
 #    "/home/ksr/Desktop/contact_localization/efri/raw_msb/"
 # "/Users/ChesterHuynh/sarmalab/contact_localization_proj/rawdata"
- # "/Users/adam2392/Downloads/neuroimg/derivatives/"
+  "/Users/adam2392/Downloads/neuroimg/derivatives/"
 #  "/Users/adam2392/Dropbox/phd_research/data/neuroimaging_results/epilepsy/raw/"
-  "/home/adam2392/hdd2/epilepsy_bids/derivatives/"
+#  "/home/adam2392/hdd2/epilepsy_bids/derivatives/"
 
 ############# define list of files to run this for #############
 patients:

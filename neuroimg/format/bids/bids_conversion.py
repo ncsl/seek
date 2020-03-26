@@ -62,7 +62,10 @@ def convert_img_to_bids(image_input, bids_root, bids_fname, verbose=True):
         if len([x for x in Path(image_input).glob("*.dcm")]) > 0:
             print("Converting dicom -> Nifti...")
             # try to run mrconvert and reorient to `LAS` direction
+            # try:
             image_input = _convert_dicom_to_nifti(image_input, output_fpath)
+            # except Exception as e:
+            #     "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
         else:
             print("Passed NIFTI image, so skipping mrconvert from dicom -> nifti...")
             image_input = str(image_input)
