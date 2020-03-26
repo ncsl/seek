@@ -72,11 +72,11 @@ ct_electrodes_fname = electrodes_fname.replace("electrodes", "ctelectrodes")
 ct_voxel_electrodes_fname = ct_electrodes_fname.replace("electrodes", "voxelelectrodes")
 ct_voxel_electrodes_fname = ct_voxel_electrodes_fname.replace(".tsv", ".mat")
 
-subworkflow reconstruction_workflow:
-    snakefile:
-        "../02-reconstruction/Snakefile"
-    configfile:
-        "../config/localconfig.yaml"
+# subworkflow reconstruction_workflow:
+#     snakefile:
+#         "../02-reconstruction/Snakefile"
+#     configfile:
+#         "../config/localconfig.yaml"
 
 subworkflow coregistration_workflow:
     snakefile:
@@ -116,7 +116,7 @@ rule convert_CT_eleccoords_to_txt:
 rule compress_CT_img:
     input:
         # DEPENDENCY ON RECONSTRUCTION WORKFLOW
-        CT_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
+        CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
     output:
         CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii.gz"),
     shell:

@@ -26,8 +26,6 @@ FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "mri")
 FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "CT")
 
 subworkflow reconstruction_workflow:
-    workdir:
-        "../02-reconstruction/"
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:
@@ -89,7 +87,7 @@ Rule to map the brain mask over to the CT space.
 rule map_brainmask_to_ct:
     input:
         brainmask_file = os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
-        CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
+        CT_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
         # mapping matrix for post to pre in T1
         MAPPING_FILE_ORIG = os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt"),
     output:
