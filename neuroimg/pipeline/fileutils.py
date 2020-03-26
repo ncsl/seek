@@ -57,20 +57,24 @@ class BidsRoot:
 
     def get_premri_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / 'neuroimaging' / patient_wildcard / "premri"
+            self.bids_root / "sourcedata" / "neuroimaging" / patient_wildcard / "premri"
         ).as_posix()
 
     def get_postmri_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / 'neuroimaging' / patient_wildcard / "postmri"
+            self.bids_root
+            / "sourcedata"
+            / "neuroimaging"
+            / patient_wildcard
+            / "postmri"
         ).as_posix()
 
     def get_rawct_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / 'neuroimaging' / patient_wildcard / "postct"
+            self.bids_root / "sourcedata" / "neuroimaging" / patient_wildcard / "postct"
         ).as_posix()
 
     def get_rawacpc_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / 'neuroimaging' / patient_wildcard / "acpc"
+            self.bids_root / "sourcedata" / "neuroimaging" / patient_wildcard / "acpc"
         ).as_posix()

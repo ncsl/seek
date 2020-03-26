@@ -26,8 +26,6 @@ from neuroimg.localize_contacts.freecog_labeling.utils import (
 )
 
 
-
-
 def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
     """
     Apply white matter and brainmask labels to final centroid output and save
@@ -85,8 +83,6 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
     save_dict = {"elecmatrix": elecmatrix, "anatomy": anatomy, "eleclabels": eleclabels}
     scipy.io.savemat(atlasfilepath, mdict=save_dict)
     return anatomy
-
-
 
 
 def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath, fs_lut_fpath):

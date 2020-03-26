@@ -161,12 +161,12 @@ rule reconstruction:
     shell:
         "export SUBJECTS_DIR={params.SUBJECTS_DIR};" \
         "SUBJECTS_DIR={params.SUBJECTS_DIR};"
-        "recon-all " \
-            "-cw256 " \
-            "-i {input.MRI_MGZ_IMG} " \
-            "-subjid {params.patient} " \
-            "-all "\
-            "-parallel -openmp 4;"
+        # "recon-all " \
+        #     "-cw256 " \
+        #     "-i {input.MRI_MGZ_IMG} " \
+        #     "-subjid {params.patient} " \
+        #     "-all "\
+        #     "-parallel -openmp 4;"
         "touch {output.outsuccess_file}"
 
 """

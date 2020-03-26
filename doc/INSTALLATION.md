@@ -5,7 +5,7 @@ Follow links and tutorials on each respective tool to install. Preferably this i
 
 Anaconda and Python3.6+ :
    * Conda (https://docs.anaconda.com/anaconda/install/)
-   * This is mainly necessary to run img_pipe (ECoG localization with Chang Lab repo), snakemake, and any Python wrapper code
+   * This is mainly necessary to run img_pipe (ECoG localization with Chang-Lab repo), snakemake, and any Python wrapper code
     
     i. 
         conda env create -f environment.yml --name=seek
@@ -68,7 +68,7 @@ Anaconda and Python3.6+ :
 
 5. Contact-Localization Software (FieldTripToolbox, Img_Pipe, MATLAB)
     * FieldTripToolbox (http://www.fieldtriptoolbox.org/download/)
-    * Img_Pipe from the Chang Lab at UCSF will come as a submodule in this git repo. This heavily handles ECoG data only.
+    * Img_Pipe from the Chang-Lab at UCSF will come as a submodule in this git repo. This heavily handles ECoG data only.
  
 6. (Optional) Cloud Reconstruction (MRICLOUD):
     * MRICloud (cloud based soln; just send images here) (https://mricloud.org/)

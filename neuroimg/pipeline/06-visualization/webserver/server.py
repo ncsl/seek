@@ -16,6 +16,7 @@ def home():
 def api_brain():
     return send_file("./templates/static/reconstruction.glb")
 
+
 @app.route("/nifti")
 def api_nifti():
     return send_file("./templates/static/brain.mgz")
