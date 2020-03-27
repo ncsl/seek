@@ -14,6 +14,8 @@ sval = "pial"
 hemispheres = ["lh", "rh"]
 resamp_target = "fsaverage5"
 
+BIDS_ROOT = lambda bidsroot: os.getenv("BIDS_ROOT", value=bidsroot)
+
 
 class BidsRoot:
     """

@@ -5,7 +5,7 @@ from pathlib import Path
 from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
-from neuroimg.pipeline.fileutils import BidsRoot
+from neuroimg.pipeline.fileutils import BidsRoot, BIDS_ROOT
 from neuroimg.format.bids import bids_conversion
 
 """
@@ -22,7 +22,7 @@ If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
 configfile: "../config/localconfig.yaml"
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(config['bids_root'])
+bids_root = BidsRoot(BIDS_ROOT(config['bids_root']))
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
@@ -50,11 +50,14 @@ def _get_anat_bids_dir(bids_root, subject):
 # First rule
 rule all:
     input:
-        MRI_NIFTI_IMG = expand(os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
+        MRI_NIFTI_IMG = expand(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
                                             _get_bids_basename(subject_wildcard, imgtype='T1w')),
                                             subject=config['patients']),
+    params:
+        bids_root = bids_root.bids_root,
     shell:
-        "echo 'done'"
+        "echo 'done';"
+        "bids-validator {params.bids_root};"
 
 """
 Rule for prepping fs_recon by converting dicoms -> NIFTI images.
@@ -66,11 +69,11 @@ rule convert_dicom_to_bids:
     params:
         CT_FOLDER = RAW_CT_FOLDER,
         MRI_FOLDER = RAW_MRI_FOLDER,
-        bids_root = config['bids_root']
+        bids_root = bids_root.bids_root,
     output:
-        CT_bids_fname = os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
+        CT_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
                                      _get_bids_basename(subject_wildcard, imgtype='CT')),
-        MRI_bids_fname = os.path.join(_get_anat_bids_dir(config['bids_root'], subject_wildcard),
+        MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
                                      _get_bids_basename(subject_wildcard, imgtype='T1w'))
     run:
         bids_conversion._convert_dicom_to_nifti(params.CT_FOLDER, output.CT_bids_fname)

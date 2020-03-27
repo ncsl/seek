@@ -5,7 +5,7 @@ from pathlib import Path
 from mne_bids import make_bids_basename, make_bids_folders
 
 sys.path.append("../../../")
-from neuroimg.pipeline.fileutils import BidsRoot
+from neuroimg.pipeline.fileutils import BidsRoot, BIDS_ROOT
 
 """
 A snakemake file for running contact localizations workflow on the neuroimaging data.
@@ -18,7 +18,7 @@ Runs tests to ensure data is all in the corresponding format: BIDS iEEG
 configfile: "../config/localconfig.yaml"
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(config['bids_root'])
+bids_root = BidsRoot(BIDS_ROOT(config['bids_root']))
 subject_wildcard = "{subject}"
 
 METADATA_FOLDER = "../../../data/"

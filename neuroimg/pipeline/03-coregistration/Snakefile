@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.append("../../../")
-from neuroimg.pipeline.fileutils import BidsRoot
+from neuroimg.pipeline.fileutils import BidsRoot, BIDS_ROOT
 
 """
 export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
@@ -16,7 +16,7 @@ snakemake --dag | dot -Tpdf > dag_pipeline_coregistration.pdf
 configfile: "../config/localconfig.yaml"
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(config['bids_root'])
+bids_root = BidsRoot(BIDS_ROOT(config['bids_root']))
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake

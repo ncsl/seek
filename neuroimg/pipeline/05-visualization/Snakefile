@@ -5,7 +5,7 @@ from mne_bids import make_bids_basename, make_bids_folders
 
 sys.path.append("../../../")
 
-from neuroimg.pipeline.fileutils import BidsRoot
+from neuroimg.pipeline.fileutils import BidsRoot, BIDS_ROOT
 
 configfile: "../config/localconfig.yaml"
 BLENDER_PATH = config["blender_path"]
@@ -14,7 +14,7 @@ BLENDER_PATH = "blender"
 # print(BLENDER_PATH)
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(config['bids_root'])
+bids_root = BidsRoot(BIDS_ROOT(config['bids_root']))
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
@@ -72,16 +72,12 @@ coordsystem_fname, electrodes_fname = get_electrodes_and_coordsystem_fpath(str(b
 
 
 subworkflow reconstruction_workflow:
-    # workdir:
-    #     ".."
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:
         "../config/localconfig.yaml"
 
 subworkflow contact_localization_workflow:
-    # workdir:
-    #     ".."
     snakefile:
         "../04-contact_localization/Snakefile"
     configfile:
