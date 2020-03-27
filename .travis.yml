@@ -17,6 +17,7 @@ install:
   - conda install numpy scipy matplotlib pytest scikit-learn pandas seaborn nibabel mne mne-bids snakemake ipykernel scikit-image flask
   # run conda /pip installation of packages
   - conda install -c anaconda natsort pytest black flake8 check-manifest pytest-cov pydocstyle
+  - pip install codespell
 # command to run tests
 script:
   - pytest ./tests

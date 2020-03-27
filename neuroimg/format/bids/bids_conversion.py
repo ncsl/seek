@@ -49,7 +49,9 @@ def _convert_dicom_to_nifti(original_dicom_directory, output_fpath, verbose=True
 def convert_img_to_bids(image_input, bids_root, bids_fname, verbose=True):
     """Run Bids Conversion script to be updated.
 
-    Just to show example run locally.
+    Performs BIDS conversion for Ct/T1/DTI/fMRI data.
+
+    TODO: demo for DTI/FMRI
     """
     if verbose:
         print(f"bids_root is {bids_root}")

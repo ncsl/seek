@@ -49,6 +49,7 @@ inplace:
 test: inplace check-manifest
 	rm -f .coverage
 	$(PYTESTS) ./
+	cd neuroimg/pipeline/01-prep/
 
 test-doc:
 	$(PYTESTS) --doctest-modules --doctest-ignore-import-errors
