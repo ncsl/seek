@@ -89,12 +89,8 @@ subworkflow coregistration_workflow:
 # First rule
 rule all:
     input:
-        # clustered_center_points_flirt = expand(os.path.join(FSOUT_CT_FOLDER,
-        #                                              '{subject}_native_flirt_elec_xyz.txt'),
-        #                                     subject = config['patients']),
-        # clustered_center_voxels = expand(os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels.mat'), subject = config['patients']),
-        # figure_file = expand(os.path.join(FIGDIR, "summary_pca_elecs.png"),
-        #                      subject = config['patients']),
+        figure_file = expand(os.path.join(FIGDIR, "summary_pca_elecs.png"),
+                             subject = config['patients']),
         bids_electrodes_file = expand(os.path.join(electrodes_fname),
                                     subject = config['patients']),
         bids_electrodes_json_file = expand(os.path.join(electrodes_fname.replace('.tsv', '.json')),
@@ -262,15 +258,11 @@ Rule to plot:
 """
 rule visualize_results:
     input:
-        centroids_voxels_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_xyz.mat'),
-        centroids_xyz_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels.mat'),
-        # DEPENDENCY ON RECONSTRUCTION WORKFLOW
-        ctfile = os.path.join(FSPATIENT_SUBJECT_DIR, "CT", "CT.nii"),
-        brainmaskfile = os.path.join(FSPATIENT_SUBJECT_DIR, "CT", "brainmask_inct.nii.gz"),
-        organizedclustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_xyz_dict.mat'),
-        organizedclustered_center_voxels = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels_dict.mat'),
+        ct_xyzcoords_fpath = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(ct_electrodes_fname)),
         # list of channel points (at least 2 per electrode)
-        electrode_initialization_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz.txt'),
+        manual_electrode_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
+        # DEPENDENCY ON RECONSTRUCTION WORKFLOW
+        ctfile = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
     params:
         fsdir = FSPATIENT_SUBJECT_DIR,
     output:
@@ -278,74 +270,8 @@ rule visualize_results:
         l2figure_file = os.path.join(FIGDIR, "summary_euclidean_distance_errors.png"),
     shell:
         "echo 'RUNNING VISUALIZATION CHECKS';"
-        "python ./utils/visualize_results.py {input.centroids_voxels_file} " \
-                                            "{input.centroids_xyz_file} " \
-                                            "{input.organizedclustered_center_points} " \
-                                            "{input.organizedclustered_center_voxels} " \
+        "python ./visualize_results.py {input.ct_xyzcoords_fpath} " \
+                                            "{input.manual_electrode_file} " \
                                             "{input.ctfile} " \
-                                            "{input.brainmaskfile} "
                                             "{params.fsdir} " \
-                                            "{output.pcafigure_file} {output.l2figure_file} {input.electrode_initialization_file};"
-
-
-
-
-# rule validate_electrodes_on_CT:
-#     input:
-#         # DEPENDENCY ON RECONSTRUCTION WORKFLOW
-#         CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
-#         brainmask_inct_file = os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
-#         chanxyz_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz.txt'), # list of channel points (at least 2 per electrode)
-#     params:
-#         fsdir = FSPATIENT_SUBJECT_DIR,
-#         patid = "{subject}"
-#     output:
-#         clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_xyz.mat'),
-#         clustered_center_voxels = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels.mat'),
-#         organizedclustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_xyz_dict.mat'),
-#         organizedclustered_center_voxels = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_clusteredelec_voxels_dict.mat'),
-#         binarized_ct_volume = os.path.join(FSOUT_CT_FOLDER, "{subject}_binarized_ct.nii.gz")
-#     shell:
-#         "echo 'RUNNING CLUSTERING ALGORITHM';"
-#         "python ./electrode_clustering.py " \
-#             "{input.CT_NIFTI_IMG} " \
-#             "{input.brainmask_inct_file} " \
-#             "{input.electrode_initialization_file} " \
-#             "{output.clustered_center_points} " \
-#             "{output.clustered_center_voxels} " \
-#             "{output.organizedclustered_center_points} " \
-#             "{output.organizedclustered_center_voxels} " \
-#             "{output.binarized_ct_volume} " \
-#             "{params.fsdir} " \
-#             "{params.patid};"
-
-
-#
-# rule convert_coords_to_conformed_space:
-#     input:
-#         # DEPENDENCY ON RECONSTRUCTION WORKFLOW
-#         # mapping matrix for post to pre in T1
-#         MAPPING_FILE_ORIG = coregistration_workflow(os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt")),
-#         clustered_center_points = os.path.join(FSOUT_CT_FOLDER, '{subject}_elecxyz.txt'),
-#         # clustered_center_voxels = os.path.join(FSOUT_CT_FOLDER,
-#         #                                        '{subject}_elec_voxels.mat'),
-#         CT_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii.gz")),
-#         MRI_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "origT1.nii")),
-#         CONFORM_MRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.conform.nii.gz")
-#     output:
-#         clustered_center_points_flirt = os.path.join(FSOUT_CT_FOLDER, '{subject}_native_flirt_elec_xyz.txt'),
-#     shell:
-#         "python -m ./dev/convert_coordspace " \
-#                         "{input.CT_NIFTI_IMG} " \
-#                         "{input.MRI_NIFTI_IMG} " \
-#                         "{input.MAPPING_FILE_ORIG} " \
-#                         "{input.clustered_center_points} " \
-#                         "{output.clustered_center_points_flirt};"
-#
-#         # runs additional transformation to map things into the conformed space of FS
-#         # "python -m conform_coordspace " \
-#         #                 "{input.CONFORM_MRI_NIFTI_IMG} " \
-#         #                 "{input.MRI_NIFTI_IMG} " \
-#         #                 "{input.register_conformed_file} " \
-#         #                 "{output.clustered_center_points_flirt} " \
-#         #                 "{output.conformed_center_points_flirt};"
+                                            "{output.pcafigure_file} {output.l2figure_file};"

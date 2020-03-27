@@ -413,7 +413,7 @@ class PostProcessor:
         Returns
         -------
             processed_clusters: dict(str: dict(str: ndarray))
-                Updated versions of final_centroids with adjusted labeling and
+                Updated versions of final_xyz_centroids with adjusted labeling and
                 dists with updated distances.
         """
         for elec in processed_clusters:
@@ -624,7 +624,7 @@ class PostProcessor:
         ----------
             clusters: dict(str: dict(str: ndarray))
                 Dictionary of clusters grouped by electrode.
-            final_centroids: dict()
+            final_xyz_centroids: dict()
                 a dictionary with keys being electrode names and values being
                 dictionaries consisting of entries of channel names and their
                 corresponding centroid coordinates.
