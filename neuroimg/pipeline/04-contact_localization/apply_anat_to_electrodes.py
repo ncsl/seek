@@ -1,21 +1,31 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 import nibabel as nb
 import numpy as np
 import numpy.linalg as npl
 import scipy.io
+from mne_bids.tsv_handler import _from_tsv, _to_tsv
 from nibabel.affines import apply_affine
-from mne_bids.tsv_handler import _from_tsv
-from neuroimg.base.utils.io import load_elecs_data
 
 sys.path.append("../../../")
 
-from neuroimg.localize_contacts.freecog_labeling.utils import (
+from neuroimg.localize_contacts.freecog_labeling.label_chs_anat import (
     convert_fsmesh2mlab,
     label_elecs,
 )
+
+
+def _update_electrodes_tsv(electrodes_tsv, elec_labels_anat, atlas_depth):
+    if atlas_depth not in electrodes_tsv.keys():
+        electrodes_tsv[atlas_depth] = ["n/a"] * len(elec_labels_anat)
+    for i in range(len(elec_labels_anat)):
+        ch_name = electrodes_tsv["name"][i]
+        print(ch_name, elec_labels_anat[i])
+        electrodes_tsv[atlas_depth][i] = elec_labels_anat[i]
+    return electrodes_tsv
 
 
 def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
@@ -77,7 +87,7 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
     return anatomy
 
 
-def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath, fs_lut_fpath):
+def apply_atlas(bids_root, electrodes_tsv_fpath, inv_affine, fspatdir, fs_lut_fpath):
     """
     Map centroids to an atlas (e.g. Desikan-Killiany, Destriuex) and apply
     white matter and brain masks to label centroids as white matter or out of
@@ -87,12 +97,6 @@ def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath, fs_lut_fpath):
     –---------
         fspatdir: str
             Path to freesurfer directory.
-
-        destrieuxfilepath: str
-            Path to destrieux atlas for patient.
-
-        dktfilepath: str
-            Path to Desikan-Killiany atlas for patient.
 
         fs_lut_fpath: str
             Path to fs_lut file.
@@ -105,64 +109,105 @@ def apply_atlas(fspatdir, destrieuxfilepath, dktfilepath, fs_lut_fpath):
         elec_labels_DKT: dict(str: ndarray)
             array of contacts labeled with Desikan-Killiany atlas.
     """
-    destriuexname = os.path.splitext(os.path.basename(destrieuxfilepath))[0]
-    dktname = os.path.splitext(os.path.basename(dktfilepath))[0]
-
     patid = os.path.basename(os.path.normpath(fspatdir))
 
     # Apply Atlases, white matter mask, and brainmask
     convert_fsmesh2mlab(subj_dir=os.path.abspath(os.path.dirname(fspatdir)), subj=patid)
-    elec_labels_destriuex = label_elecs(
+
+    # load electrodes tsv
+    electrodes_tsv = _from_tsv(electrodes_tsv_fpath)
+    ch_names = electrodes_tsv["name"]
+    elecmatrix = []
+    for i in range(len(ch_names)):
+        elecmatrix.append([electrodes_tsv[x][i] for x in ["x", "y", "z"]])
+    elecmatrix = np.array(elecmatrix, dtype=float)
+
+    # apply affine transform to put into Voxel space
+    elecmatrix = apply_affine(inv_affine, elecmatrix)
+
+    # anatomically label
+    elec_labels_anat_destriuex = label_elecs(
+        bids_root,
+        ch_names,
+        elecmatrix,
         subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
         subj=patid,
         hem="lh",
         fs_lut_fpath=fs_lut_fpath,
-        elecfile_prefix=destriuexname,
         atlas_depth="destriuex",
     )
-    elec_labels_DKT = label_elecs(
+
+    elec_labels_anat_dk = label_elecs(
+        bids_root,
+        ch_names,
+        elecmatrix,
         subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
         subj=patid,
         hem="lh",
         fs_lut_fpath=fs_lut_fpath,
-        elecfile_prefix=dktname,
         atlas_depth="desikan-killiany",
     )
-    return elec_labels_destriuex, elec_labels_DKT
+
+    # add atlas labeling to electrodes tsv data
+    atlas_depth = "destriuex"
+    electrodes_tsv = _update_electrodes_tsv(
+        electrodes_tsv, elec_labels_anat_destriuex, atlas_depth
+    )
+    atlas_depth = "desikan-killiany"
+    electrodes_tsv = _update_electrodes_tsv(
+        electrodes_tsv, elec_labels_anat_dk, atlas_depth
+    )
+
+    # write electrodes_tsv
+    _to_tsv(electrodes_tsv, electrodes_tsv_fpath)
+    return electrodes_tsv
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "clustered_points_file",
+        "mri_xyzcoords_fpath",
         help="The output datafile with all the electrode points clustered.",
     )
-    parser.add_argument("clustered_voxels_file", help="the voxels output datafile")
     parser.add_argument(
-        "bids_electrodes_file",
+        "output_bids_electrodes_file",
         help="The output BIDS datafile for electrodes in tsv format.",
     )
     parser.add_argument("fs_patient_dir", help="The freesurfer output diretroy.")
     parser.add_argument("fs_lut_fpath", help="The Freesurfer LUT.")
-    parser.add_argument("wm_native_file", default=None)
+    parser.add_argument("mri_img_fpath", default=None)
     args = parser.parse_args()
 
     # Extract arguments from parser
-    clustered_points_file = args.clustered_points_file
-    clustered_voxels_file = args.clustered_voxels_file
-    electrodes_tsv_fpath = args.bids_electrodes_file
+    mri_xyzcoords_fpath = args.mri_xyzcoords_fpath
+    output_electrodes_tsv_fpath = args.output_bids_electrodes_file
     fs_patient_dir = args.fs_patient_dir
     fs_lut_fpath = args.fs_lut_fpath
+    mri_img_fpath = args.mri_img_fpath
+
+    # load in the T1 MRI image and its affine
+    t1_img = nb.load(mri_img_fpath)
+    inv_affine = npl.inv(
+        t1_img.affine
+    )  # Obtain inverse affine matrix to transform from xyz to CT voxel
 
     # load in the electrode coordinates
-    electrodes_tsv = _from_tsv(clustered_points_file)
-    voxels_electrodes_dict = load_elecs_data(clustered_voxels_file)
+    electrodes_tsv = _from_tsv(mri_xyzcoords_fpath)
 
-    # Output labeled .mat files with atlas, white matter, and brainmask information
-    elec_labels_destriuex, elec_labels_DKT = apply_atlas(
-        fs_patient_dir, destrieuxfilepath, dktfilepath, fs_lut_fpath
+    # extract subject id from bids sidecar electrodes fname
+    subject_id = (
+        os.path.basename(output_electrodes_tsv_fpath).split("_")[0].split("sub-")[1]
     )
 
-    """ SAVE CLUSTERED VOXELS AND POINTS AS TXT FILES WITH CHANNELS PER ROW """
-    scipy.io.savemat(orgclustered_voxels_file, mdict={"data": final_centroids_voxels})
-    scipy.io.savemat(orgclustered_points_file, mdict={"data": final_centroids_xyz})
+    # bids_root
+    freesurfer_dir = Path(fs_patient_dir).parent
+    derivatives_dir = freesurfer_dir.parent
+    bids_root = derivatives_dir.parent
+
+    # Output labeled .mat files with atlas, white matter, and brainmask information
+    electrodes_tsv = apply_atlas(
+        bids_root, mri_xyzcoords_fpath, inv_affine, fs_patient_dir, fs_lut_fpath
+    )
+
+    # save sidecar electrodes tsv
+    _to_tsv(electrodes_tsv, output_electrodes_tsv_fpath)

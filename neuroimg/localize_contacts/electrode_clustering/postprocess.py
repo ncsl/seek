@@ -500,9 +500,12 @@ class PostProcessor:
         labeled_clusters = {}
         for elec in final_clusters:
             # Obtain innermost contact from user specified contacts
-            first_contact = sparse_labeled_contacts[elec].get(elec + "1", [])
-            if not len(first_contact):
-                raise KeyError(f"Need innermost contact for electrode {elec}")
+            chs_on_elec = sparse_labeled_contacts[elec]
+            ch_names = list(chs_on_elec.keys())
+            first_contact = sparse_labeled_contacts[elec][ch_names[0]]
+            # first_contact = sparse_labeled_contacts[elec].get(elec + "1", [])
+            # if not len(first_contact):
+            #     raise KeyError(f"Need innermost contact for electrode {elec}")
 
             # Ensure that the clusters are well-ordered
             final_clusters[elec] = self._order_clusters(
@@ -569,16 +572,21 @@ class PostProcessor:
 
             # Compute L2 distance between algorithm's prediction and provided
             # coordinates
-            err_first = err_last = count = 0
-            if len(first_centroid):
+            err_first = 0
+            err_last = 0
+            count = 0
+            if len(first_centroid) > 0:
                 err_first = npl.norm(first_centroid - first_coord)
                 count += 1
-            if len(last_centroid):
+            if len(last_centroid) > 0:
                 err_last = npl.norm(last_centroid - last_coord)
                 count += 1
 
             # Compute average of errors successfully computed
-            err = (err_first + err_last) / count
+            if count == 0:
+                err = 0
+            else:
+                err = (err_first + err_last) / count
 
             # Ignore errors smaller than 5.0
             if err <= 5.0:

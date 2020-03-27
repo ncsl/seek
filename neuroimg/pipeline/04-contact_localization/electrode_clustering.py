@@ -1,12 +1,16 @@
 import argparse
+import collections
 import sys
+import warnings
 from pathlib import Path
+from pprint import pprint
 
 import nibabel as nb
 import numpy as np
 
 sys.path.append("../../../")
 
+from neuroimg.base.utils.utils import group_contacts
 from neuroimg.base.utils.io import (
     save_organized_elecdict_asmat,
     save_organized_elecdict_astsv,
@@ -52,9 +56,7 @@ def load_data(ct_scan, brainmask_ct=None):
     return ct_img, bm_ct_img
 
 
-def compute_electrode_voxel_clouds(
-    elec_coords_mm, ct_img, bm_ct_img=None, output_bm_fpath=None
-):
+def apply_brain_mask(elec_coords_mm, ct_img, bm_ct_img=None, output_bm_fpath=None):
     """Compute electrode voxel clouds via Grouping algo and apply brainmask."""
 
     # Define pipeline objects to run algorithm
@@ -81,12 +83,12 @@ def compute_electrode_voxel_clouds(
         brainmasked_ct_data = ct_img.get_fdata()
         elecvoxels_in_brain = maskpipe.mask_electrodes(elec_coords_mm, ct_img)
 
-    # Get all voxel clouds per electrode in sorted order
-    grouped_contacts_vox = maskpipe.group_contacts(elecvoxels_in_brain)
-    return brainmasked_ct_data, grouped_contacts_vox
+    return brainmasked_ct_data, elecvoxels_in_brain
 
 
-def apply_threshold_clustering(brainmasked_ct_data, grouped_contacts_vox, **kwargs):
+def apply_threshold_clustering(
+    brainmasked_ct_data, sparse_labeled_contacts_vox, **kwargs
+):
     # Define pipeline objects to run algorithm
     clusterpipe = Cluster()
     grouppipe = CylindricalGroup()
@@ -100,16 +102,16 @@ def apply_threshold_clustering(brainmasked_ct_data, grouped_contacts_vox, **kwar
 
     # Runs threshold-based clustering algorithm over brainmasked CT
     # for thresholds between 0.63 and 0.64 with a step of 0.005
-    clusters, numobj = np.array(
+    voxel_clusters, numobj = np.array(
         clusterpipe.find_clusters(brainmasked_ct_data, threshold=threshold)
     )
 
     # Cluster by cylindrical boundaries
-    bound_clusters, sparse_labeled_contacts = grouppipe.cylinder_filter(
-        grouped_contacts_vox, clusters, radius
+    bound_clusters = grouppipe.cylinder_filter(
+        sparse_labeled_contacts_vox, voxel_clusters, radius
     )
 
-    return bound_clusters, sparse_labeled_contacts
+    return bound_clusters
 
 
 def apply_postprocessing_on_clusters(
@@ -132,18 +134,20 @@ def apply_postprocessing_on_clusters(
         processed_clusters, gap_tolerance, sparse_labeled_contacts
     )
 
-    # Assign channel labels to the clusters found
-    final_labeled_clusters = postprocesspipe.assign_labels(
+    # Assign channel labels to the clusters found in voxel space
+    final_labeled_voxel_clusters = postprocesspipe.assign_labels(
         final_clusters, sparse_labeled_contacts
     )
 
     # Correct egregious errors with linearly interpolated points
-    final_labeled_clusters = postprocesspipe.bruteforce_correction(
-        final_labeled_clusters, sparse_labeled_contacts
+    final_labeled_voxel_clusters = postprocesspipe.bruteforce_correction(
+        final_labeled_voxel_clusters, sparse_labeled_contacts
     )
 
     # Compute centroids for each cluster
-    final_centroids_vox = postprocesspipe.cluster_2_centroids(final_labeled_clusters)
+    final_centroids_vox = postprocesspipe.cluster_2_centroids(
+        final_labeled_voxel_clusters
+    )
 
     # Convert final voxels to xyz coordinates
     final_centroids_xyz = postprocesspipe.vox_2_xyz(final_centroids_vox, ct_affine)
@@ -151,7 +155,13 @@ def apply_postprocessing_on_clusters(
     return final_centroids_vox, final_centroids_xyz
 
 
-def main(ctimgfile, brainmaskfile, elecinitfile, brainmasked_ct_fpath=None):
+def main(
+    ctimgfile,
+    brainmaskfile,
+    elecinitfile,
+    brainmasked_ct_fpath=None,
+    evaluate_mode=False,
+):
     # Hyperparameters for electrode clustering algorithm
     radius = 4  # radius (in CT voxels) of cylindrical boundary
     threshold = 0.630  # Between 0 and 1. Zeroes voxels with value < threshold
@@ -169,19 +179,69 @@ def main(ctimgfile, brainmaskfile, elecinitfile, brainmasked_ct_fpath=None):
     ct_img, bm_ct_img = load_data(ctimgfile, brainmaskfile)
     ct_affine = ct_img.affine
 
+    # if we are going to evaluate the semi-seek algorithm
+    # then we want to trim down the dataset by 2
+    if evaluate_mode:
+        # Get all voxel clouds per electrode in sorted order
+        grouped_elec_coords_mm = group_contacts(elec_coords_mm)
+
+        _elec_coords_mm = {}
+        # Re-assign only two contacts per electrode
+        for elec in grouped_elec_coords_mm.keys():
+            ch_names = list(grouped_elec_coords_mm[elec].keys())
+            ch_coords = list(grouped_elec_coords_mm[elec].values())
+
+            if len(ch_names) < 6:
+                warnings.warn(
+                    f"Channels on electrode {elec} contain less than 6 contacts - {len(ch_names)}. "
+                    "Were endpoints correctly labeled?"
+                )
+
+            # only get 2 endpoint contacts per electrode for testing
+            for i in [0, -1]:
+                ch_name = ch_names[i]
+                ch_coord = ch_coords[i]
+                _elec_coords_mm[ch_name] = ch_coord
+
+        for key in _elec_coords_mm.keys():
+            np.testing.assert_array_equal(_elec_coords_mm[key], elec_coords_mm[key])
+        elec_coords_mm = _elec_coords_mm
+
+    # apply brain mask to the CT data
     # compute electrode voxel clouds and brain masked CT data
-    brainmasked_ct_data, grouped_contacts_vox = compute_electrode_voxel_clouds(
+    brainmasked_ct_data, elecvox_in_brain = apply_brain_mask(
         elec_coords_mm, ct_img, bm_ct_img, output_bm_fpath=brainmasked_ct_fpath
     )
+    print("Brainmasked CT data: ", brainmasked_ct_data.shape)
+    print(
+        "Sparsely grouped contacts by voxel locations (Keys): ", elecvox_in_brain.keys()
+    )
+
+    # group contact voxels by electrodes
+    grouped_contacts_vox = group_contacts(elecvox_in_brain)
 
     # apply threshold clustering algorithm to sparsely label contacts within clusters
-    bound_clusters, sparse_labeled_contacts = apply_threshold_clustering(
+    # applied on the CT data that was brain-masked
+    bound_clusters = apply_threshold_clustering(
         brainmasked_ct_data, grouped_contacts_vox, **threshold_kwargs
     )
 
+    print("Bound clusters: ", bound_clusters.keys())
+
     final_centroids_vox, final_centroids_xyz = apply_postprocessing_on_clusters(
-        bound_clusters, sparse_labeled_contacts, ct_affine, **postprocess_kwargs
+        bound_clusters, grouped_contacts_vox, ct_affine, **postprocess_kwargs
     )
+
+    # convert into dictionary
+    _final_centroids_xyz = collections.OrderedDict()
+    for elec, ch_coords in final_centroids_xyz.items():
+        _final_centroids_xyz.update(**ch_coords)
+    final_centroids_xyz = _final_centroids_xyz
+
+    _final_centroids_vox = collections.OrderedDict()
+    for elec, ch_coords in final_centroids_vox.items():
+        _final_centroids_vox.update(**ch_coords)
+    final_centroids_vox = _final_centroids_vox
 
     return (
         final_centroids_vox,
@@ -229,15 +289,21 @@ if __name__ == "__main__":
         brainmask_native_file,
         electrode_initialization_file,
         binarized_ct_file,
+        evaluate_mode=True,
     )
 
     # Save output files
     print(f"Saving clustered xyz coords to: {clustered_points_file}.")
     print(f"Saving clustered voxels to: {clustered_voxels_file}.")
+    pprint(final_centroids_xyz)
     # save data into bids sidecar-tsv files
     save_organized_elecdict_astsv(final_centroids_xyz, clustered_points_file)
-    # save_organized_elecdict_astsv(final_centroids_voxels, clustered_voxels_file)
+    save_organized_elecdict_astsv(final_centroids_voxels, clustered_voxels_file)
 
     # Save centroids as .mat file with attributes eleclabels
-    save_organized_elecdict_asmat(final_centroids_xyz, clustered_points_file)
-    save_organized_elecdict_asmat(final_centroids_voxels, clustered_voxels_file)
+    save_organized_elecdict_asmat(
+        final_centroids_xyz, clustered_points_file.replace(".tsv", ".mat")
+    )
+    save_organized_elecdict_asmat(
+        final_centroids_voxels, clustered_voxels_file.replace(".tsv", ".mat")
+    )

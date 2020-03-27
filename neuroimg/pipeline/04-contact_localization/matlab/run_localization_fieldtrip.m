@@ -6,16 +6,16 @@ clc
 %% Setup Paths and Directories for Registration Results and Raw EEG Data
 % ------- CHANGE THIS ------
 addpath("/home/ksr/Downloads/fieldtrip-20190615"); %fieldtrip package
-%20190129/");
-% addpath("/Users/adam2392/Dropbox/fieldtrip-20181108");
-%addpath("/Users/adam2392/Dropbox/fieldtrip-20190129");
 addpath("/home/ksr/Downloads/spm12") % SPM12 pacakge 
+% addpath("/Users/adam2392/Dropbox/fieldtrip-20181108");
+addpath("/Users/adam2392/Dropbox/fieldtrip-20190129");
 
 % ------- CHANGE THIS ------
 % neuroimaging output data dir
 studyname = 'epilepsy'; % 'efri'
 RESULTS_DIR = fullfile('/home/ksr/Desktop/contact_localization/freesurfer_output/', studyname);
 % RESULTS_DIR = '/home/adam2392/hdd/data/neuroimaging/freesurfer_output/";
+RESULTS_DIR = fullfile('/Users/adam2392/Dropbox/epilepsy_bids/derivatives/freesurfer/');
 
 % ------- CHANGE THIS ------
 % raw data EEG dir

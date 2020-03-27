@@ -1,14 +1,15 @@
 import argparse
 import subprocess
+
 import numpy as np
+from mne_bids.tsv_handler import _to_tsv, _from_tsv
 
 
-def transform(coords, src_img, dest_img, transform_mat):
+def transform(coords, src_img, dest_img, transform_mat, coordinate_type="mm"):
     coords_str = " ".join([str(x) for x in coords])
 
-    # print(coords_str)
     cp = subprocess.run(
-        "echo %s | img2imgcoord -mm -src %s -dest %s -xfm %s"
+        f"echo %s | img2imgcoord -{coordinate_type} -src %s -dest %s -xfm %s"
         % (coords_str, src_img, dest_img, transform_mat),
         shell=True,
         stdout=subprocess.PIPE,
@@ -44,44 +45,52 @@ if __name__ == "__main__":
         "mapping_transformation_file", help="The mapping transformation file."
     )
     parser.add_argument(
-        "clustered_points_file",
-        help="The output datafile with all the electrode points clustered.",
+        "ct_xyzcoords_fpath",
+        help="The input datafile with all the electrode points in their coordinate space.",
     )
     parser.add_argument(
-        "outputcoordsfile",
+        "mri_xyzcoords_fpath",
         help="The output datafile for electrodes mapped to correct coords.",
     )
+    parser.add_argument("--coordinate_type", default="mm")
     args = parser.parse_args()
 
     # extract arguments from parser
     ct_nifti_img = args.ct_nifti_img
     mri_nifti_img = args.mri_nifti_img
     mapping_transformation_file = args.mapping_transformation_file
-    clustered_points_file = args.clustered_points_file
-    outputcoordsfile = args.outputcoordsfile
+    ct_coords_fpath = args.ct_xyzcoords_fpath
+    mri_coords_fpath = args.mri_xyzcoords_fpath
+    coordinate_type = args.coordinate_type
 
     # read in electrodes file
-    labels, labelsxyz = read_label_coords(clustered_points_file)
+    electrodes_tsv = _from_tsv(ct_coords_fpath)
 
-    # read in transformation file
-    # transform_mat = np.load(mapping_transformation_file, encoding='latin1')
+    # construct array of contact names and xyz coordinates
+    labels = np.array(electrodes_tsv["name"])
+    labelsxyz = []
+    for i in range(len(labels)):
+        labelsxyz.append([electrodes_tsv[x][i] for x in ["x", "y", "z"]])
+    labelsxyz = np.array(labelsxyz)
+    assert labelsxyz.shape[0] == len(labels)
 
-    # run coordinat transformation
+    # run coordinate transformation
     modified_coords = np.array(
         [
-            transform(coords, ct_nifti_img, mri_nifti_img, mapping_transformation_file)
+            transform(
+                coords,
+                ct_nifti_img,
+                mri_nifti_img,
+                mapping_transformation_file,
+                coordinate_type=coordinate_type,
+            )
             for coords in labelsxyz
         ]
     )
 
-    with open(outputcoordsfile, "w") as f:
-        for i, name in enumerate(labels):
-            f.write(
-                "%s %.6f %.6f %.6f\n"
-                % (
-                    name,
-                    modified_coords[i][0],
-                    modified_coords[i][1],
-                    modified_coords[i][2],
-                )
-            )
+    # resave the coordinate transformed data
+    for i, (x, y, z) in enumerate(modified_coords):
+        electrodes_tsv["x"][i] = x
+        electrodes_tsv["y"][i] = y
+        electrodes_tsv["z"][i] = z
+    _to_tsv(electrodes_tsv, mri_coords_fpath)

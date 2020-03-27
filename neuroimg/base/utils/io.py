@@ -1,12 +1,27 @@
 import numpy as np
 import scipy.io
 from mne_bids.utils import _to_tsv
-
+from collections import OrderedDict
 from neuroimg.base.utils.utils import MatReader
 
 
-def save_organized_elecdict_astsv(elecdict, output_fpath):
-    _to_tsv(elecdict, output_fpath)
+def save_organized_elecdict_astsv(elecdict, output_fpath, size=None):
+    """Save organized electrode dict coordinates as a tsv file."""
+    x, y, z, names = list(), list(), list(), list()
+    for ch, ch_coord in elecdict.items():
+        x.append(ch_coord[0])
+        y.append(ch_coord[1])
+        z.append(ch_coord[2])
+        names.append(ch)
+    if size is None:
+        sizes = ["n/a"] * len(names)
+    else:
+        sizes = [size] * len(names)
+
+    data = OrderedDict(
+        [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes),]
+    )
+    _to_tsv(data, output_fpath)
 
 
 def save_organized_elecdict_asmat(elecdict, outputfilepath):
@@ -25,11 +40,11 @@ def save_organized_elecdict_asmat(elecdict, outputfilepath):
     """
     eleclabels = []
     elecmatrix = []
-    for elec in elecdict.keys():
-        for chan in elecdict[elec]:
-            label = [[chan.strip()], "stereo", "depth"]
-            eleclabels.append(label)
-            elecmatrix.append(elecdict[elec][chan])
+    # for elec in elecdict.keys():
+    for ch_name, coord in elecdict.items():
+        label = [[ch_name.strip()], "stereo", "depth"]
+        eleclabels.append(label)
+        elecmatrix.append(coord)
     mat = {"eleclabels": eleclabels, "elecmatrix": elecmatrix}
     scipy.io.savemat(outputfilepath, mat)
 

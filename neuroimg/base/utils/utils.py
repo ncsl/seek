@@ -22,6 +22,42 @@ from neuroimg.base.objects.neuroimaging.baseneuroimage import Hemisphere
 from neuroimg.base.objects.neuroimaging.baseneuroimage import RegionIndexMapping
 
 
+def group_contacts(elec_in_brain):
+    """
+    Group individual contacts by the electrode to which they correspond.
+
+    Sorts the contacts using the corresponding labels.
+
+    Parameters
+    ----------
+        elec_in_brain: dict(str: ndarray)
+            Dictionary of contact coordinates in CT voxels that fall within
+            the brain matter.
+
+    Returns
+    -------
+        labeled_contacts: dict(str: dict(str: ndarray))
+            Dictionary of contacts grouped by electrode. An electrode name
+            maps to a dictionary of contact labels and corresponding
+            coordinates. The dictionary is in sorted order based on these
+            labels.
+    """
+    labeled_contacts = {}
+
+    for label, coord in elec_in_brain.items():
+        elecname = re.findall(r"[A-Za-z']+", label)[0]
+        labeled_contacts.setdefault(elecname, {})[label] = coord
+
+    for elec in labeled_contacts:
+        sorted_chans = sorted(
+            labeled_contacts[elec].items(),
+            key=lambda x: int(re.findall(r"\d+", x[0])[0]),
+        )
+        labeled_contacts[elec] = dict(sorted_chans)
+
+    return labeled_contacts
+
+
 class MatReader:
     """
     Object to read mat files into a nested dictionary if need be.

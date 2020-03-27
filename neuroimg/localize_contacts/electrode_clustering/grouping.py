@@ -104,7 +104,7 @@ class CylindricalGroup:
         return False
 
     @classmethod
-    def cylinder_filter(self, labeled_contacts, clusters, radius):
+    def cylinder_filter(self, sparse_labeled_contacts_vox, clusters, radius):
         """
         Apply a cylindrical filtering on the raw threshold-based clustering.
 
@@ -113,7 +113,7 @@ class CylindricalGroup:
 
         Parameters
         ----------
-            labeled_contacts: dict(str: dict(str: ndarray))
+            sparse_labeled_contacts_vox: dict(str: dict(str: ndarray))
                 Dictionary of contacts grouped by electrode. An electrode name
                 maps to a dictionary of contact labels and corresponding
                 coordinates. The dictionary is in sorted order based on these
@@ -134,38 +134,21 @@ class CylindricalGroup:
                 labels, the values of the dictionary are the cluster points
                 from the threshold-based clustering algorithm that fell
                 into a cylinder.
-
-            sparse_labeled_contacts: dict(str: dict: ndarray)
-                Sparse dictionary of labeled channels from user input. This
-                dictionary contains exactly two channels for each electrode.
         """
-        # Perform cylindrical filtering on the points detected by
-        # threshold-based clustering
-        sparse_labeled_contacts = {}
-        for elec in labeled_contacts:
-
-            if len(labeled_contacts[elec]) < 2:
-                raise ValueError(
-                    f"Too few labeled contacts for electrode {elec}."
-                    f"Please provide two contacts per electrode."
-                )
-            chans = list(labeled_contacts[elec].items())
-            first, last = chans[0], chans[-1]
-            sparse_labeled_contacts[elec] = dict([first, last])
-
-        if not sparse_labeled_contacts:
-            return None
-
         bound_clusters = {}
-        for elec in sparse_labeled_contacts:
-            pt1, pt2 = list(sparse_labeled_contacts[elec].values())
+        for elec in sparse_labeled_contacts_vox:
+            entry_point_xyz, exit_point_xyz = list(
+                sparse_labeled_contacts_vox[elec].values()
+            )
             for cluster_id in clusters:
                 cluster_pts = clusters[cluster_id]
                 # Obtain all points within the electrode endpoints pt1, pt2
                 contained_points = [
                     point
                     for point in cluster_pts
-                    if self._point_in_cylinder(pt1, pt2, radius, point)
+                    if self._point_in_cylinder(
+                        entry_point_xyz, exit_point_xyz, radius, point
+                    )
                 ]
 
                 if not contained_points:
@@ -173,4 +156,4 @@ class CylindricalGroup:
                 cluster_pts = np.array(cluster_pts)
                 bound_clusters.setdefault(elec, {})[cluster_id] = cluster_pts
 
-        return bound_clusters, sparse_labeled_contacts
+        return bound_clusters
