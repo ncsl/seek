@@ -29,12 +29,14 @@ def _update_electrodes_tsv(electrodes_tsv_fpath, elec_labels_anat, atlas_depth):
         ch_name = electrodes_tsv["name"][i]
         print(ch_name, elec_labels_anat[i])
         electrodes_tsv[atlas_depth][i] = elec_labels_anat[i]
+    _to_tsv(electrodes_tsv, electrodes_tsv_fpath)
 
     return electrodes_tsv
 
 
 def _update_electrodes_json(electrodes_json_fpath, **kwargs):
     if not os.path.exists(electrodes_json_fpath):
+        os.mkdir(os.path.dirname(electrodes_json_fpath))
         with open(electrodes_json_fpath, "w") as fout:
             sidecar_json = json.dump(kwargs, fout)
     else:
@@ -174,7 +176,16 @@ def apply_atlas(bids_root, electrodes_tsv_fpath, inv_affine, fspatdir, fs_lut_fp
     electrodes_tsv = _update_electrodes_tsv(
         electrodes_tsv_fpath, elec_labels_anat_dk, atlas_depth
     )
-    return electrodes_tsv
+
+    # create sidecar electrodes json file
+    electrodes_json_fpath = str(electrodes_tsv_fpath).replace(".tsv", ".json")
+    json_dict = {
+        "destriuex": "Electrode annotation using Destriuex atlas with 196 brain regions.",
+        "desikan-killiany": "Electrode annotation using DK atlas with 86 brain regions.",
+    }
+    electrodes_json = _update_electrodes_json(electrodes_json_fpath, **json_dict)
+
+    return electrodes_tsv, electrodes_json
 
 
 if __name__ == "__main__":
@@ -219,9 +230,13 @@ if __name__ == "__main__":
     bids_root = derivatives_dir.parent
 
     # Output labeled .mat files with atlas, white matter, and brainmask information
-    electrodes_tsv = apply_atlas(
+    electrodes_tsv, electrodes_json = apply_atlas(
         bids_root, mri_xyzcoords_fpath, inv_affine, fs_patient_dir, fs_lut_fpath
     )
 
     # save sidecar electrodes tsv
     _to_tsv(electrodes_tsv, output_electrodes_tsv_fpath)
+
+    # save sidecar electrodes json
+    with open(output_electrodes_tsv_fpath.replace(".tsv", ".json"), "w") as fout:
+        json.dump(electrodes_json, fout)

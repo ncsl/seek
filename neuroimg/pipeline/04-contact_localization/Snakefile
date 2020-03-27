@@ -97,8 +97,13 @@ rule all:
         #                      subject = config['patients']),
         bids_electrodes_file = expand(os.path.join(electrodes_fname),
                                     subject = config['patients']),
+        bids_electrodes_json_file = expand(os.path.join(electrodes_fname.replace('.tsv', '.json')),
+                                    subject = config['patients']),
+    params:
+        bids_root = bids_root.bids_root,
     shell:
-        "echo 'done'"
+        "echo 'done';"
+        "bids-validator {params.bids_root};"
 
 """
 Convert an annotation file into multiple label files or into a segmentation 'volume'. 
@@ -222,12 +227,13 @@ rule apply_anatomicalatlas_to_electrodes:
     params:
         FSPATIENT_DIR = str(FSPATIENT_SUBJECT_DIR),
     output:
-        bids_electrodes_file = os.path.join(electrodes_fname),
+        bids_electrodes_tsv_file = os.path.join(electrodes_fname),
+        bids_electrodes_json_file = os.path.join(electrodes_fname.replace('.tsv', '.json')),
     shell:
         "echo 'Applying anatomical atlas to electrode points...';"
                 "python ./apply_anat_to_electrodes.py " \
                 "{input.clustered_center_points_file} " \
-                "{output.bids_electrodes_file} " \
+                "{output.bids_electrodes_tsv_file} " \
                 "{params.FSPATIENT_DIR} " \
                 "{input.fs_lut_fpath} " \
                 "{input.T1_NIFTI_IMG};"
