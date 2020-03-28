@@ -18,27 +18,18 @@ patients:
 #    "PublicDataset",
 #    'la01',
 #    'la02', 'la09',
-   'la03',
-    "la04",
-   'la05',
-   'la06',
-   'la07',
-   'la08',
-   'la10',
-   'la11',
-   'la12', 'la13', 'la15', 'la16',
-#   'la17',
+#   'la03',
+   'la09',
+#   "la04",'la05','la06','la07','la08','la10',
+#   'la11','la12', 'la13', 'la15',
+#   'la16','la17',
 #   'la20', 'la21', 'la22', 'la23', 'la24', 'la27', 'la28', 'la29', 'la31',
 #   'nl01', 'nl02', 'nl04', 'nl05', 'nl06', 'nl07', 'nl08', 'nl09', 'nl10', 'nl11',
 #   'nl12', 'nl13', 'nl14', 'nl15', 'nl16', 'nl17', 'nl18', 'nl19', 'nl20', 'nl21', 'nl22', 'nl23', 'nl24',
 #   'tvb1', 'tvb2', 'tvb5', 'tvb7', 'tvb8', 'tvb11', 'tvb12', 'tvb14', 'tvb17', 'tvb18', 'tvb19',
 #   'tvb23', 'tvb27', 'tvb28', 'tvb29',
 #   'umf004',
-#    'tvb27',
-#    'tvb28',
-#    'tvb29'
 ]
 
 blender_path: # type in 'which blender' in command line
   "/usr/bin/blender/"
-
