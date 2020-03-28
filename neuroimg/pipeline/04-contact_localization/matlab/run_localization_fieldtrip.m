@@ -20,14 +20,14 @@ RESULTS_DIR = fullfile('/Users/adam2392/Dropbox/epilepsy_bids/derivatives/freesu
 % ------- CHANGE THIS ------
 % raw data EEG dir
 RECORD_DATADIR = '/home/ksr/Desktop/contact_localization/freesurfer_output/epilepsy/'; % '/home/ksr/Desktop/contact_localization/freesurfer_output/epilepsy/';
-RECORD_DATADIR = '/Users/adam2392/Dropbox/epilepsy_bids/sourcedata/cleveland/';
+RECORD_DATADIR = '/Users/adam2392/Dropbox/epilepsy_bids/sourcedata/umf/';
 
 % run setup of global variables to make tool GUI work
 ft_defaults
 
 % ------- CHANGE THIS ------
 % subj id to analyze
-subjID = 'la09';      % e.g. efri01, pt01, umf001, tvb1
+subjID = 'umf004';      % e.g. efri01, pt01, umf001, tvb1
 your_initials = 'AL';
 
 % results directory
@@ -45,6 +45,7 @@ MRIDIR = fullfile(SUBJDIR, 'mri');
 % filepath to your raw data (the header of the edf file has the channel
 % labels and stuff)
 data_id = [subjID '_ictal.edf'];
+data_id = 'Seizure.edf';
 rawdatafilepath = fullfile(RECORD_DATADIR, subjID,  data_id); % if using .mat file
 rawdatafilepath = fullfile(RECORD_DATADIR, subjID, 'seeg', 'edf', data_id); % if using .edf file
 
