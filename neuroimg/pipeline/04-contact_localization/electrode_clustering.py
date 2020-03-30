@@ -153,7 +153,7 @@ def mainv2(
 
         # pare them down and resize
         this_elec_voxels = brain._pare_clusters_on_electrode(
-            this_elec_voxels, oversized_clusters_ids, qtile=0.9
+            this_elec_voxels, oversized_clusters_ids, qtile=0.5
         )
 
         # fill in gaps between centroids
@@ -164,13 +164,49 @@ def mainv2(
             contact_spacing_mm=contact_spacing_mm,
         )
 
-        # apply brute force correction
-        this_elec_voxels = brain.bruteforce_correction(
-            this_elec_voxels,
-            (entry_ch.name, entry_ch.coord),
-            (exit_ch.name, exit_ch.coord),
-        )
+        if entry_ch.coord_type == 'vox':
+            entry_ch.transform_coords(brain.get_masked_img(), coord_type='mm')
+        if exit_ch.coord_type == 'vox':
+            exit_ch.transform_coords(brain.get_masked_img(), coord_type='mm')
+        this_elec_xyz = collections.defaultdict(list)
+        for _cluster_id, voxels in this_elec_voxels.items():
+            for coord in voxels:
+                this_elec_xyz[_cluster_id].append(brain.map_coordinates(coord, coord_type='mm'))
+        # # compute the average / std contact-to-contact spacing
+        # import numpy as np
+        # dists = []
+        # for cluster_id, voxels in this_elec_xyz.items():
+        #     curr_centroid = np.mean(voxels, axis=0)
+        #     if dists == []:
+        #         prev_centroid = np.mean(voxels, axis=0)
+        #         dists.append(0)
+        #         continue
+        #     dists.append(np.linalg.norm(curr_centroid - prev_centroid))
+        #     prev_centroid = curr_centroid
+        # print("Distribution of contact to contact spacing: ", np.mean(dists), np.std(dists))
+        # this_elec_xyz = brain.correct_labeled_clusters(this_elec_xyz,
+        #                                                   entry_ch,
+        #                                                   exit_ch,
+        #                                                   contact_spacing_mm=contact_spacing_mm)
+        #
 
+        # apply brute force correction
+        # this_elec_xyz = brain.bruteforce_correctionv2(
+        #     this_elec_xyz,
+        #     entry_ch,
+        #     exit_ch,
+        #     contact_spacing_mm=contact_spacing_mm, num_contacts=len(elec_contact_nums[electrode.name])
+        # )
+        # _this_elec_voxels = collections.defaultdict(list)
+        # for _cluster_id, coords in this_elec_xyz.items():
+        #     for coord in coords:
+        #         _this_elec_voxels[_cluster_id].append(brain.map_coordinates(coord, coord_type='vox'))
+        # this_elec_voxels = _this_elec_voxels
+
+        if entry_ch.coord_type == 'mm':
+            entry_ch.transform_coords(brain.get_masked_img(), coord_type='vox')
+        if exit_ch.coord_type == 'mm':
+            exit_ch.transform_coords(brain.get_masked_img(), coord_type='vox')
         # assign sequential labels
         this_elec_voxels = brain.assign_sequential_labels(
             this_elec_voxels, entry_ch.name, entry_ch.coord,
@@ -186,6 +222,14 @@ def mainv2(
     labeled_xyz_centroids = brain.vox_2_xyz(
         labeled_voxel_centroids, brain.get_masked_img().affine
     )
+
+    # keep the end points, since they're already labeled
+    if entry_exit_elec.coord_type == 'vox':
+        entry_exit_elec.transform_coords(brain.get_masked_img(), coord_type='mm')
+
+    for electrode in entry_exit_elec:
+        for contact in electrode.contacts:
+            labeled_xyz_centroids[electrode.name][contact.name] = contact.coord
 
     return labeled_voxel_centroids, labeled_xyz_centroids
 

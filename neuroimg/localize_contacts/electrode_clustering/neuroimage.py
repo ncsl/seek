@@ -1,15 +1,64 @@
 import re
 from typing import Dict, List, Tuple
+import collections
 
 import nibabel as nb
 import numpy as np
 import numpy.linalg as npl
 from nibabel.affines import apply_affine
+from scipy.optimize import linprog
 from scipy.stats import norm
 from skimage import measure
 from sklearn.cluster import KMeans
 
 from neuroimg.localize_contacts.electrode_clustering.electrode import Contact
+
+
+def _multidimdist(point1, point2):
+    """Compute distance between two N-dimensional points."""
+    # find the difference between the two points, its really the same as below
+    deltaVals = [point2[dimension] - point1[dimension] for dimension in range(len(point1))]
+    runningSquared = 0
+    # because the pythagorean theorem works for any dimension we can just use that
+    for coord in deltaVals:
+        runningSquared += coord ** 2
+    return runningSquared ** (1 / 2)
+
+
+def _compute_vector(point1, point2, unitSphere=False):
+    """Compute (unit)-vector between two N-dimensional points."""
+    finalVector = [0 for coord in point1]
+    for dimension, coord in enumerate(point1):
+        # finding total difference for that co-ordinate(x,y,z...)
+        deltaCoOrd = point2[dimension] - coord
+        # adding total difference
+        finalVector[dimension] = deltaCoOrd
+
+    # setting unitSphere to True will make the vector scaled down to a sphere with a radius one, instead of it's orginal length
+    if unitSphere:
+        totalDist = _multidimdist(point1, point2)
+        unitVector = []
+        for dimen in finalVector:
+            unitVector.append(dimen / totalDist)
+        return unitVector
+    else:
+        return finalVector
+
+
+def _in_hull(points, x):
+    """Check if x is inside convex hull of points."""
+    points = np.array(points)
+    x = np.array(x)
+
+    if len(points) == 1:
+        return np.array_equal(x, points)
+
+    n_points = len(points)
+    c = np.zeros(n_points)
+    A = np.r_[points.T, np.ones((1, n_points))]
+    b = np.r_[x, np.ones(1)]
+    lp = linprog(c, A_eq=A, b_eq=b)
+    return lp.success
 
 
 class BrainImage:
@@ -251,7 +300,7 @@ class ClusteredBrainImage(BrainImage):
         return new_pts
 
     def _identify_skull_voxel_clusters(
-        self, voxel_clusters: Dict, skull_cluster_size: int = 200
+            self, voxel_clusters: Dict, skull_cluster_size: int = 200
     ):
         """
         Classify the abnormal clustered_voxels that are extremely large.
@@ -372,6 +421,28 @@ class ClusteredBrainImage(BrainImage):
 
         return False
 
+    def _pare_cluster(self, points_in_cluster, qtile, centroid=None):
+        if centroid is None:
+            # get the centroid of that cluster
+            centroid = np.mean(points_in_cluster, keepdims=True)
+
+        # compute spatial variance of the points inside cluster
+        var = np.var(points_in_cluster, axis=0)
+
+        # store the pared clsuters
+        pared_cluster = []
+
+        # Include points that have a z-score within specified quantile
+        for pt in points_in_cluster:
+            # Assuming the spatial distribution of points is
+            # approximately Gaussian, the outermost channel will be
+            # approximately the centroid of this cluster.
+            diff = pt - centroid
+            z = npl.norm(np.divide(diff, np.sqrt(var)))
+            if norm.cdf(z) <= qtile:
+                pared_cluster.append(pt)
+        return pared_cluster
+
     def _pare_clusters_on_electrode(self, voxel_clusters, skull_cluster_ids, qtile):
         """
         Pare down skull clustered_voxels.
@@ -408,23 +479,8 @@ class ClusteredBrainImage(BrainImage):
             # get the clustered points for this cluster ID
             points_in_cluster = voxel_clusters[cluster_id]
 
-            # get the centroid of that cluster
-            cluster_centroid = np.mean(points_in_cluster, keepdims=True)
-
-            var = np.var(points_in_cluster, axis=0)
-
-            # store the pared clsuters
-            pared_cluster = []
-
-            # Include points that have a z-score within specified quantile
-            for pt in points_in_cluster:
-                # Assuming the spatial distribution of points is
-                # approximately Gaussian, the outermost channel will be
-                # approximately the centroid of this cluster.
-                diff = pt - cluster_centroid
-                z = npl.norm(np.divide(diff, np.sqrt(var)))
-                if norm.cdf(z) <= qtile:
-                    pared_cluster.append(pt)
+            # pare the cluster based on quantile near the centroid
+            pared_cluster = self._pare_cluster(points_in_cluster, qtile, centroid=None)
 
             # Sanity check that we still have a non-empty list
             if pared_cluster != []:
@@ -455,7 +511,7 @@ class ClusteredBrainImage(BrainImage):
         return centroids
 
     def _unfuse_clusters_on_entry_and_exit(
-        self, voxel_clusters: Dict, merged_cluster_ids: List[int], contact_nums,
+            self, voxel_clusters: Dict, merged_cluster_ids: List[int], contact_nums,
     ):
         """
         Unfuse merged clustered_voxels.
@@ -599,7 +655,7 @@ class ClusteredBrainImage(BrainImage):
         return clusters, numobj
 
     def compute_cylindrical_clusters(
-        self, clustered_voxels, entry_point_vox, exit_point_vox, radius
+            self, clustered_voxels, entry_point_vox, exit_point_vox, radius
     ):
         # each electrode corresponds now to a separate cylinder
         voxel_clusters_in_cylinder = {}
@@ -611,7 +667,7 @@ class ClusteredBrainImage(BrainImage):
             contained_voxels = []
             for voxel in cluster_voxels:
                 if self._is_point_in_cylinder(
-                    entry_point_vox, exit_point_vox, radius, voxel
+                        entry_point_vox, exit_point_vox, radius, voxel
                 ):
                     contained_voxels.append(voxel)
             if not contained_voxels:
@@ -622,7 +678,7 @@ class ClusteredBrainImage(BrainImage):
         return voxel_clusters_in_cylinder
 
     def assign_sequential_labels(
-        self, voxel_clusters, first_contact, first_contact_coord
+            self, voxel_clusters, first_contact, first_contact_coord
     ):
         """
         Assign stereo-EEG electrode labels to clustered_voxels.
@@ -648,7 +704,7 @@ class ClusteredBrainImage(BrainImage):
         ch_num = int(ch_num)
 
         # Ensure that the clustered_voxels are well-ordered
-        voxel_clusters = self._order_clusters(voxel_clusters, first_contact_coord)
+        # voxel_clusters = self._order_clusters(voxel_clusters, first_contact_coord)
 
         # Convert to numpy array to make indexing easier
         clusters = np.array(list(voxel_clusters.values()))
@@ -669,11 +725,11 @@ class ClusteredBrainImage(BrainImage):
         return labeled_clusters
 
     def fill_clusters_with_spacing(
-        self,
-        voxel_clusters: Dict,
-        entry_ch: Contact,
-        num_contacts,
-        contact_spacing_mm: float,
+            self,
+            voxel_clusters: Dict,
+            entry_ch: Contact,
+            num_contacts,
+            contact_spacing_mm: float,
     ):
         """
         Assist in filling in gaps in clustering.
@@ -941,5 +997,210 @@ class ClusteredBrainImage(BrainImage):
                 centroids_xyz[elec][chan] = apply_affine(
                     affine, centroids_vox[elec][chan]
                 )
-
         return centroids_xyz
+
+    def _compute_voxels_around_centroid(self, voxel_centroid, voxel_clusters, memo_clusterids):
+        # compute voxel cloud around this centroid
+        new_cluster_voxels = []
+        for _cluster_id in voxel_clusters.keys():
+            if _cluster_id in memo_clusterids.keys():
+                continue
+            _cluster_voxels = voxel_clusters[_cluster_id]
+
+            # is our new desired centroid within the convex hull?
+            if _in_hull(_cluster_voxels, voxel_centroid):
+                new_cluster_voxels = self._pare_cluster(_cluster_voxels,
+                                                        qtile=0.5,
+                                                        centroid=voxel_centroid)
+        return new_cluster_voxels
+
+    def _search_clusters_for_point(self, this_elec_xyz,
+                               approx_new_centroid,
+                               lower_bound_point,
+                               upper_bound_point):
+        matched_ids = []
+
+        centroid_dists = []
+        for cluster_id, point_cluster in this_elec_xyz.items():
+            # if _in_hull(point_cluster, approx_new_centroid):
+            #     matched_ids.append(cluster_id)
+            centroid_dists.append(np.mean(point_cluster, axis=0) - approx_new_centroid)
+            matched_ids.append(cluster_id)
+
+        print(np.array(centroid_dists).shape)
+        abs_distances = np.linalg.norm(centroid_dists, axis=0)
+        print(abs_distances.shape)
+        matched_ind = np.argmin(abs_distances)
+        matched_ids = [matched_ids[matched_ind]]
+
+        if len(matched_ids) > 1:
+            print("Multiple clusters satisfying this condition! "
+                  "Returning the first one found.")
+        if matched_ids == []:
+            return None
+
+        return this_elec_xyz[matched_ids[0]]
+
+    def correct_labeled_clusters(self, this_elec_voxels: Dict,
+                                 entry_ch: Contact, exit_ch: Contact,
+                                 contact_spacing_mm: float):
+        """
+        Recursive iteration of electrodes and correction.
+
+        The basic idea is that we go through each cluster set,
+
+        Parameters
+        ----------
+        this_elec_voxels :
+        entry_ch :
+        exit_ch :
+        contact_spacing_mm :
+
+        Returns
+        -------
+
+        """
+        # allow slack of the contact spacing
+        epsilon = 0.5
+
+        # generate unit vector from entry to exit channel
+        unit_vec = np.array(_compute_vector(entry_ch.coord, exit_ch.coord, unitSphere=True))
+
+        # go through each cluster set of points
+        current_centroid = entry_ch.coord
+
+        # memoize the cluster ids
+        memo_clusterids = dict()
+
+        for cluster_id, cluster_voxels in this_elec_voxels.items():
+            # compute 3D voxel centroid
+            voxel_centroid = np.mean(cluster_voxels, axis=0)
+
+            assert len(voxel_centroid) == 3
+
+            # compute distance between centroids
+            distance = np.linalg.norm(voxel_centroid - current_centroid)
+
+            # outside the epsilon-ball allowed for contact spacing
+            if (distance > contact_spacing_mm + epsilon) or \
+                    (distance < contact_spacing_mm - epsilon):
+                # compute new centroid
+                voxel_centroid = current_centroid + contact_spacing_mm * unit_vec
+
+                # compute a new set of clustered voxels based on centroid desired
+                new_cluster_voxels = self._compute_voxels_around_centroid(voxel_centroid,
+                                                                          this_elec_voxels,
+                                                                          memo_clusterids)
+
+                # if empty, manually set one centroid
+                if new_cluster_voxels == []:
+                    new_cluster_voxels = [voxel_centroid]
+
+                # set the newly identified cluster voxels
+                this_elec_voxels[cluster_id] = new_cluster_voxels
+
+            # update the current centroid
+            current_centroid = voxel_centroid
+
+            # update memoized clusters we've checked
+            memo_clusterids[cluster_id] = 1
+
+        # on the exit contact, check that the manually labeled centroid is within the cluster
+        if not _in_hull(this_elec_voxels[cluster_id], exit_ch.coord):
+            this_elec_voxels[cluster_id] = [exit_ch.coord]
+
+        return this_elec_voxels
+
+    def bruteforce_correctionv2(self, this_elec_xyz: Dict,
+                                entry_ch: Contact, exit_ch: Contact,
+                                contact_spacing_mm: float, num_contacts):
+        """
+        Recursive iteration of electrodes and correction.
+
+        The basic idea is that we go through each cluster set,
+
+        Parameters
+        ----------
+        this_elec_xyz :
+        entry_ch :
+        exit_ch :
+        contact_spacing_mm :
+
+        Returns
+        -------
+
+        """
+        # allow slack of the contact spacing
+        epsilon = 0.5
+
+        # generate unit vector from entry to exit channel
+        unit_vec = np.array(_compute_vector(entry_ch.coord, exit_ch.coord, unitSphere=True))
+
+        # create a copy of the dictionary set of cluster points
+        _cluster_xyz = this_elec_xyz.copy()
+        cluster_ids = list(this_elec_xyz.keys())
+        # create new copy of electrode cluster points
+        new_cluster_xyz = collections.defaultdict(list)
+
+        # loop until we've filled a point w/ each contact
+        prev_centroid = entry_ch.coord
+        i = 0
+        while i < num_contacts:
+            lower_bound_point = prev_centroid + unit_vec * (contact_spacing_mm - epsilon)
+            upper_bound_point = prev_centroid + unit_vec * (contact_spacing_mm + epsilon)
+            approx_new_centroid = prev_centroid + unit_vec * contact_spacing_mm
+            cluster_points = self._search_clusters_for_point(this_elec_xyz,
+                                                             approx_new_centroid,
+                                                             lower_bound_point,
+                                                             upper_bound_point)
+            if cluster_points is None:
+                prev_centroid = approx_new_centroid
+                cluster_points = [prev_centroid]
+            else:
+                prev_centroid = np.mean(cluster_points, axis=0)
+
+            # create new set of clusters
+            new_cluster_xyz[i] = cluster_points
+            i += 1
+        return new_cluster_xyz
+
+        # # perform loop indefinitely until constraints are met
+        # while len(this_elec_xyz.keys()) <= num_contacts and \
+        #         len(memo_clusterids.keys()) != len(this_elec_xyz.keys()):
+        #     cluster_id = cluster_ids[i]
+        #     # go through the identified clusters so far
+        #     cluster_voxels = this_elec_xyz[cluster_id]
+        #     # compute 3D voxel centroid
+        #     voxel_centroid = np.mean(cluster_voxels, axis=0)
+        #     # compute distance between centroids
+        #     distance = np.linalg.norm(voxel_centroid - current_centroid)
+        #
+        #     # outside the epsilon-ball allowed for contact spacing
+        #     if distance < epsilon:
+        #         # compute new centroid
+        #         voxel_centroid = current_centroid + contact_spacing_mm * unit_vec
+        #
+        #         # compute a new set of clustered voxels based on centroid desired
+        #         new_cluster_voxels = self._compute_voxels_around_centroid(voxel_centroid,
+        #                                                                   this_elec_xyz,
+        #                                                                   memo_clusterids)
+        #         # if empty, manually set one centroid
+        #         if new_cluster_voxels == []:
+        #             new_cluster_voxels = [voxel_centroid]
+        #
+        #         # set the newly identified cluster voxels
+        #         new_cluster_xyz[cluster_id] = new_cluster_voxels
+        #     else:
+        #         new_cluster_xyz[cluster_id] = cluster_voxels
+        #
+        #     # update the current centroid
+        #     current_centroid = voxel_centroid
+        #     # update memoized clusters we've checked
+        #     memo_clusterids[cluster_id] = 1
+        #     i+=1
+        #
+        # # on the exit contact, check that the manually labeled centroid is within the cluster
+        # if not _in_hull(this_elec_xyz[cluster_id], exit_ch.coord):
+        #     this_elec_xyz[cluster_id] = [exit_ch.coord]
+        #
+        # return this_elec_xyz
