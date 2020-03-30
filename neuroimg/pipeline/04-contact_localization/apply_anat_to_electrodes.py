@@ -35,8 +35,9 @@ def _update_electrodes_tsv(electrodes_tsv_fpath, elec_labels_anat, atlas_depth):
 
 
 def _update_electrodes_json(electrodes_json_fpath, **kwargs):
-    if not os.path.exists(electrodes_json_fpath):
-        os.mkdir(os.path.dirname(electrodes_json_fpath))
+    electrodes_json_fpath = Path(electrodes_json_fpath)
+    if not electrodes_json_fpath.exists():
+        electrodes_json_fpath.parent.mkdir(parents=True, exist_ok=True)
         with open(electrodes_json_fpath, "w") as fout:
             sidecar_json = json.dump(kwargs, fout)
     else:

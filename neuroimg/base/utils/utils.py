@@ -22,6 +22,20 @@ from neuroimg.base.objects.neuroimaging.baseneuroimage import Hemisphere
 from neuroimg.base.objects.neuroimaging.baseneuroimage import RegionIndexMapping
 
 
+def _contact_numbers_on_electrode(entry_ch, exit_ch):
+    elec_name1, entry_ch_num = re.match("^([A-Za-z]+[']?)([0-9]+)$", entry_ch).groups()
+    elec_name2, exit_ch_num = re.match("^([A-Za-z]+[']?)([0-9]+)$", exit_ch).groups()
+    if elec_name1 != elec_name2:
+        raise RuntimeError(
+            "Electrode name for entry/exit point should be the same. "
+            f"Your electrode names for entry/exit are: {entry_ch}, and {exit_ch}."
+        )
+
+    # create integer list
+    elec_contact_nums = np.arange(int(entry_ch_num), int(exit_ch_num) + 1, dtype=int)
+    return elec_contact_nums
+
+
 def group_contacts(elec_in_brain):
     """
     Group individual contacts by the electrode to which they correspond.

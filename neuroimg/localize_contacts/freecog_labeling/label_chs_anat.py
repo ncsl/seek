@@ -4,7 +4,6 @@ import os
 import nibabel as nb
 import numpy as np
 import scipy.io
-from mne_bids.tsv_handler import _from_tsv, _to_tsv
 
 from neuroimg.base.utils.fileutils import PatientBidsRoot
 
@@ -662,7 +661,7 @@ def label_elecs(
         elecmatrix, elecmontage
     )
     # # label grid and strip electrodes
-    # elec_labels = _label_grid_and_strips(elecmatrix, ch_names, vert_label, cortex_verts)
+    # elec_labels = _label_grid_and_strips(elecmatrix, names, vert_label, cortex_verts)
     # print("Saving electrode labels for surface electrodes.")
     # print(isnotdepth)
     # print(elec_labels)

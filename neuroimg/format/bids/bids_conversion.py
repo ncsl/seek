@@ -14,7 +14,7 @@ from mne_bids.utils import _parse_bids_filename
 def bids_validate(bids_root):
     """Run BIDS validator."""
     shell = False
-    bids_validator_exe = ["bids-validator", "--config.error=41", "--config.error=41"]
+    bids_validator_exe = ["bids-validator", "--config.error=41", "--conwfig.error=41"]
     if platform.system() == "Windows":
         shell = True
         exe = os.getenv("VALIDATOR_EXECUTABLE", "n/a")

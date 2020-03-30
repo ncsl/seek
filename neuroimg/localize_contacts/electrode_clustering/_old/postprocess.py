@@ -1,5 +1,6 @@
 import re
-
+from typing import Dict, List
+import collections
 import numpy as np
 import numpy.linalg as npl
 from nibabel.affines import apply_affine
@@ -11,16 +12,20 @@ class PostProcessor:
     """Class of postprocessor grouping functions."""
 
     @classmethod
-    def _typeify_abnormalities(self, cyl_filtered_clusters):
+    def _identify_skull_voxel_clusters(
+        cls, electrode_voxel_clusters: Dict, skull_cluster_size: int = 200
+    ):
         """
-        Classify the abnormal clusters that are extremely large.
+        Classify the abnormal clustered_voxels that are extremely large.
 
         Parameters
         ----------
-            cyl_filtered_clusters: dict(str: dict(str: ndarray))
-                Dictionary of clusters sorted by the cylinder/electrode
-                in which they fall. The keys of the dictionary are electrode
-                labels, the values of the dictionary are the cluster points
+            electrode_voxel_clusters: dict(str: ndarray)
+                Dictionary of clustered_voxels sorted by the cylinder/electrode
+                in which they fall.
+
+                The keys of the dictionary are channel names,
+                the values of the dictionary are the cluster points
                 from the threshold-based clustering algorithm that fell
                 into a cylinder.
 
@@ -29,42 +34,63 @@ class PostProcessor:
             skull_cluster_ids: dict(str: List[int])
                 Dictionary of cluster ids thought to be large due to close
                 proximity to the skull.
+        """
+        skull_clusters = []
 
+        for cluster_id, voxels in electrode_voxel_clusters.items():
+            # Average size of normal cluster is around 20-25 points
+            cluster_size = len(voxels)
+
+            # Skull clustered_voxels are likely to be very large
+            if cluster_size > skull_cluster_size:
+                skull_clusters.append(cluster_id)
+
+        return skull_clusters
+
+    @classmethod
+    def _identify_merged_voxel_clusters(self, electrode_voxel_clusters: Dict):
+        """
+        Classify the abnormal clustered_voxels that are extremely large.
+
+        Parameters
+        ----------
+            electrode_voxel_clusters: dict(str: ndarray)
+                Dictionary of clustered_voxels sorted by the cylinder/electrode
+                in which they fall. The keys of the dictionary are electrode
+                labels, the values of the dictionary are the cluster points
+                from the threshold-based clustering algorithm that fell
+                into a cylinder.
+
+        Returns
+        -------
             merged_cluster_ids: dict(str: List[int])
                 Dictionary of cluster ids thought to be large due to lack of
                 sufficient separation between two channels in image.
         """
-        skull_cluster_ids, merged_cluster_ids = {}, {}
+        merged_cluster_ids = []
 
-        for elec, clusters in cyl_filtered_clusters.items():
-            for cluster_id, points in clusters.items():
-                # Average size of normal cluster is around 20-25 points
-                cluster_size = len(points)
+        for cluster_id, points in electrode_voxel_clusters.items():
+            # Average size of normal cluster is around 20-25 points
+            cluster_size = len(points)
 
-                # Skull clusters are likely to be very large
-                if cluster_size > 200:
-                    skull_cluster_ids.setdefault(elec, []).append(cluster_id)
+            # Merged clustered_voxels are likely to be moderately large
+            if 50 <= cluster_size <= 200:
+                merged_cluster_ids.append(cluster_id)
 
-                # Merged clusters are likely to be moderately large
-                elif 50 <= cluster_size <= 200:
-                    merged_cluster_ids.setdefault(elec, []).append(cluster_id)
-
-        return skull_cluster_ids, merged_cluster_ids
+        return merged_cluster_ids
 
     @classmethod
-    def _pare_clusters(
-        self, cyl_filtered_clusters, skull_cluster_ids, sparse_labeled_contacts, qtile
-    ):
+    def _pare_clusters_on_electrode(self, electrode_clusters, skull_cluster_ids, qtile):
         """
-        Pare down skull clusters.
+        Pare down skull clustered_voxels.
         
         Only considering points close to the
         centroid of the oversized cluster.
 
         Parameters
         ----------
-            cyl_filtered_clusters: dict(str: dict(str: ndarray))
-                Dictionary of clusters sorted by the cylinder/electrode
+            electrode_clusters: dict(str: dict(str: ndarray))
+                Dictionary of clustered_voxels sorted by the cylinder/electrode
                 in which they fall. The keys of the dictionary are electrode
                 labels, the values of the dictionary are the cluster points
                 from the threshold-based clustering algorithm that fell
@@ -80,106 +106,103 @@ class PostProcessor:
 
             qtile: float
                 The upper bound quantile distance that we will consider for
-                being a part of the resulting pared clusters.
+                being a part of the resulting pared clustered_voxels.
 
         Returns
         -------
-            cyl_filtered_clusters: dict(str: dict(str: ndarray))
-                Dictionary of skull clusters that have been resized.
+            voxel_clusters: dict(str: dict(str: ndarray))
+                Dictionary of skull clustered_voxels that have been resized.
         """
-        for elec in skull_cluster_ids:
-            # Get the coordinate for the outermost labeled channel from user in
-            last_chan_coord = list(sparse_labeled_contacts[elec].values())[1]
-            for cluster_id in skull_cluster_ids[elec]:
+        # for elec in skull_cluster_ids:
+        # Get the coordinate for the outermost labeled channel from user in
+        # last_chan_coord = list(sparse_labeled_contacts.values())[-1]
+        for cluster_id in skull_cluster_ids:
+            # get the clustered points for this cluster ID
+            points_in_cluster = electrode_clusters[cluster_id]
 
-                points = cyl_filtered_clusters[elec][cluster_id]
-                var = np.var(points, axis=0)
+            # get the centroid of that cluster
+            cluster_centroid = np.mean(points_in_cluster, keepdims=True)
 
-                # Include points that have a z-score within specified quantile
-                if var.all():
-                    pared_cluster = []
-                    cyl_filtered_clusters[elec][cluster_id]
+            var = np.var(points_in_cluster, axis=0)
 
-                    for pt in points:
-                        # Assuming the spatial distribution of points is
-                        # approximately Gaussian, the outermost channel will be
-                        # approximately the centroid of this cluster.
-                        diff = pt - last_chan_coord
-                        z = npl.norm(np.divide(diff, np.sqrt(var)))
-                        if norm.cdf(z) <= qtile:
-                            pared_cluster.append(pt)
+            # store the pared clsuters
+            pared_cluster = []
 
-                    # Sanity check that we still have a non-empty list
-                    if pared_cluster:
-                        pared_cluster = np.array(pared_cluster)
-                        cyl_filtered_clusters[elec][cluster_id] = pared_cluster
+            # Include points that have a z-score within specified quantile
+            for pt in points_in_cluster:
+                # Assuming the spatial distribution of points is
+                # approximately Gaussian, the outermost channel will be
+                # approximately the centroid of this cluster.
+                diff = pt - cluster_centroid
+                z = npl.norm(np.divide(diff, np.sqrt(var)))
+                if norm.cdf(z) <= qtile:
+                    pared_cluster.append(pt)
 
-        return cyl_filtered_clusters
+            # Sanity check that we still have a non-empty list
+            if pared_cluster != []:
+                electrode_clusters[cluster_id] = np.array(pared_cluster)
+
+        return electrode_clusters
 
     @classmethod
-    def _unfuse_clusters(
-        self, cyl_filtered_clusters, merged_cluster_ids, sparse_labeled_contacts,
+    def _unfuse_clusters_on_electrode(
+        self, electrode_clusters: Dict, merged_cluster_ids: List[int]
     ):
         """
-        Unfuse merged clusters.
+        Unfuse merged clustered_voxels.
         
         By using KMeans clustering to split the large
         cluster into two.
 
         Parameters
         ----------
-            cyl_filtered_clusters: dict(str: dict(str: ndarray))
-                Dictionary of clusters sorted by the cylinder/electrode
-                in which they fall. The keys of the dictionary are electrode
-                labels, the values of the dictionary are the cluster points
+            electrode_clusters: dict(str: ndarray)
+                Dictionary of clustered_voxels sorted by the cylinder/electrode
+                in which they fall. The keys of the dictionary are channel names,
+                the values of the dictionary are the cluster points
                 from the threshold-based clustering algorithm that fell
                 into a cylinder.
 
-            merged_cluster_ids: dict(str: List[int])
+            merged_cluster_ids: List[int]
                 Dictionary of cluster ids thought to be large due to lack of
                 sufficient separation between two channels in image.
 
-            sparse_labeled_contacts: dict(str: dict(str: ndarray))
-                Sparse dictionary of labeled channels from user input. This
-                dictionary contains exactly two channels for each electrode.
-
         Returns
         -------
-            cyl_filtered_clusters: dict(str: dict(str: ndarray))
-                Dictionary of skull clusters that have been resized.
+            voxel_clusters: dict(str: ndarray)
+                Dictionary of skull clustered_voxels that have been resized.
 
         """
-        for elec in merged_cluster_ids:
-            # We need to be sure not to overwrite any clusters, so using values
-            # greater than the max cluster ID will guarantee that
-            max_cluster_id = max(cyl_filtered_clusters[elec])
+        # We need to be sure not to overwrite any clustered_voxels, so using values
+        # greater than the max cluster ID will guarantee that
+        max_cluster_id = max(electrode_clusters.keys())
 
-            for cluster_id in merged_cluster_ids[elec]:
-                # Use KMeans to separate cluster into two clusters
-                cluster = cyl_filtered_clusters[elec][cluster_id]
-                kmeans = KMeans(n_clusters=2, random_state=0).fit(cluster)
-                y = kmeans.labels_
+        for cluster_id in merged_cluster_ids:
+            # Use KMeans to separate cluster into two clustered_voxels
+            cluster = electrode_clusters[cluster_id]
+            kmeans = KMeans(n_clusters=2, random_state=0).fit(cluster)
+            y = kmeans.labels_
 
-                # Obtain points in each cluster
-                cluster0, cluster1 = cluster[y == 0], cluster[y == 1]
+            # Obtain points in each cluster
+            cluster0, cluster1 = cluster[y == 0], cluster[y == 1]
 
-                # Update the dictionary to separate the two clusters
-                cyl_filtered_clusters[elec][max_cluster_id + 1] = cluster0
-                cyl_filtered_clusters[elec][max_cluster_id + 2] = cluster1
-                del cyl_filtered_clusters[elec][cluster_id]
+            # Update the dictionary to separate the two clustered_voxels
+            electrode_clusters[max_cluster_id + 1] = cluster0
+            electrode_clusters[max_cluster_id + 2] = cluster1
+            del electrode_clusters[cluster_id]
 
-                max_cluster_id += 2
+            max_cluster_id += 2
 
-        return cyl_filtered_clusters
+        return electrode_clusters
 
     @classmethod
     def process_abnormal_clusters(
         self, cyl_filtered_clusters, sparse_labeled_clusters, qtile=0.875
     ):
         """
-        Truncate the clusters closest to the skull.
+        Truncate the clustered_voxels closest to the skull.
         
-        Which tend to be oversized, and separates clusters that 
+        Which tend to be oversized, and separates clustered_voxels that
         appear to have grouped two
         contacts together. The cluster is filtered with 90% quantile filtering,
         using a coordinate from user-input as the mean for the cluster.
@@ -187,44 +210,45 @@ class PostProcessor:
         Parameters
         ----------
             cyl_filtered_clusters: dict(str: dict(str: ndarray))
-                Dictionary of clusters sorted by the cylinder/electrode
+                Dictionary of clustered_voxels sorted by the cylinder/electrode
                 in which they fall. The keys of the dictionary are electrode
                 labels, the values of the dictionary are the cluster points
                 from the threshold-based clustering algorithm that fell
                 into a cylinder.
 
-            sparse_labeled_contacts: dict(str: dict(str: ndarray))
+            grouped_electrode_voxels: dict(str: dict(str: ndarray))
                 Sparse dictionary of labeled channels from user input. This
                 dictionary contains exactly two channels for each electrode.
 
             qtile: float
                 The upper bound quantile distance that we will consider for
-                being a part of the resulting pared clusters.
+                being a part of the resulting pared clustered_voxels.
 
         Returns
         -------
-            cyl_filtered_clusters: dict(str: dict(str: ndarray))
-                Updated dictionary of clusters found along each electrode
-                with the skull clusters having been resized through quantile
-                filtering and large clusters having been separated.
+            voxel_clusters: dict(str: dict(str: ndarray))
+                Updated dictionary of clustered_voxels found along each electrode
+                with the skull clustered_voxels having been resized through quantile
+                filtering and large clustered_voxels having been separated.
 
         """
-        # Identify abnormal clusters
-        skull_cluster_ids, merged_cluster_ids = self._typeify_abnormalities(
-            cyl_filtered_clusters
-        )
+        # Identify abnormally merged clustered_voxels
+        merged_cluster_ids = self._identify_merged_voxel_clusters(cyl_filtered_clusters)
 
-        print(f"Oversized clusters: {skull_cluster_ids}")
-        print(f"Merged clusters: {merged_cluster_ids}")
+        # identify possibly oversize voxel clusters at the skull within each cylinder
+        skull_cluster_ids = self._identify_skull_voxel_clusters(cyl_filtered_clusters)
 
-        # Resize skull clusters
-        cyl_filtered_clusters = self._pare_clusters(
+        print(f"Oversized clustered_voxels: {skull_cluster_ids}")
+        print(f"Merged clustered_voxels: {merged_cluster_ids}")
+
+        # Resize skull clustered_voxels
+        cyl_filtered_clusters = self._pare_clusters_on_electrode(
             cyl_filtered_clusters, skull_cluster_ids, sparse_labeled_clusters, qtile
         )
 
-        # Separate fused clusters into two new clusters and store them
+        # Separate fused clustered_voxels into two new clustered_voxels and store them
         # in a dictionary
-        cyl_filtered_clusters = self._unfuse_clusters(
+        cyl_filtered_clusters = self._unfuse_clusters_on_electrode(
             cyl_filtered_clusters, merged_cluster_ids, sparse_labeled_clusters
         )
 
@@ -250,14 +274,13 @@ class PostProcessor:
         """
         centroids = {}
         for label, coords in chanxyzvoxels.items():
-            coords = np.array(coords)
-            centroids[label] = np.mean(coords, axis=0)
+            centroids[label] = np.mean(np.array(coords), axis=0)
         return centroids
 
     @classmethod
     def _order_clusters(self, clusters, first_contact):
         """
-        Order a dictionary of clusters.
+        Order a dictionary of clustered_voxels.
         
         Based on distance of the centroid of
         the cluster from the contact labeled with the number 1 given from user
@@ -266,7 +289,7 @@ class PostProcessor:
         Parameters
         ----------
             clusters: dict(str: ndarray)
-                Dictionary of clusters for an electrode.
+                Dictionary of clustered_voxels for an electrode.
 
             first_contact: ndarray
                 1x3 Numpy array of coordinates for the most medial labeled
@@ -275,19 +298,19 @@ class PostProcessor:
         Returns
         -------
             sorted_clusters: dict(str: ndarray)
-                Dictionary of clusters for an electrode sorted based on
+                Dictionary of clustered_voxels for an electrode sorted based on
                 proximity to the specified first_contact.
         """
+        # compute centroids
         centroids = self._compute_centroids(clusters)
 
         # Sort based on proximity to most medial (innermost) contact
         sorted_centroids = sorted(
             centroids.items(), key=lambda x: npl.norm(x[1] - first_contact)
         )
+        sorted_centroids = collections.OrderedDict(sorted_centroids)
 
-        sorted_centroids = dict(sorted_centroids)
-
-        # Restore clusters, now in sorted order
+        # Restore clustered_voxels, now in sorted order
         sorted_clusters = {k: clusters[k] for k in sorted_centroids}
 
         return sorted_clusters
@@ -338,7 +361,7 @@ class PostProcessor:
                 new_pt = centroids[i] + (frac * dists[i])
                 new_pts[max_cluster_id + portion] = np.array([new_pt])
 
-                # Update the max_cluster_id to avoid overwriting any clusters
+                # Update the max_cluster_id to avoid overwriting any clustered_voxels
                 max_cluster_id += num
 
         return new_pts
@@ -354,18 +377,18 @@ class PostProcessor:
         Parameters
         ----------
             clusters: dict(str: ndarray)
-                Dictionary of clusters for a given electrode.
+                Dictionary of clustered_voxels for a given electrode.
 
             num_to_fill: ndarray
-                Numpy array specifying the number of clusters to interpolate
+                Numpy array specifying the number of clustered_voxels to interpolate
                 between each cluster centroid, i.e. num_to_fill[i] is the
                 number of points to interpolate between the centroid of
-                clusters[i] and clusters[i+1].
+                clustered_voxels[i] and clustered_voxels[i+1].
 
         Returns
         -------
-            clusters: dict(str: ndarray)
-                Updated dictionary of clusters for a given electrode, now
+            clustered_voxels: dict(str: ndarray)
+                Updated dictionary of clustered_voxels for a given electrode, now
                 containing interpolated points.
         """
         max_cluster_id = max(clusters.keys())
@@ -383,13 +406,15 @@ class PostProcessor:
             centroid_coords[idxs], num_to_fill[idxs], dists[idxs], max_cluster_id
         )
 
-        # Merge the dictionary of interpolated points into clusters
+        # Merge the dictionary of interpolated points into clustered_voxels
         clusters.update(new_pts)
 
         return clusters
 
     @classmethod
-    def fill_gaps(self, processed_clusters, gap_tolerance, sparse_labeled_contacts):
+    def fill_gaps(
+        self, electrode_clusters: Dict, gap_tolerance: float, entry_ch, exit_ch
+    ):
         """
         Assist in filling in gaps in clustering.
 
@@ -398,7 +423,7 @@ class PostProcessor:
 
         Parameters
         ----------
-            processed_clusters: dict(str: dict(str: ndarray))
+            electrode_clusters: dict(str: ndarray)
                 Dictionary with keys being electrode names and values being
                 dictionaries consisting of entries of channel names and their
                 corresponding centroid coordinates.
@@ -412,80 +437,63 @@ class PostProcessor:
 
         Returns
         -------
-            processed_clusters: dict(str: dict(str: ndarray))
+            processed_clusters: dict(str: ndarray)
                 Updated versions of final_xyz_centroids with adjusted labeling and
                 dists with updated distances.
         """
-        for elec in processed_clusters:
-            # Obtain labeled contacts given by user
-            labeled_chans = list(sparse_labeled_contacts[elec].items())
-            first, last = labeled_chans[0], labeled_chans[-1]
+        # Obtain labeled contacts given by user
+        first_label, first_coord = entry_ch
+        last_label, last_coord = exit_ch
 
-            first_label, first_coord = first
-            last_label, last_coord = last
+        # Order clustered_voxels for an electrode based on proximity to the
+        # innermost contact given by the user
+        electrode_clusters = self._order_clusters(electrode_clusters, first_coord)
 
-            # Raise error if labeled channels from user input were not given
-            if not len(first_coord):
-                raise KeyError(f"Need innermost contact for electrode {elec}")
+        # In rare case when there is only one cluster that belongs to a
+        # given electrode, we exclusively use the user specified contacts
+        if len(electrode_clusters) < 2:
+            max_id = max(electrode_clusters.keys())
 
-            if not len(last_coord):
-                raise KeyError(f"Need outermost contact for electrode {elec}")
+            electrode_clusters = {
+                max_id + 1: np.array([first_coord]),
+                max_id + 2: np.array([last_coord]),
+            }
+            first_num = int(re.findall(r"\d+", first_label)[0])
+            last_num = int(re.findall(r"\d+", last_label)[0])
+            diff = last_num - first_num
+            num_to_fill = np.array([diff - 1])
 
-            # Order clusters for an electrode based on proximity to the
-            # innermost contact given by the user
-            processed_clusters[elec] = self._order_clusters(
-                processed_clusters[elec], first_coord
-            )
+        else:
+            # Obtain centroid coordinates
+            centroids = self._compute_centroids(electrode_clusters)
+            centroid_coords = np.array(list(centroids.values()))
 
-            # In rare case when there is only one cluster that belongs to a
-            # given electrode, we exclusively use the user specified contacts
-            if len(processed_clusters[elec]) < 2:
-                max_id = max(processed_clusters[elec].keys())
+            # Compute L2 distance between adjacent centroids
+            dists = npl.norm(np.diff(centroid_coords, axis=0), axis=1)
 
-                processed_clusters[elec] = {
-                    max_id + 1: np.array([first_coord]),
-                    max_id + 2: np.array([last_coord]),
-                }
-                first_num = int(re.findall(r"\d+", first_label)[0])
-                last_num = int(re.findall(r"\d+", last_label)[0])
-                diff = last_num - first_num
-                num_to_fill = np.array([diff - 1])
+            # Compute the number of points to interpolate based on
+            # specified gap tolerance
+            num_to_fill = np.array(dists // gap_tolerance, dtype=np.uint16)
 
-            else:
-                # Obtain centroid coordinates
-                centroids = self._compute_centroids(processed_clusters[elec])
-                centroid_coords = np.array(list(centroids.values()))
+        # Update the dictionary to include the new interpolated points
+        electrode_clusters = self._interpolate_points(electrode_clusters, num_to_fill)
 
-                # Compute L2 distance between adjacent centroids
-                dists = npl.norm(np.diff(centroid_coords, axis=0), axis=1)
+        # Re-sort after adding interpolated points
+        electrode_clusters = self._order_clusters(electrode_clusters, first_coord)
 
-                # Compute the number of points to interpolate based on
-                # specified gap tolerance
-                num_to_fill = np.array(dists // gap_tolerance, dtype=np.uint16)
-
-            # Update the dictionary to include the new interpolated points
-            processed_clusters[elec] = self._interpolate_points(
-                processed_clusters[elec], num_to_fill
-            )
-
-            # Re-sort after adding interpolated points
-            processed_clusters[elec] = self._order_clusters(
-                processed_clusters[elec], first_coord
-            )
-
-        return processed_clusters
+        return electrode_clusters
 
     @classmethod
     def assign_labels(self, final_clusters, sparse_labeled_contacts):
         """
-        Assign stereo-EEG electrode labels to clusters.
+        Assign stereo-EEG electrode labels to clustered_voxels.
 
         Using labeling given by user.
 
         Parameters
         ----------
             final_clusters: dict(str: dict(str: ndarray))
-                Dictionary of clusters grouped by electrode.
+                Dictionary of clustered_voxels grouped by electrode.
 
             sparse_labeled_contacts: dict(str: dict(str: ndarray))
                 Sparse dictionary of labeled channels from user input. This
@@ -493,8 +501,8 @@ class PostProcessor:
 
         Returns
         -------
-            labeled_clusters: dict(str: dict(str: ndarray))
-                Dictionary of clusters grouped by electrode labeled with
+            voxel_clusters: dict(str: dict(str: ndarray))
+                Dictionary of clustered_voxels grouped by electrode labeled with
                 stereo-EEG labeling convention.
         """
         labeled_clusters = {}
@@ -503,11 +511,8 @@ class PostProcessor:
             chs_on_elec = sparse_labeled_contacts[elec]
             ch_names = list(chs_on_elec.keys())
             first_contact = sparse_labeled_contacts[elec][ch_names[0]]
-            # first_contact = sparse_labeled_contacts[elec].get(elec + "1", [])
-            # if not len(first_contact):
-            #     raise KeyError(f"Need innermost contact for electrode {elec}")
 
-            # Ensure that the clusters are well-ordered
+            # Ensure that the clustered_voxels are well-ordered
             final_clusters[elec] = self._order_clusters(
                 final_clusters[elec], first_contact
             )
@@ -543,7 +548,7 @@ class PostProcessor:
         Parameters
         ----------
             labeled_clusters: dict(str: dict(str: ndarray))
-                Dictionary of clusters grouped by electrode labeled with
+                Dictionary of clustered_voxels grouped by electrode labeled with
                 stereo-EEG labeling convention.
 
             sparse_labeled_contacts: dict(str: dict(str: ndarray))
@@ -552,8 +557,8 @@ class PostProcessor:
 
         Returns
         -------
-            labeled_clusters: dict(str: dict(str: ndarray))
-                Updated dictionary of clusters grouped by electrode labeled
+            voxel_clusters: dict(str: dict(str: ndarray))
+                Updated dictionary of clustered_voxels grouped by electrode labeled
                 with stereo-EEG labeling convention with high error electrodes
                 being replaced with the brute force approximation.
         """
@@ -623,7 +628,7 @@ class PostProcessor:
         Parameters
         ----------
             clusters: dict(str: dict(str: ndarray))
-                Dictionary of clusters grouped by electrode.
+                Dictionary of clustered_voxels grouped by electrode.
             final_xyz_centroids: dict()
                 a dictionary with keys being electrode names and values being
                 dictionaries consisting of entries of channel names and their

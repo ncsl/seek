@@ -462,7 +462,7 @@ end
 % % % 
 % % % CC = bwconncomp((Y/255) > params.th) ;
 % % % 
-% % % % remove clusters that are outside brain shell
+% % % % remove clustered_voxels that are outside brain shell
 % % % type = 'crop_if_partially_outside' ;
 % % % 
 % % % for k = 1:CC.NumObjects
@@ -862,7 +862,7 @@ F   = convhull(V(:,1),V(:,2),V(:,3))  ;
 CC = bwconncomp(X > th) ;
 
 
-% remove clusters that are outside brain shell
+% remove clustered_voxels that are outside brain shell
 for k = 1:CC.NumObjects
     
     k/CC.NumObjects

@@ -8,15 +8,16 @@ from neuroimg.base.utils.utils import MatReader
 def save_organized_elecdict_astsv(elecdict, output_fpath, size=None):
     """Save organized electrode dict coordinates as a tsv file."""
     x, y, z, names = list(), list(), list(), list()
-    for ch, ch_coord in elecdict.items():
-        x.append(ch_coord[0])
-        y.append(ch_coord[1])
-        z.append(ch_coord[2])
-        names.append(ch)
-    if size is None:
-        sizes = ["n/a"] * len(names)
-    else:
-        sizes = [size] * len(names)
+    for elec in elecdict.keys():
+        for ch, ch_coord in elecdict[elec].items():
+            x.append(ch_coord[0])
+            y.append(ch_coord[1])
+            z.append(ch_coord[2])
+            names.append(ch)
+        if size is None:
+            sizes = ["n/a"] * len(names)
+        else:
+            sizes = [size] * len(names)
 
     data = OrderedDict(
         [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes),]
@@ -84,11 +85,11 @@ def load_elecs_data(elecfile):
 
         eleclabels = data["eleclabels"]
         elecmatrix = data["elecmatrix"]
-        print(f"Electrode matrix shape: {elecmatrix.shape}")
+        # print(f"Electrode matrix shape: {elecmatrix.shape}")
 
         for i in range(len(eleclabels)):
             eleccoords_mm[eleclabels[i][0].strip()] = elecmatrix[i]
 
-    print(f"Electrode labels: {eleccoords_mm.keys()}")
+    # print(f"Electrode labels: {eleccoords_mm.keys()}")
 
     return eleccoords_mm

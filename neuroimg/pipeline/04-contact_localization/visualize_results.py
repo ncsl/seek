@@ -115,8 +115,6 @@ def l2_error(figurefilepath, final_centroids, validation_centroids):
     -------
         Error in each channel (accurate prediction is between 0-3).
     """
-    numchans = len(final_centroids.keys())
-
     errors_per_channel = {}
     for ch_name in final_centroids.keys():
         if ch_name not in validation_centroids.keys():
@@ -139,7 +137,7 @@ def l2_error(figurefilepath, final_centroids, validation_centroids):
     )
     axs = axs.flatten()
 
-    ymin, ymax = 0, 20
+    # ymin, ymax = 0
     for i, elec_name in enumerate(errors_per_electrode.keys()):
         ch_names = errors_per_electrode[elec_name].keys()
 
@@ -156,11 +154,11 @@ def l2_error(figurefilepath, final_centroids, validation_centroids):
             xticks=y_pos,
             xticklabels=list(ch_names),
             ylabel="Euclidean Distance (mm)",
-            ylim=[ymin, ymax],
+            # ylim=[ymin, ymax],
         )
         axs[i].set_xlabel("Channel")
         axs[i].set_ylabel("Euclidean Distance (mm)")
-        axs[i].set_ylim([ymin, ymax])
+        # axs[i].set_ylim([ymin, ymax])
     fig.tight_layout()
 
     plt.savefig(figurefilepath, box_inches="tight")

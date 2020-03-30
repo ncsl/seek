@@ -1,252 +1,193 @@
 import argparse
 import collections
+import re
 import sys
 import warnings
 from pathlib import Path
 from pprint import pprint
 
 import nibabel as nb
-import numpy as np
 
 sys.path.append("../../../")
 
-from neuroimg.base.utils.utils import group_contacts
+from neuroimg.base.utils.utils import _contact_numbers_on_electrode
 from neuroimg.base.utils.io import (
     save_organized_elecdict_asmat,
     save_organized_elecdict_astsv,
     load_elecs_data,
 )
-from neuroimg.localize_contacts.electrode_clustering.grouping import (
-    Cluster,
-    CylindricalGroup,
+
+from neuroimg.localize_contacts.electrode_clustering.neuroimage import (
+    ClusteredBrainImage,
 )
-from neuroimg.localize_contacts.electrode_clustering.mask import MaskVolume
-from neuroimg.localize_contacts.electrode_clustering.postprocess import PostProcessor
+from neuroimg.localize_contacts.electrode_clustering.electrode import Electrodes
 
 
-def load_data(ct_scan, brainmask_ct=None):
-    """
-    Load brain image scans as NiBabel image objects.
-
-    Parameters
-    –––-------
-        ct_scan: str
-            Path to Nifti image file of CT scan.
-
-        brainmask_ct: str
-            Path to Nifti image file of corresponding brain mask in CT voxels.
-
-    Returns
-    -------
-        ct_img: NiBabel image object
-            NiBabel image object of CT scan input.
-
-        bm_ct_img: NiBabel image object
-            NiBabel image object of brain mask in CT.
-    """
-
-    ct_img, bm_ct_img = None, None
-
-    if ct_scan:
-        ct_img = nb.load(ct_scan)
-
-    if brainmask_ct:
-        bm_ct_img = nb.load(brainmask_ct)
-
-    return ct_img, bm_ct_img
-
-
-def apply_brain_mask(elec_coords_mm, ct_img, bm_ct_img=None, output_bm_fpath=None):
-    """Compute electrode voxel clouds via Grouping algo and apply brainmask."""
-
-    # Define pipeline objects to run algorithm
-    maskpipe = MaskVolume()
-
-    # Apply masking
-    if bm_ct_img:
-        brainmasked_ct_img = maskpipe.apply_mask(ct_img, bm_ct_img)
-        brainmasked_ct_data = brainmasked_ct_img.get_fdata()
-        # Filtering out electrodes not within brainmask
-        elecvoxels_in_brain = maskpipe.mask_electrodes(
-            elec_coords_mm, brainmasked_ct_img
-        )
-
-        if output_bm_fpath:
-            print(f"Saving binarized CT image volume to: {output_bm_fpath}.")
-            brainmasked_ct_img.to_filename(output_bm_fpath)
-    else:
-        if output_bm_fpath:
-            raise RuntimeError(
-                "Note that output brainmask filepath was passed to intend "
-                "saving the brainmasked CT image, but no brainmask Image was passed in."
+def get_entry_exit_contacts(electrodes: Electrodes):
+    entry_exit_elec = collections.defaultdict(list)
+    for elec in electrodes:
+        if len(elec) < 6:
+            warnings.warn(
+                f"Channels on electrode {elec} contain less than 6 contacts - {len(elec)}. "
+                "Were endpoints correctly labeled?"
             )
-        brainmasked_ct_data = ct_img.get_fdata()
-        elecvoxels_in_brain = maskpipe.mask_electrodes(elec_coords_mm, ct_img)
 
-    return brainmasked_ct_data, elecvoxels_in_brain
+        # get entry/exit contacts
+        entry_ch = elec.get_entry_ch()
+        exit_ch = elec.get_exit_ch()
+        entry_exit_elec[elec.name] = [entry_ch, exit_ch]
 
+        # remove all but the entry/exit
+        for ch in elec.contacts:
+            if ch.name not in [entry_ch.name, exit_ch.name]:
+                elec.remove_contact(ch.name)
 
-def apply_threshold_clustering(
-    brainmasked_ct_data, sparse_labeled_contacts_vox, **kwargs
-):
-    # Define pipeline objects to run algorithm
-    clusterpipe = Cluster()
-    grouppipe = CylindricalGroup()
-
-    threshold = kwargs.get(
-        "threshold", 0.630
-    )  # radius (in CT voxels) of cylindrical boundary
-    radius = kwargs.get(
-        "radius", 4
-    )  # Between 0 and 1. Zeroes voxels with value < threshold
-
-    # Runs threshold-based clustering algorithm over brainmasked CT
-    # for thresholds between 0.63 and 0.64 with a step of 0.005
-    voxel_clusters, numobj = np.array(
-        clusterpipe.find_clusters(brainmasked_ct_data, threshold=threshold)
-    )
-
-    # Cluster by cylindrical boundaries
-    bound_clusters = grouppipe.cylinder_filter(
-        sparse_labeled_contacts_vox, voxel_clusters, radius
-    )
-
-    return bound_clusters
+    return entry_exit_elec
 
 
-def apply_postprocessing_on_clusters(
-    bound_clusters, sparse_labeled_contacts, ct_affine, **kwargs
-):
-    gap_tolerance = kwargs.get(
-        "gap_tolerance", 13
-    )  # maximum distance between two adjacent nodes
-
-    # Define pipeline objects to run algorithm
-    postprocesspipe = PostProcessor()
-
-    # Begin postprocessing steps
-    processed_clusters = postprocesspipe.process_abnormal_clusters(
-        bound_clusters, sparse_labeled_contacts
-    )
-
-    # Compute centroids for filling gaps
-    final_clusters = postprocesspipe.fill_gaps(
-        processed_clusters, gap_tolerance, sparse_labeled_contacts
-    )
-
-    # Assign channel labels to the clusters found in voxel space
-    final_labeled_voxel_clusters = postprocesspipe.assign_labels(
-        final_clusters, sparse_labeled_contacts
-    )
-
-    # Correct egregious errors with linearly interpolated points
-    final_labeled_voxel_clusters = postprocesspipe.bruteforce_correction(
-        final_labeled_voxel_clusters, sparse_labeled_contacts
-    )
-
-    # Compute centroids for each cluster
-    final_centroids_vox = postprocesspipe.cluster_2_centroids(
-        final_labeled_voxel_clusters
-    )
-
-    # Convert final voxels to xyz coordinates
-    final_centroids_xyz = postprocesspipe.vox_2_xyz(final_centroids_vox, ct_affine)
-
-    return final_centroids_vox, final_centroids_xyz
-
-
-def main(
-    ctimgfile,
-    brainmaskfile,
-    elecinitfile,
-    brainmasked_ct_fpath=None,
-    evaluate_mode=False,
+def mainv2(
+    ctimgfile, brainmaskfile, elecinitfile, brainmasked_ct_fpath=None,
 ):
     # Hyperparameters for electrode clustering algorithm
     radius = 4  # radius (in CT voxels) of cylindrical boundary
     threshold = 0.630  # Between 0 and 1. Zeroes voxels with value < threshold
-    gap_tolerance = 13  # maximum distance between two adjacent nodes
+    contact_spacing_mm = 3.5  # distance between two adjacent contacts
 
-    threshold_kwargs = {
-        "radius": radius,
-        "threshold": threshold,
-    }
-    postprocess_kwargs = {"gap_tolerance": gap_tolerance}
+    # load in nibabel CT and brainmask images
+    ct_img = nb.load(ctimgfile)
+    brainmask_img = nb.load(brainmaskfile)
 
-    # Load data
-    print(f"LOADING ELECS DATA FROM: {elecinitfile}")
-    elec_coords_mm = load_elecs_data(elecinitfile)
-    ct_img, bm_ct_img = load_data(ctimgfile, brainmaskfile)
-    ct_affine = ct_img.affine
+    # initialize clustered brain image
+    brain = ClusteredBrainImage(ct_img, brainmask_img)
+    brain.save_masked_img(brainmasked_ct_fpath)  # save brain-masked CT file
 
-    # if we are going to evaluate the semi-seek algorithm
-    # then we want to trim down the dataset by 2
-    if evaluate_mode:
-        # Get all voxel clouds per electrode in sorted order
-        grouped_elec_coords_mm = group_contacts(elec_coords_mm)
+    # load in the channel coordinates in xyz as dictionary
+    ch_coords_mm = load_elecs_data(elecinitfile)
 
-        _elec_coords_mm = {}
-        # Re-assign only two contacts per electrode
-        for elec in grouped_elec_coords_mm.keys():
-            ch_names = list(grouped_elec_coords_mm[elec].keys())
-            ch_coords = list(grouped_elec_coords_mm[elec].values())
+    # convert into electrodes
+    ch_names = list(ch_coords_mm.keys())
+    ch_coords = list(ch_coords_mm.values())
+    electrodes = Electrodes(ch_names, ch_coords, coord_type="mm")
 
-            if len(ch_names) < 6:
-                warnings.warn(
-                    f"Channels on electrode {elec} contain less than 6 contacts - {len(ch_names)}. "
-                    "Were endpoints correctly labeled?"
-                )
+    # get the entry/exit electrodes
+    entry_exit_elec = get_entry_exit_contacts(electrodes)
+    # determine the contact numbering per electrode
+    elec_contact_nums = {}
+    for elec, (entry_ch, exit_ch) in entry_exit_elec.items():
+        elec_contact_nums[elec] = _contact_numbers_on_electrode(
+            entry_ch.name, exit_ch.name
+        )
 
-            # only get 2 endpoint contacts per electrode for testing
-            for i in [0, -1]:
-                ch_name = ch_names[i]
-                ch_coord = ch_coords[i]
-                _elec_coords_mm[ch_name] = ch_coord
+    # get sparse electrodes in voxel space
+    ch_names = []
+    ch_coords = []
+    # transform coordinates -> voxel space
+    for elec_name, contacts in entry_exit_elec.items():
+        for contact in contacts:
+            contact.transform_coords(brain.get_masked_img(), coord_type="vox")
+            ch_names.append(contact.name)
+            ch_coords.append(contact.coord)
+            assert contact.coord_type == "vox"
+    entry_exit_elec = Electrodes(ch_names, ch_coords, coord_type="vox")
 
-        for key in _elec_coords_mm.keys():
-            np.testing.assert_array_equal(_elec_coords_mm[key], elec_coords_mm[key])
-        elec_coords_mm = _elec_coords_mm
-
-    # apply brain mask to the CT data
-    # compute electrode voxel clouds and brain masked CT data
-    brainmasked_ct_data, elecvox_in_brain = apply_brain_mask(
-        elec_coords_mm, ct_img, bm_ct_img, output_bm_fpath=brainmasked_ct_fpath
-    )
-    print("Brainmasked CT data: ", brainmasked_ct_data.shape)
-    print(
-        "Sparsely grouped contacts by voxel locations (Keys): ", elecvox_in_brain.keys()
+    print("Applying SEEK algo... for electrodes: ", entry_exit_elec)
+    print("Contact numbering for each electrode: ", elec_contact_nums.keys())
+    # compute voxel clusters in the brain image using a threshold
+    voxel_clusters, num_clusters = brain.compute_clusters_with_threshold(
+        threshold=threshold
     )
 
-    # group contact voxels by electrodes
-    grouped_contacts_vox = group_contacts(elecvox_in_brain)
+    # feed in entry/exit voxel points per electrode and apply a cylinder filter
+    _cylindrical_clusters = {}
+    for electrode in entry_exit_elec:
+        elec_name = electrode.name
+        entry_point_vox = electrode.get_entry_ch().coord
+        exit_point_vox = electrode.get_exit_ch().coord
+        voxel_clusters_in_cylinder = brain.compute_cylindrical_clusters(
+            voxel_clusters, entry_point_vox, exit_point_vox, radius=radius
+        )
+        _cylindrical_clusters[elec_name] = voxel_clusters_in_cylinder
+    voxel_clusters = _cylindrical_clusters
+    print("Cylindrical bounded electrode clustered_voxels: ", voxel_clusters.keys())
 
-    # apply threshold clustering algorithm to sparsely label contacts within clusters
-    # applied on the CT data that was brain-masked
-    bound_clusters = apply_threshold_clustering(
-        brainmasked_ct_data, grouped_contacts_vox, **threshold_kwargs
+    # preliminarily label electrode voxel clusters
+    labeled_voxel_clusters = {}
+    electrodes_with_problem = collections.defaultdict(list)
+    for electrode in entry_exit_elec:
+        elec_name = electrode.name
+        entry_ch = electrode.get_entry_ch()
+        exit_ch = electrode.get_exit_ch()
+        this_elec_voxels = voxel_clusters[elec_name]
+
+        _this_elec_voxels = brain.assign_sequential_labels(
+            this_elec_voxels, entry_ch.name, entry_ch.coord
+        )
+
+        # check each labels
+        for ch_name in _this_elec_voxels.keys():
+            _, ch_num = re.match("^([A-Za-z]+[']?)([0-9]+)$", ch_name).groups()
+            if int(ch_num) not in elec_contact_nums[elec]:
+                electrodes_with_problem[elec_name].append(ch_num)
+
+        # there were incorrectly grouped contact clusters
+        if elec_name in electrodes_with_problem:
+            print(
+                f"Electrode {elec_name} has incorrectly grouped clusters... "
+                f"Attempting to unfuse them."
+            )
+            print(this_elec_voxels.keys())
+
+            # check for merged clusters at entry and exit for this electrode
+            merged_cluster_ids = brain._identify_merged_voxel_clusters(this_elec_voxels)
+
+            print(merged_cluster_ids)
+            # if there are merged cluster ids, unfuse them
+            this_elec_voxels = brain._unfuse_clusters_on_entry_and_exit(
+                this_elec_voxels, merged_cluster_ids, elec_contact_nums[elec]
+            )
+
+        # check for oversized clusters and pare them down
+        oversized_clusters_ids = brain._identify_skull_voxel_clusters(this_elec_voxels)
+
+        print("Found oversized clusters: ", oversized_clusters_ids)
+
+        # pare them down and resize
+        this_elec_voxels = brain._pare_clusters_on_electrode(
+            this_elec_voxels, oversized_clusters_ids, qtile=0.9
+        )
+
+        # fill in gaps between centroids
+        this_elec_voxels = brain.fill_clusters_with_spacing(
+            this_elec_voxels,
+            entry_ch,
+            elec_contact_nums[elec_name],
+            contact_spacing_mm=contact_spacing_mm,
+        )
+
+        # apply brute force correction
+        this_elec_voxels = brain.bruteforce_correction(
+            this_elec_voxels,
+            (entry_ch.name, entry_ch.coord),
+            (exit_ch.name, exit_ch.coord),
+        )
+
+        # assign sequential labels
+        this_elec_voxels = brain.assign_sequential_labels(
+            this_elec_voxels, entry_ch.name, entry_ch.coord,
+        )
+
+        # reset electrode clusters to that specific electrode
+        labeled_voxel_clusters[elec_name] = this_elec_voxels
+
+    # Compute centroids for each cluster
+    labeled_voxel_centroids = brain.cluster_2_centroids(labeled_voxel_clusters)
+
+    # Convert final voxels to xyz coordinates
+    labeled_xyz_centroids = brain.vox_2_xyz(
+        labeled_voxel_centroids, brain.get_masked_img().affine
     )
 
-    print("Bound clusters: ", bound_clusters.keys())
-
-    final_centroids_vox, final_centroids_xyz = apply_postprocessing_on_clusters(
-        bound_clusters, grouped_contacts_vox, ct_affine, **postprocess_kwargs
-    )
-
-    # convert into dictionary
-    _final_centroids_xyz = collections.OrderedDict()
-    for elec, ch_coords in final_centroids_xyz.items():
-        _final_centroids_xyz.update(**ch_coords)
-    final_centroids_xyz = _final_centroids_xyz
-
-    _final_centroids_vox = collections.OrderedDict()
-    for elec, ch_coords in final_centroids_vox.items():
-        _final_centroids_vox.update(**ch_coords)
-    final_centroids_vox = _final_centroids_vox
-
-    return (
-        final_centroids_vox,
-        final_centroids_xyz,
-    )
+    return labeled_voxel_centroids, labeled_xyz_centroids
 
 
 if __name__ == "__main__":
@@ -284,18 +225,18 @@ if __name__ == "__main__":
     elecs_dir.mkdir(exist_ok=True)
 
     # Compute the final centroid voxels, centroid xyzs and the binarized CT image volume
-    final_centroids_voxels, final_centroids_xyz = main(
+    final_centroids_voxels, final_centroids_xyz = mainv2(
         ct_nifti_img,
         brainmask_native_file,
         electrode_initialization_file,
         binarized_ct_file,
-        evaluate_mode=True,
     )
 
     # Save output files
     print(f"Saving clustered xyz coords to: {clustered_points_file}.")
     print(f"Saving clustered voxels to: {clustered_voxels_file}.")
     pprint(final_centroids_xyz)
+
     # save data into bids sidecar-tsv files
     save_organized_elecdict_astsv(final_centroids_xyz, clustered_points_file)
     save_organized_elecdict_astsv(final_centroids_voxels, clustered_voxels_file)

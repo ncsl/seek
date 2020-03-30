@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 
 from mne_bids import make_bids_basename, make_bids_folders
-from mne_bids.utils import _find_matching_sidecar
 
 sys.path.append("../../../")
 from neuroimg.pipeline.fileutils import BidsRoot, BIDS_ROOT
@@ -45,36 +44,36 @@ def _get_bids_basename(subject, acquisition):
                                     suffix=f"electrodes.tsv")
     return bids_fname
 
-def get_channels_tsv_fpath(bids_root, subject_id):
 
+def get_channels_tsv_fpath(bids_root, subject_id):
     data_path = make_bids_folders(subject=subject_id, bids_root=bids_root, make_dir=False,
                                   overwrite=False, verbose=False)
     channels_tsv_fpath = make_bids_basename(subject=subject_id, suffix="channels.tsv", prefix=data_path)
     return channels_tsv_fpath
 
 
-def get_electrodes_and_coordsystem_fpath(bids_root, subject_id, session_id, acquisition, verbose=True):
-    if acquisition in ['ecog', 'seeg']:
-        kind = 'ieeg'
-    elif acquisition == 'eeg':
-        kind = 'eeg'
+data_path = make_bids_folders(subject=subject_wildcard, session='veeg',
+                              bids_root=str(bids_root.bids_root), make_dir=False,
+                              overwrite=False, verbose=False)
+manual_coordsystem_fname = make_bids_basename(
+    subject=subject_wildcard, session='veeg', processing='manual',
+    acquisition='seeg',
+    suffix='coordsystem.json', prefix=data_path)
+manual_electrodes_fname = make_bids_basename(
+    subject=subject_wildcard, session='veeg', processing='manual',
+    acquisition='seeg',
+    suffix='electrodes.tsv', prefix=data_path)
 
-    data_path = make_bids_folders(subject=subject_id, session=session_id,
-                                  kind=kind, bids_root=bids_root, make_dir=False,
-                                  overwrite=False, verbose=verbose)
-    coordsystem_fname = make_bids_basename(
-        subject=subject_id, session=session_id, acquisition=acquisition,
-        suffix='coordsystem.json', prefix=data_path)
-    electrodes_fname = make_bids_basename(
-        subject=subject_id, session=session_id, acquisition=acquisition,
-        suffix='electrodes.tsv', prefix=data_path)
-    return coordsystem_fname, electrodes_fname
+coordsystem_fname = make_bids_basename(
+    subject=subject_wildcard, session='veeg', processing='seek',
+    acquisition='seeg',
+    suffix='coordsystem.json', prefix=data_path)
+electrodes_fname = make_bids_basename(
+    subject=subject_wildcard, session='veeg', processing='seek',
+    acquisition='seeg',
+    suffix='electrodes.tsv', prefix=data_path)
 
-# extract coordinate system filename and electrodes filename
-coordsystem_fname, electrodes_fname = get_electrodes_and_coordsystem_fpath(str(bids_root.bids_root),
-                                                                           subject_wildcard,
-                                                                           session_id='veeg',
-                                                                           acquisition='seeg')
+
 # channels_fname = get_channels_tsv_fpath(str(bids_root.bids_root), subject_id=subject_wildcard)
 
 voxel_electrodes_fname = electrodes_fname.replace("electrodes", "voxelelectrodes")
@@ -105,6 +104,10 @@ rule all:
                                     subject = config['patients']),
         bids_electrodes_json_file = expand(os.path.join(electrodes_fname.replace('.tsv', '.json')),
                                     subject = config['patients']),
+        manual_bids_electrodes_file = expand(os.path.join(manual_electrodes_fname),
+                                      subject=config['patients']),
+        manual_bids_electrodes_json_file = expand(os.path.join(manual_electrodes_fname.replace('.tsv', '.json')),
+                                           subject=config['patients']),
     params:
         bids_root = bids_root.bids_root,
     shell:
@@ -147,7 +150,7 @@ Note: This file should contain at least two contacts per electrode.
 """
 rule convert_CT_eleccoords_to_txt:
     input:
-        clustered_center_points_mat = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_*.mat'),
+        clustered_center_points_mat = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elec_f.mat'),
     output:
         clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
     shell:
@@ -215,24 +218,23 @@ rule convert_xyzcoords_to_native_T1:
                 "{input.ct_xyzcoords_fpath} " \
                 "{output.mri_xyzcoords_fpath};"
 
-rule convert_voxelcoords_to_native_T1:
+rule convert_manuallabels_to_native_T1:
     input:
         CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
         MRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
         # DEPENDENCY ON RECONSTRUCTION WORKFLOW
         # mapping matrix for post to pre in T1
         MAPPING_FILE = coregistration_workflow(os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt")),
-        ct_voxelscoords_fpath = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(ct_voxel_electrodes_fname)),
+        manual_ct_coords_fpath = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
     output:
-        mri_voxelscoords_fpath = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(voxel_electrodes_fname)),
+        mri_electrode_coords_file = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(manual_electrodes_fname)),
     shell:
         "python ./convert_coordspace.py " \
                 "{input.CT_NIFTI_IMG} " \
                 "{input.MRI_NIFTI_IMG} " \
                 "{input.MAPPING_FILE} " \
-                "{input.ct_voxelscoords_fpath} " \
-                "{output.mri_voxelscoords_fpath} " \
-                "--coordinate_type vox;"
+                "{input.manual_ct_coords_fpath} " \
+                "{output.mri_electrode_coords_file};"
 
 
 rule apply_anatomicalatlas_to_electrodes:
@@ -249,6 +251,25 @@ rule apply_anatomicalatlas_to_electrodes:
         "echo 'Applying anatomical atlas to electrode points...';"
                 "python ./apply_anat_to_electrodes.py " \
                 "{input.clustered_center_points_file} " \
+                "{output.bids_electrodes_tsv_file} " \
+                "{params.FSPATIENT_DIR} " \
+                "{input.fs_lut_fpath} " \
+                "{input.T1_NIFTI_IMG};"
+
+rule apply_anatomicalatlas_to_manual_electrodes:
+    input:
+        fs_lut_fpath = os.path.join(METADATA_FOLDER, "FreeSurferColorLUT.txt"),
+        mri_bids_electrodes_tsv_file = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(manual_electrodes_fname)),
+        T1_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
+    params:
+        FSPATIENT_DIR = str(FSPATIENT_SUBJECT_DIR),
+    output:
+        bids_electrodes_tsv_file = os.path.join(manual_electrodes_fname),
+        bids_electrodes_json_file = os.path.join(manual_electrodes_fname.replace('.tsv', '.json')),
+    shell:
+        "echo 'Applying anatomical atlas to electrode points...';"
+                "python ./apply_anat_to_electrodes.py " \
+                "{input.mri_bids_electrodes_tsv_file} " \
                 "{output.bids_electrodes_tsv_file} " \
                 "{params.FSPATIENT_DIR} " \
                 "{input.fs_lut_fpath} " \
