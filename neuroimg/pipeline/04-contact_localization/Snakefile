@@ -174,7 +174,7 @@ Requires at 2 end-point contacts on each electrode.
 rule find_electrodes_on_CT:
     input:
         CT_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
-        brainmask_inct_file = os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
+        brainmask_inct_file = coregistration_workflow(os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz")),
         # list of channel points (at least 2 per electrode)
         electrode_initialization_file = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
     params:
