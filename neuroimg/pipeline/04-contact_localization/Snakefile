@@ -150,7 +150,7 @@ Note: This file should contain at least two contacts per electrode.
 """
 rule convert_CT_eleccoords_to_txt:
     input:
-        clustered_center_points_mat = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elec_f.mat'),
+        clustered_center_points_mat = os.path.join(FSOUT_ELECS_FOLDER, '{subject}CH_elec_initialize.mat'),
     output:
         clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
     shell:
