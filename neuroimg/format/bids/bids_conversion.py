@@ -1,14 +1,25 @@
 """Untested API for converting neuroimaging files to BIDS format."""
+import json
 import os
 import platform
 import tempfile
+import warnings
+from collections import OrderedDict
 from pathlib import Path
+from typing import List, Union
 
 import dicom2nifti
 import nibabel as nb
+import numpy as np
 from mne.utils import run_subprocess
 from mne_bids import write_anat
-from mne_bids.utils import _parse_bids_filename
+from mne_bids.tsv_handler import _from_tsv, _to_tsv
+from mne_bids.utils import (
+    _parse_bids_filename,
+    _write_json,
+    _write_tsv,
+    _update_sidecar,
+)
 
 
 def bids_validate(bids_root):
@@ -26,6 +37,124 @@ def bids_validate(bids_root):
         run_subprocess(cmd, shell=shell)
 
     return _validate(bids_root)
+
+
+def _update_electrodes_tsv(electrodes_tsv_fpath, elec_labels_anat, atlas_depth):
+    electrodes_tsv = _from_tsv(electrodes_tsv_fpath)
+
+    if atlas_depth not in electrodes_tsv.keys():
+        electrodes_tsv[atlas_depth] = ["n/a"] * len(elec_labels_anat)
+    for i in range(len(elec_labels_anat)):
+        ch_name = electrodes_tsv["name"][i]
+        print(ch_name, elec_labels_anat[i])
+        electrodes_tsv[atlas_depth][i] = elec_labels_anat[i]
+    _to_tsv(electrodes_tsv, electrodes_tsv_fpath)
+
+    return electrodes_tsv
+
+
+def _update_electrodes_json(electrodes_json_fpath, **kwargs):
+    electrodes_json_fpath = Path(electrodes_json_fpath)
+    if not electrodes_json_fpath.exists():
+        electrodes_json_fpath.parent.mkdir(parents=True, exist_ok=True)
+        with open(electrodes_json_fpath, "w") as fout:
+            sidecar_json = json.dump(kwargs, fout)
+    else:
+        for key, val in kwargs.items():
+            _update_sidecar(electrodes_json_fpath, key, val)
+        with open(electrodes_json_fpath, "r") as fin:
+            sidecar_json = json.load(fin)
+    return sidecar_json
+
+
+def _write_coordsystem_json(
+    fname: str,
+    unit: str,
+    img_fname: str = None,
+    overwrite: bool = True,
+    verbose: bool = True,
+):
+    system_description = (
+        "FreeSurfer Coordinate System derived from the CT, or T1 MRI scan."
+    )
+    processing_description = "SEEK-algorithm (thresholding, cylindrical clustering and post-processing), or manual labeling of contacts using FieldTrip Toolbox."
+
+    if img_fname is not None:
+        # load in image and determine coordinate system
+        img = nb.load(img_fname)
+        axcodes = nb.orientations.aff2axcodes(img.affine)
+        coordsystem_name = "".join(axcodes)
+    else:
+        warnings.warn(
+            "Image filename not passed in... Defaulting to MRI coordinate system."
+        )
+        coordsystem_name = "MRI"
+
+    fid_json = {
+        "IntendedFor": os.path.basename(img_fname),
+        "iEEGCoordinateSystem": coordsystem_name,  # MRI, Pixels, or ACPC
+        "iEEGCoordinateUnits": unit,  # m (MNE), mm, cm , or pixels
+        "iEEGCoordinateSystemDescription": system_description,
+        "iEEGCoordinateProcessingDescription": processing_description,
+        "iEEGCoordinateProcessingReference": "See DOI: https://zenodo.org/record/3542307#.XoYF9tNKhZI",
+    }
+    _write_json(fname, fid_json, overwrite, verbose)
+
+    return fname
+
+
+def _write_electrodes_tsv(
+    fname: str,
+    ch_names: Union[List, np.ndarray],
+    coords: Union[List, np.ndarray],
+    sizes: Union[List, np.ndarray] = None,
+    overwrite: bool = False,
+    verbose: bool = True,
+):
+    """
+    Create an electrodes.tsv file and save it.
+
+    Parameters
+    ----------
+    fname : str
+        Filename to save the electrodes.tsv to.
+    names :
+    coords :
+    sizes :
+    overwrite : bool
+        Defaults to False.
+        Whether to overwrite the existing data in the file.
+        If there is already data for the given `fname` and overwrite is False,
+        an error will be raised.
+    verbose :  bool
+        Set verbose output to true or false.
+    """
+    if len(ch_names) != len(coords):
+        raise RuntimeError(
+            "Number of channel names should match "
+            "number of coordinates passed in. "
+            f"{len(ch_names)} names and {len(coords)} coords passed in."
+        )
+
+    x, y, z, names = list(), list(), list(), list()
+    for name, coord in zip(ch_names, coords):
+        x.append(coord[0])
+        y.append(coord[1])
+        z.append(coord[2])
+        names.append(name)
+
+    if sizes is None:
+        sizes = ["n/a"] * len(ch_names)
+
+    data = OrderedDict(
+        [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes),]
+    )
+
+    print(f"Writin data to {fname}: ")
+    print(data)
+
+    _write_tsv(fname, data, overwrite=overwrite, verbose=verbose)
+    return fname
 
 
 def _convert_dicom_to_nifti(original_dicom_directory, output_fpath, verbose=True):

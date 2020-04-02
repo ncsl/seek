@@ -1,8 +1,0 @@
-# conda environments:
-#
-base                     /home/adam2392/anaconda3
-eztrack                  /home/adam2392/anaconda3/envs/eztrack
-neuroimgpipe          *  /home/adam2392/anaconda3/envs/neuroimgpipe
-skorch                   /home/adam2392/anaconda3/envs/skorch
-                         /usr/local/fsl/fslpython/envs/fslpython
-

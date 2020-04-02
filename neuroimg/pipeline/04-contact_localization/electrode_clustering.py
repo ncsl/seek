@@ -7,6 +7,7 @@ from pathlib import Path
 from pprint import pprint
 
 import nibabel as nb
+import numpy as np
 
 sys.path.append("../../../")
 
@@ -45,8 +46,80 @@ def get_entry_exit_contacts(electrodes: Electrodes):
     return entry_exit_elec
 
 
+def visualize_electrodes(img, clusters, radius, threshold, output_fpath):
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.cm as cm
+
+    # get limits based on the image shape in voxels
+    xlim, ylim, zlim = img.shape
+    axcodes = nb.aff2axcodes(img.affine)
+
+    # rotate the axes and update
+    angles = [0, 45, 90, 180, 270, 360]
+
+    # create figure
+    fig, axs = plt.subplots(3, 2, figsize=(30, 30), subplot_kw=dict(projection="3d"))
+
+    prop_cycle = plt.rcParams["axes.prop_cycle"]
+    mpl_colors_iter = prop_cycle.by_key()["color"]
+    colors = []
+    for i, color in enumerate(mpl_colors_iter):
+        if i == len(clusters.keys()):
+            break
+        colors.append(color)
+
+    colors = cm.rainbow(np.linspace(0, 1, len(clusters.keys())))
+    print("Trying to plot electrode 3D distributions...")
+    print(len(colors))
+    print(len(clusters.keys()))
+
+    # generate a rotated figure for each plot
+    for j, angle in enumerate(angles):
+        ax = axs.flat[j]
+        # ax = Axes3D(fig)
+        ax.view_init(azim=angle)
+        # label_colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', '0.5']
+        for i, electrode in enumerate(clusters):
+            clusters_i = []
+            clusters_j = []
+            clusters_k = []
+            for cluster_id in clusters[electrode]:
+                for point in clusters[electrode][cluster_id]:
+                    clusters_i.append(point[0])
+                    clusters_j.append(point[1])
+                    clusters_k.append(point[2])
+            ax.scatter3D(
+                clusters_i,
+                clusters_j,
+                clusters_k,
+                color=colors[i],
+                label=electrode,
+                cmap="",
+            )
+        ax.set_xlim3d(0, xlim + 1)
+        ax.set_ylim3d(0, ylim + 1)
+        ax.set_zlim3d(0, zlim + 1)
+        ax.set_title(
+            f"Azim-Angled {angle} Post-Processing Contacts \n"
+            "(Radius = %d voxels, Threshold = %.3f)" % (radius, threshold)
+        )
+        ax.set_xlabel(f"(x) {axcodes[0]}")
+        ax.set_ylabel(f"(x) {axcodes[1]}")
+        ax.set_zlabel(f"(x) {axcodes[2]}")
+        ax.legend(loc="upper center", bbox_to_anchor=(0.2, 0.8), shadow=True, ncol=2)
+
+    fig.tight_layout()
+    plt.savefig(output_fpath, box_inches="tight")
+    plt.close(fig)
+
+
 def mainv2(
-    ctimgfile, brainmaskfile, elecinitfile, brainmasked_ct_fpath=None,
+    ctimgfile,
+    brainmaskfile,
+    elecinitfile,
+    brainmasked_ct_fpath=None,
+    outputfig_fpath=None,
 ):
     # Hyperparameters for electrode clustering algorithm
     radius = 4  # radius (in CT voxels) of cylindrical boundary
@@ -164,14 +237,16 @@ def mainv2(
             contact_spacing_mm=contact_spacing_mm,
         )
 
-        if entry_ch.coord_type == 'vox':
-            entry_ch.transform_coords(brain.get_masked_img(), coord_type='mm')
-        if exit_ch.coord_type == 'vox':
-            exit_ch.transform_coords(brain.get_masked_img(), coord_type='mm')
+        if entry_ch.coord_type == "vox":
+            entry_ch.transform_coords(brain.get_masked_img(), coord_type="mm")
+        if exit_ch.coord_type == "vox":
+            exit_ch.transform_coords(brain.get_masked_img(), coord_type="mm")
         this_elec_xyz = collections.defaultdict(list)
         for _cluster_id, voxels in this_elec_voxels.items():
             for coord in voxels:
-                this_elec_xyz[_cluster_id].append(brain.map_coordinates(coord, coord_type='mm'))
+                this_elec_xyz[_cluster_id].append(
+                    brain.map_coordinates(coord, coord_type="mm")
+                )
         # # compute the average / std contact-to-contact spacing
         # import numpy as np
         # dists = []
@@ -203,10 +278,10 @@ def mainv2(
         #         _this_elec_voxels[_cluster_id].append(brain.map_coordinates(coord, coord_type='vox'))
         # this_elec_voxels = _this_elec_voxels
 
-        if entry_ch.coord_type == 'mm':
-            entry_ch.transform_coords(brain.get_masked_img(), coord_type='vox')
-        if exit_ch.coord_type == 'mm':
-            exit_ch.transform_coords(brain.get_masked_img(), coord_type='vox')
+        if entry_ch.coord_type == "mm":
+            entry_ch.transform_coords(brain.get_masked_img(), coord_type="vox")
+        if exit_ch.coord_type == "mm":
+            exit_ch.transform_coords(brain.get_masked_img(), coord_type="vox")
         # assign sequential labels
         this_elec_voxels = brain.assign_sequential_labels(
             this_elec_voxels, entry_ch.name, entry_ch.coord,
@@ -215,6 +290,23 @@ def mainv2(
         # reset electrode clusters to that specific electrode
         labeled_voxel_clusters[elec_name] = this_elec_voxels
 
+    # label the centroids
+    labeled_voxel_centroids, labeled_xyz_centroids = convert_voxel_clusters_to_centroid(
+        brain, entry_exit_elec, labeled_voxel_clusters
+    )
+
+    # visualize the electrode
+    visualize_electrodes(
+        brain.get_masked_img(),
+        labeled_voxel_clusters,
+        radius,
+        threshold,
+        outputfig_fpath,
+    )
+    return labeled_voxel_centroids, labeled_xyz_centroids
+
+
+def convert_voxel_clusters_to_centroid(brain, entry_exit_elec, labeled_voxel_clusters):
     # Compute centroids for each cluster
     labeled_voxel_centroids = brain.cluster_2_centroids(labeled_voxel_clusters)
 
@@ -224,8 +316,8 @@ def mainv2(
     )
 
     # keep the end points, since they're already labeled
-    if entry_exit_elec.coord_type == 'vox':
-        entry_exit_elec.transform_coords(brain.get_masked_img(), coord_type='mm')
+    if entry_exit_elec.coord_type == "vox":
+        entry_exit_elec.transform_coords(brain.get_masked_img(), coord_type="mm")
 
     for electrode in entry_exit_elec:
         for contact in electrode.contacts:
@@ -253,6 +345,7 @@ if __name__ == "__main__":
     parser.add_argument("clustered_voxels_file", help="the voxels output datafile")
     parser.add_argument("binarized_ct_volume", help="The binarized CT volume.")
     parser.add_argument("fs_patient_dir", help="The freesurfer output diretroy.")
+    parser.add_argument("outputfig_fpath")
     args = parser.parse_args()
 
     # Extract arguments from parser
@@ -263,6 +356,7 @@ if __name__ == "__main__":
     clustered_voxels_file = args.clustered_voxels_file
     binarized_ct_file = args.binarized_ct_volume
     fs_patient_dir = args.fs_patient_dir
+    outputfig_fpath = args.outputfig_fpath
 
     # Create electrodes directory if not exist
     elecs_dir = Path(Path(fs_patient_dir) / "elecs")
@@ -274,6 +368,7 @@ if __name__ == "__main__":
         brainmask_native_file,
         electrode_initialization_file,
         binarized_ct_file,
+        outputfig_fpath,
     )
 
     # Save output files
@@ -282,8 +377,10 @@ if __name__ == "__main__":
     pprint(final_centroids_xyz)
 
     # save data into bids sidecar-tsv files
-    save_organized_elecdict_astsv(final_centroids_xyz, clustered_points_file)
-    save_organized_elecdict_astsv(final_centroids_voxels, clustered_voxels_file)
+    save_organized_elecdict_astsv(
+        final_centroids_xyz, clustered_points_file, img_fname=ct_nifti_img
+    )
+    # save_organized_elecdict_astsv(final_centroids_voxels, clustered_voxels_file, img_fname=ct_nifti_img)
 
     # Save centroids as .mat file with attributes eleclabels
     save_organized_elecdict_asmat(

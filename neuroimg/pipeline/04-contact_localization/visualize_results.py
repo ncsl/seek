@@ -1,10 +1,8 @@
 import argparse
-import math
 import os
 import sys
 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import nibabel as nb
 import numpy as np
 import numpy.linalg as npl
@@ -16,32 +14,6 @@ sys.path.append("../../../")
 
 from neuroimg.base.utils.utils import MatReader, group_contacts
 
-
-def visualize_electrodes(clusters):
-    import matplotlib
-    fig = plt.figure(dpi=100)
-    ax = Axes3D(fig)
-    label_colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', '0.5']
-    largest_cluster_id = [88, 90, 106, 80, 105, 113, 112, 96]
-    final_by_elec = {}
-    for i, electrode in enumerate(clusters):
-        clusters_i = []
-        clusters_j = []
-        clusters_k = []
-        for cluster_id in clusters[electrode]:
-            for point in clusters[electrode][cluster_id]:
-                clusters_i.append(point[0])
-                clusters_j.append(point[1])
-                clusters_k.append(point[2])
-        ax.scatter3D(clusters_i, clusters_j, clusters_k, c=label_colors[i], label=electrode)
-    ax.set_xlim3d(0, 513)
-    ax.set_ylim3d(0, 513)
-    ax.set_zlim3d(0, 157)
-    ax.set_title('Post-Processing Contacts (Radius = %d voxels, Threshold = %.3f)' % (radius, threshold))
-    ax.set_xlabel('Anterior')
-    ax.set_ylabel('Left')
-    ax.set_zlabel('Superior')
-    ax.legend(loc='upper center', bbox_to_anchor=(0.2, 0.8), shadow=True, ncol=1);
 
 def summary_PCA_plots(figurefilepath, final_xyz_centroids, validation_xyz_centroids):
     """

@@ -17,7 +17,9 @@ from neuroimg.localize_contacts.electrode_clustering.electrode import Contact
 def _multidimdist(point1, point2):
     """Compute distance between two N-dimensional points."""
     # find the difference between the two points, its really the same as below
-    deltaVals = [point2[dimension] - point1[dimension] for dimension in range(len(point1))]
+    deltaVals = [
+        point2[dimension] - point1[dimension] for dimension in range(len(point1))
+    ]
     runningSquared = 0
     # because the pythagorean theorem works for any dimension we can just use that
     for coord in deltaVals:
@@ -93,17 +95,21 @@ class BrainImage:
 
     @property
     def mask_arr(self):
+        """Return the 3D image mask array."""
         return self.mask_img.get_fdata()
 
     @property
     def img_arr(self):
+        """Return the 3D image array."""
         return self.img.get_fdata()
 
     @property
     def resolution_xyz(self):
+        """Return the delta x,y,z of the image."""
         return self.img.header["pixdim"][[1, 2, 3]]
 
     def map_coordinates(self, coord: Tuple, coord_type: str):
+        """Save masked image to disc."""
         affine = self.img.affine
 
         # assign the affine transformation to use depending
@@ -178,11 +184,18 @@ class BrainImage:
         return masked_brain_img
 
     def save_masked_img(self, fpath):
+        """Save masked image to disc."""
         masked_brain_img = self.get_masked_img()
         masked_brain_img.to_filename(fpath)
 
 
 class ClusteredBrainImage(BrainImage):
+    """
+    Brain image segmented into clusters.
+
+    Inherits from :func:BrainImage
+    """
+
     def __init__(self, *args):
         super(ClusteredBrainImage, self).__init__(*args)
 
@@ -236,6 +249,7 @@ class ClusteredBrainImage(BrainImage):
         return clusters
 
     def _add_point(self, centroid, dist_to_next_centroid, num_to_interp):
+        """Add point in linear 3D space."""
         if centroid.shape != dist_to_next_centroid.shape:
             raise RuntimeError(
                 "The centroid and distance should be " "in the same space."
@@ -300,7 +314,7 @@ class ClusteredBrainImage(BrainImage):
         return new_pts
 
     def _identify_skull_voxel_clusters(
-            self, voxel_clusters: Dict, skull_cluster_size: int = 200
+        self, voxel_clusters: Dict, skull_cluster_size: int = 200
     ):
         """
         Classify the abnormal clustered_voxels that are extremely large.
@@ -422,6 +436,7 @@ class ClusteredBrainImage(BrainImage):
         return False
 
     def _pare_cluster(self, points_in_cluster, qtile, centroid=None):
+        """Pare a cluster down by a quantile around a centroid."""
         if centroid is None:
             # get the centroid of that cluster
             centroid = np.mean(points_in_cluster, keepdims=True)
@@ -511,7 +526,7 @@ class ClusteredBrainImage(BrainImage):
         return centroids
 
     def _unfuse_clusters_on_entry_and_exit(
-            self, voxel_clusters: Dict, merged_cluster_ids: List[int], contact_nums,
+        self, voxel_clusters: Dict, merged_cluster_ids: List[int], contact_nums,
     ):
         """
         Unfuse merged clustered_voxels.
@@ -655,8 +670,9 @@ class ClusteredBrainImage(BrainImage):
         return clusters, numobj
 
     def compute_cylindrical_clusters(
-            self, clustered_voxels, entry_point_vox, exit_point_vox, radius
+        self, clustered_voxels, entry_point_vox, exit_point_vox, radius
     ):
+        """Compute clusters in cylinders."""
         # each electrode corresponds now to a separate cylinder
         voxel_clusters_in_cylinder = {}
 
@@ -667,7 +683,7 @@ class ClusteredBrainImage(BrainImage):
             contained_voxels = []
             for voxel in cluster_voxels:
                 if self._is_point_in_cylinder(
-                        entry_point_vox, exit_point_vox, radius, voxel
+                    entry_point_vox, exit_point_vox, radius, voxel
                 ):
                     contained_voxels.append(voxel)
             if not contained_voxels:
@@ -678,7 +694,7 @@ class ClusteredBrainImage(BrainImage):
         return voxel_clusters_in_cylinder
 
     def assign_sequential_labels(
-            self, voxel_clusters, first_contact, first_contact_coord
+        self, voxel_clusters, first_contact, first_contact_coord
     ):
         """
         Assign stereo-EEG electrode labels to clustered_voxels.
@@ -725,11 +741,11 @@ class ClusteredBrainImage(BrainImage):
         return labeled_clusters
 
     def fill_clusters_with_spacing(
-            self,
-            voxel_clusters: Dict,
-            entry_ch: Contact,
-            num_contacts,
-            contact_spacing_mm: float,
+        self,
+        voxel_clusters: Dict,
+        entry_ch: Contact,
+        num_contacts,
+        contact_spacing_mm: float,
     ):
         """
         Assist in filling in gaps in clustering.
@@ -999,7 +1015,10 @@ class ClusteredBrainImage(BrainImage):
                 )
         return centroids_xyz
 
-    def _compute_voxels_around_centroid(self, voxel_centroid, voxel_clusters, memo_clusterids):
+    def _compute_voxels_around_centroid(
+        self, voxel_centroid, voxel_clusters, memo_clusterids
+    ):
+        """Get voxels around a specific centroid within a ball-quantile."""
         # compute voxel cloud around this centroid
         new_cluster_voxels = []
         for _cluster_id in voxel_clusters.keys():
@@ -1009,15 +1028,15 @@ class ClusteredBrainImage(BrainImage):
 
             # is our new desired centroid within the convex hull?
             if _in_hull(_cluster_voxels, voxel_centroid):
-                new_cluster_voxels = self._pare_cluster(_cluster_voxels,
-                                                        qtile=0.5,
-                                                        centroid=voxel_centroid)
+                new_cluster_voxels = self._pare_cluster(
+                    _cluster_voxels, qtile=0.5, centroid=voxel_centroid
+                )
         return new_cluster_voxels
 
-    def _search_clusters_for_point(self, this_elec_xyz,
-                               approx_new_centroid,
-                               lower_bound_point,
-                               upper_bound_point):
+    def _search_clusters_for_point(
+        self, this_elec_xyz, approx_new_centroid, lower_bound_point, upper_bound_point
+    ):
+        """Search a set of clusters for a 3D point."""
         matched_ids = []
 
         centroid_dists = []
@@ -1034,16 +1053,22 @@ class ClusteredBrainImage(BrainImage):
         matched_ids = [matched_ids[matched_ind]]
 
         if len(matched_ids) > 1:
-            print("Multiple clusters satisfying this condition! "
-                  "Returning the first one found.")
+            print(
+                "Multiple clusters satisfying this condition! "
+                "Returning the first one found."
+            )
         if matched_ids == []:
             return None
 
         return this_elec_xyz[matched_ids[0]]
 
-    def correct_labeled_clusters(self, this_elec_voxels: Dict,
-                                 entry_ch: Contact, exit_ch: Contact,
-                                 contact_spacing_mm: float):
+    def correct_labeled_clusters(
+        self,
+        this_elec_voxels: Dict,
+        entry_ch: Contact,
+        exit_ch: Contact,
+        contact_spacing_mm: float,
+    ):
         """
         Recursive iteration of electrodes and correction.
 
@@ -1055,16 +1080,14 @@ class ClusteredBrainImage(BrainImage):
         entry_ch :
         exit_ch :
         contact_spacing_mm :
-
-        Returns
-        -------
-
         """
         # allow slack of the contact spacing
         epsilon = 0.5
 
         # generate unit vector from entry to exit channel
-        unit_vec = np.array(_compute_vector(entry_ch.coord, exit_ch.coord, unitSphere=True))
+        unit_vec = np.array(
+            _compute_vector(entry_ch.coord, exit_ch.coord, unitSphere=True)
+        )
 
         # go through each cluster set of points
         current_centroid = entry_ch.coord
@@ -1082,15 +1105,16 @@ class ClusteredBrainImage(BrainImage):
             distance = np.linalg.norm(voxel_centroid - current_centroid)
 
             # outside the epsilon-ball allowed for contact spacing
-            if (distance > contact_spacing_mm + epsilon) or \
-                    (distance < contact_spacing_mm - epsilon):
+            if (distance > contact_spacing_mm + epsilon) or (
+                distance < contact_spacing_mm - epsilon
+            ):
                 # compute new centroid
                 voxel_centroid = current_centroid + contact_spacing_mm * unit_vec
 
                 # compute a new set of clustered voxels based on centroid desired
-                new_cluster_voxels = self._compute_voxels_around_centroid(voxel_centroid,
-                                                                          this_elec_voxels,
-                                                                          memo_clusterids)
+                new_cluster_voxels = self._compute_voxels_around_centroid(
+                    voxel_centroid, this_elec_voxels, memo_clusterids
+                )
 
                 # if empty, manually set one centroid
                 if new_cluster_voxels == []:
@@ -1111,9 +1135,14 @@ class ClusteredBrainImage(BrainImage):
 
         return this_elec_voxels
 
-    def bruteforce_correctionv2(self, this_elec_xyz: Dict,
-                                entry_ch: Contact, exit_ch: Contact,
-                                contact_spacing_mm: float, num_contacts):
+    def bruteforce_correctionv2(
+        self,
+        this_elec_xyz: Dict,
+        entry_ch: Contact,
+        exit_ch: Contact,
+        contact_spacing_mm: float,
+        num_contacts,
+    ):
         """
         Recursive iteration of electrodes and correction.
 
@@ -1125,16 +1154,14 @@ class ClusteredBrainImage(BrainImage):
         entry_ch :
         exit_ch :
         contact_spacing_mm :
-
-        Returns
-        -------
-
         """
         # allow slack of the contact spacing
         epsilon = 0.5
 
         # generate unit vector from entry to exit channel
-        unit_vec = np.array(_compute_vector(entry_ch.coord, exit_ch.coord, unitSphere=True))
+        unit_vec = np.array(
+            _compute_vector(entry_ch.coord, exit_ch.coord, unitSphere=True)
+        )
 
         # create a copy of the dictionary set of cluster points
         _cluster_xyz = this_elec_xyz.copy()
@@ -1146,13 +1173,16 @@ class ClusteredBrainImage(BrainImage):
         prev_centroid = entry_ch.coord
         i = 0
         while i < num_contacts:
-            lower_bound_point = prev_centroid + unit_vec * (contact_spacing_mm - epsilon)
-            upper_bound_point = prev_centroid + unit_vec * (contact_spacing_mm + epsilon)
+            lower_bound_point = prev_centroid + unit_vec * (
+                contact_spacing_mm - epsilon
+            )
+            upper_bound_point = prev_centroid + unit_vec * (
+                contact_spacing_mm + epsilon
+            )
             approx_new_centroid = prev_centroid + unit_vec * contact_spacing_mm
-            cluster_points = self._search_clusters_for_point(this_elec_xyz,
-                                                             approx_new_centroid,
-                                                             lower_bound_point,
-                                                             upper_bound_point)
+            cluster_points = self._search_clusters_for_point(
+                this_elec_xyz, approx_new_centroid, lower_bound_point, upper_bound_point
+            )
             if cluster_points is None:
                 prev_centroid = approx_new_centroid
                 cluster_points = [prev_centroid]

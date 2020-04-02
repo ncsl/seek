@@ -9,7 +9,6 @@ import numpy as np
 import numpy.linalg as npl
 import scipy.io
 from mne_bids.tsv_handler import _from_tsv, _to_tsv
-from mne_bids.utils import _update_sidecar
 from nibabel.affines import apply_affine
 
 sys.path.append("../../../")
@@ -18,34 +17,10 @@ from neuroimg.localize_contacts.freecog_labeling.label_chs_anat import (
     convert_fsmesh2mlab,
     label_elecs,
 )
-
-
-def _update_electrodes_tsv(electrodes_tsv_fpath, elec_labels_anat, atlas_depth):
-    electrodes_tsv = _from_tsv(electrodes_tsv_fpath)
-
-    if atlas_depth not in electrodes_tsv.keys():
-        electrodes_tsv[atlas_depth] = ["n/a"] * len(elec_labels_anat)
-    for i in range(len(elec_labels_anat)):
-        ch_name = electrodes_tsv["name"][i]
-        print(ch_name, elec_labels_anat[i])
-        electrodes_tsv[atlas_depth][i] = elec_labels_anat[i]
-    _to_tsv(electrodes_tsv, electrodes_tsv_fpath)
-
-    return electrodes_tsv
-
-
-def _update_electrodes_json(electrodes_json_fpath, **kwargs):
-    electrodes_json_fpath = Path(electrodes_json_fpath)
-    if not electrodes_json_fpath.exists():
-        electrodes_json_fpath.parent.mkdir(parents=True, exist_ok=True)
-        with open(electrodes_json_fpath, "w") as fout:
-            sidecar_json = json.dump(kwargs, fout)
-    else:
-        for key, val in kwargs.items():
-            _update_sidecar(electrodes_json_fpath, key, val)
-        with open(electrodes_json_fpath, "r") as fin:
-            sidecar_json = json.load(fin)
-    return sidecar_json
+from neuroimg.format.bids.bids_conversion import (
+    _update_electrodes_json,
+    _update_electrodes_tsv,
+)
 
 
 def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):

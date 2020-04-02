@@ -48,9 +48,11 @@ class Contact:
         return self.name
 
     def set_coord_system(self, coordsystem: str):
+        """Set coordinate system of electrodes (e.g. RAS)."""
         self.coordsystem = coordsystem
 
     def transform_coords(self, img: nb.Nifti2Image, coord_type: str):
+        """Transform coordinates between mm and voxel space."""
         if coord_type not in ["mm", "vox"]:
             raise ValueError(
                 "Accepted coord_type are 'mm', or 'vox'. "
@@ -68,6 +70,7 @@ class Contact:
         self.coord_type = coord_type
 
     def get_transformed_coords(self, img: nb.Nifti2Image, coord_type: str):
+        """Get transformed coordinates of a certain type."""
         if coord_type not in ["mm", "vox"]:
             raise ValueError(
                 "Accepted coord_type are 'mm', or 'vox'. "
@@ -96,9 +99,9 @@ class Contact:
 
 class Electrode:
     """
-    Electrode object consisting of many contacts along the electrode. This is
-    primarily for SEEG, but could be used for ECoG as well.
+    Electrode object consisting of many contacts along the electrode.
 
+    This is primarily for SEEG, but could be used for ECoG as well.
     Each electrode might have anywhere from 6 - 20 contacts on it.
 
     Parameters
@@ -143,6 +146,7 @@ class Electrode:
 
     @property
     def coord_type(self):
+        """Coordinate type (mm, voxel) that electrode coordinates are in."""
         coord_type = np.unique([x.coord_type for x in self.contacts])
         if len(coord_type) > 1:
             raise RuntimeError(
@@ -151,6 +155,7 @@ class Electrode:
         return coord_type[0]
 
     def remove_contact(self, ch_name):
+        """Remove contact from electrode."""
         contacts = []
         for contact in self.contacts:
             if contact.name != ch_name:
@@ -160,12 +165,15 @@ class Electrode:
         self.contacts = natsorted(contacts, key=str)
 
     def get_entry_ch(self):
+        """Get the initial channel (most medial)."""
         return self.contacts[0]
 
     def get_exit_ch(self):
+        """Get the channel at the end of the electrode."""
         return self.contacts[-1]
 
     def transform_coords(self, img: nb.Nifti2Image, coord_type: str):
+        """Transform coordinates."""
         if coord_type not in ["mm", "vox"]:
             raise ValueError(
                 "Accepted coord_type are 'mm', or 'vox'. "
@@ -181,6 +189,7 @@ class Electrode:
             contact.transform_coords(img, coord_type)
 
     def get_transformed_coords(self, img: nb.Nifti2Image, coord_type: str):
+        """Get transformed coordinates."""
         if coord_type not in ["mm", "vox"]:
             raise ValueError(
                 "Accepted coord_type are 'mm', or 'vox'. "
@@ -200,7 +209,7 @@ class Electrode:
 
 
 class ElectrodeIterator:
-    """ Iterator class """
+    """Iterator class for Electrode."""
 
     def __init__(self, electrodes):
         # Team object reference
@@ -209,7 +218,7 @@ class ElectrodeIterator:
         self._index = 0
 
     def __next__(self):
-        """'Returns the next value from team object's lists """
+        """Get the next value from team object's lists."""
         if self._index < (len(self._electrodes)):
             result = self._electrodes[self._index]
             self._index += 1
@@ -219,6 +228,18 @@ class ElectrodeIterator:
 
 
 class Electrodes:
+    """
+    Class object for a set of Electrodes.
+
+    Electrodes consist of many Electrode objects.
+
+    Parameters
+    ----------
+    ch_names :
+    ch_coords :
+    coord_type :
+    """
+
     def __init__(self, ch_names: List, ch_coords: List, coord_type: str):
         if len(ch_coords) != len(ch_names):
             raise RuntimeError(
@@ -241,6 +262,7 @@ class Electrodes:
         return len(self.electrodes)
 
     def _init_elecs(self, ch_names, ch_coords, coord_type):
+        """Initialize class."""
         electrodes = []
 
         # create a dictionary of electrodes -> contacts -> coordinates
@@ -260,6 +282,7 @@ class Electrodes:
 
     @property
     def coord_type(self):
+        """Get coordinate type."""
         coord_type = np.unique([x.coord_type for x in self.electrodes])
         if len(coord_type) > 1:
             raise RuntimeError(
@@ -268,6 +291,7 @@ class Electrodes:
         return coord_type[0]
 
     def get_electrode(self, elecname):
+        """Get an electrode by its name."""
         for elec in self.electrodes:
             if elec.name == elecname:
                 return elec
@@ -275,12 +299,14 @@ class Electrodes:
         raise RuntimeError(f"No electrode {elecname} present.")
 
     def get_voxels(self, img: nb.Nifti2Image) -> Dict:
+        """Get voxels of the electrode coordinates."""
         voxel_dict = collections.defaultdict(list)
         for electrode in self.electrodes:
             voxel_dict[electrode.name].extend(electrode.get_transformed_coords(img))
         return voxel_dict
 
     def get_transformed_coords(self, img: nb.Nifti2Image, coord_type: str):
+        """Get transformed coordinates."""
         if coord_type not in ["mm", "vox"]:
             raise ValueError(
                 "Accepted coord_type are 'mm', or 'vox'. "
@@ -301,6 +327,7 @@ class Electrodes:
         return voxel_dict
 
     def transform_coords(self, img: nb.Nifti2Image, coord_type: str):
+        """Transform coordinates into mm, or voxel space."""
         if coord_type not in ["mm", "vox"]:
             raise ValueError(
                 "Accepted coord_type are 'mm', or 'vox'. "

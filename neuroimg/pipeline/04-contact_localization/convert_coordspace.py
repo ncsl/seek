@@ -9,6 +9,7 @@ from mne_bids.tsv_handler import _to_tsv, _from_tsv
 sys.path.append("../../../")
 
 from neuroimg.base.utils.io import load_elecs_data
+from neuroimg.format.bids.bids_conversion import _write_coordsystem_json
 
 
 def transform(coords, src_img, dest_img, transform_mat, coordinate_type="mm"):
@@ -118,3 +119,11 @@ if __name__ == "__main__":
         electrodes_tsv["y"][i] = y
         electrodes_tsv["z"][i] = z
     _to_tsv(electrodes_tsv, mri_coords_fpath)
+
+    # resave the coordinate system file
+    mri_coordsystem_fpath = mri_coords_fpath.replace(
+        "electrodes.tsv", "coordsystem.json"
+    )
+    unit = "mm"
+    img_fname = mri_nifti_img
+    _write_coordsystem_json(mri_coordsystem_fpath, unit, img_fname=img_fname)

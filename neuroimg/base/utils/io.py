@@ -1,28 +1,36 @@
 import numpy as np
 import scipy.io
-from mne_bids.utils import _to_tsv
-from collections import OrderedDict
+
 from neuroimg.base.utils.utils import MatReader
+from neuroimg.format.bids.bids_conversion import (
+    _write_electrodes_tsv,
+    _write_coordsystem_json,
+)
 
 
-def save_organized_elecdict_astsv(elecdict, output_fpath, size=None):
+def save_organized_elecdict_astsv(elecdict, output_fpath, size=None, img_fname=None):
     """Save organized electrode dict coordinates as a tsv file."""
     x, y, z, names = list(), list(), list(), list()
+    coords = []
     for elec in elecdict.keys():
         for ch, ch_coord in elecdict[elec].items():
             x.append(ch_coord[0])
             y.append(ch_coord[1])
             z.append(ch_coord[2])
             names.append(ch)
+            coords.append(ch_coord)
         if size is None:
             sizes = ["n/a"] * len(names)
         else:
             sizes = [size] * len(names)
 
-    data = OrderedDict(
-        [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes),]
-    )
-    _to_tsv(data, output_fpath)
+    # write the tsv file
+    _write_electrodes_tsv(output_fpath, names, coords, sizes)
+
+    outputjson_fpath = output_fpath.replace("electrodes.tsv", "coordsystem.json")
+    unit = "mm"
+    # write accompanying coordinate system json file
+    _write_coordsystem_json(outputjson_fpath, unit, img_fname)
 
 
 def save_organized_elecdict_asmat(elecdict, outputfilepath):
