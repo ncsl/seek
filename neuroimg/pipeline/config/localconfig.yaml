@@ -16,7 +16,8 @@ derivatives_output_dir:
 patients:
   [
 #    "PublicDataset",
-    'la01', 'la09',
+#    'la01',
+    'la09',
     'la02',
    'la03',
    "la04",'la05','la06','la07','la08','la10',
