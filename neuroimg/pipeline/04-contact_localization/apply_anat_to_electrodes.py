@@ -13,7 +13,7 @@ from nibabel.affines import apply_affine
 
 sys.path.append("../../../")
 
-from neuroimg.localize_contacts.freecog_labeling.label_chs_anat import (
+from neuroimg.localize_contacts.anat_labeling.label_chs_anat import (
     convert_fsmesh2mlab,
     label_elecs,
 )
