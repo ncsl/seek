@@ -5,6 +5,7 @@ import nibabel as nb
 
 from nibabel.affines import apply_affine
 
+
 def _apply_segmentation_mask(img, seg_mask_arr: np.ndarray) -> nb.Nifti2Image:
     img_data = img.get_fdata()
 
@@ -16,7 +17,9 @@ def _apply_segmentation_mask(img, seg_mask_arr: np.ndarray) -> nb.Nifti2Image:
     return segmented_img
 
 
-def _get_surgical_contacts(img: nb.Nifti2Image, ch_names: List, ch_coords: Union[List, np.ndarray]) -> List:
+def _get_surgical_contacts(
+    img: nb.Nifti2Image, ch_names: List, ch_coords: Union[List, np.ndarray]
+) -> List:
     affine = img.affine
     inv_affine = np.linalg.inv(affine)
     img_data = img.get_fdata()

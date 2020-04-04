@@ -510,7 +510,12 @@ def _label_depth(elecmatrix, aparc_dat, LUT, coordinate_type="mm"):
     anatomy_labels = np.empty((nchans,), dtype=np.object)
     print("Labeling electrodes...")
     print("Aparc data array has shape: ", aparc_dat.shape)
-    print("VoxCRS limits in 3D: ", np.max(VoxCRS[:, 0]), np.max(VoxCRS[:, 1]), np.max(VoxCRS[:, 2]))
+    print(
+        "VoxCRS limits in 3D: ",
+        np.max(VoxCRS[:, 0]),
+        np.max(VoxCRS[:, 1]),
+        np.max(VoxCRS[:, 2]),
+    )
 
     # label each channel
     for elec in np.arange(nchans):
