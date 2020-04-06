@@ -26,6 +26,8 @@ FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "mri")
 FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "CT")
 
 subworkflow reconstruction_workflow:
+    workdir:
+        "../02-reconstruction/"
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:

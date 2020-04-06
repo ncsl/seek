@@ -85,12 +85,16 @@ ct_voxel_electrodes_fname = ct_electrodes_fname.replace("electrodes", "voxelelec
 ct_voxel_electrodes_fname = ct_voxel_electrodes_fname.replace(".tsv", ".mat")
 
 subworkflow reconstruction_workflow:
+    workdir:
+        "../02-reconstruction/"
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:
         "../config/localconfig.yaml"
 
 subworkflow coregistration_workflow:
+    workdir:
+        "../03-coregistration/"
     snakefile:
         "../03-coregistration/Snakefile"
     configfile:

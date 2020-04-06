@@ -50,6 +50,8 @@ def _get_anat_bids_dir(bids_root, subject):
 
 
 subworkflow prep_workflow:
+    workdir:
+        "../01-prep/"
     snakefile:
         "../01-prep/Snakefile"
     configfile:
