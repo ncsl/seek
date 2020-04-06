@@ -20,6 +20,7 @@ def _apply_segmentation_mask(img, seg_mask_arr: np.ndarray) -> nb.Nifti2Image:
 def _get_surgical_contacts(
     img: nb.Nifti2Image, ch_names: List, ch_coords: Union[List, np.ndarray]
 ) -> List:
+    """Map mm xyz coordinates into voxel space."""
     affine = img.affine
     inv_affine = np.linalg.inv(affine)
     img_data = img.get_fdata()
@@ -29,7 +30,7 @@ def _get_surgical_contacts(
 
     # map coordinates to voxels and determine if they lay within segmentation volume
     for name, coord in zip(ch_names, ch_coords):
-        new_coord = list(map(int, apply_affine(affine, coord)))
+        new_coord = list(map(int, apply_affine(inv_affine, coord)))
         if img_data[new_coord] > 0:
             surgical_chs.append(name)
     return surgical_chs
