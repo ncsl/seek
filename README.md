@@ -1,4 +1,5 @@
-# Neuroimaging Pipeline
+Neuroimaging Pipeline
+---------------------
 [![Build Status](https://travis-ci.com/adam2392/eegio.svg?token=6sshyCajdyLy6EhT8YAq&branch=master)](https://travis-ci.com/adam2392/neuroimg_pipeline)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 ![GitHub](https://img.shields.io/github/license/adam2392/neuroimg_pipeline)
@@ -7,7 +8,7 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/adam2392/neuroimg_pipeline)
 [![DOI](https://zenodo.org/badge/160566959.svg)](https://zenodo.org/badge/latestdoi/160566959)
 
-This repo describes Sarma lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
+This repo describes Sarma/Crone lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). 
 
 For incorporation of DTI data, see ndmeg: https://github.com/neurodata/ndmg
@@ -28,41 +29,50 @@ For incorporation of DTI data, see ndmeg: https://github.com/neurodata/ndmg
 
 <!-- /MarkdownTOC -->
 
-# Features
+Features
+--------
 - [ ] Add support for MRICloud running using R-script. Possibly convert to Python script.
 - [ ] Create unit and integration tests using pytest that test: pipeline in both snakemake and Python
 
-# Setup and Installation
-See [INSTALLATION GUIDE](./INSTALLATION.md)
+Setup and Installation
+--------
+See [INSTALLATION GUIDE](doc/INSTALLATION.md)
 
-# Data Organization
+Data Organization
+--------
 
 We use BIDS. 
 See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
 
-# Pipeline Description
+Pipeline Description
+--------
 At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry, 
 regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
 
-See [PIPELINE GUIDE](./PIPELINE_DESCRIPTION.md)
+See [PIPELINE GUIDE](doc/PIPELINE_DESCRIPTION.md)
 
-# Semi-Automated Localizing Electrodes Process 
+Semi-Automated Localizing Electrodes Process
+-------- 
 Localizing SEEG electrodes requires at least two contacts on each electrode to initialize the algorithm.
 These can be say the deepest 2 contacts, or the entry point and target point (e.g. first and last contact on the electrode).
 
 For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
 be easily interpolated.
 
-See [LOCALIZATION_GUIDE](./LOCALIZATION_GUIDE.md)
+See [LOCALIZATION_GUIDE](doc/LOCALIZATION_GUIDE.md)
 
-# Documentation
+Documentation and Testing
+--------
 
     sphinx-quickstart
+    
+See [Testing Guide](doc/TESTING_SETUP.md)
     
 ### Pipeline Process Visualized
 [DAG of Pipeline in Snakemake](./neuroimg/neuroimg/pipeline/dag_neuroimaging_pipeline_reconstruction.pdf)
 
-# References:
+References:
+--------
 1. Recon-all. FreeSurfer. https://surfer.nmr.mgh.harvard.edu/fswiki/recon-all#References
 2. FSL Flirt. https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT
 3. MRTrix3. http://www.mrtrix.org/
