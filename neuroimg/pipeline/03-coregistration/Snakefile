@@ -106,7 +106,7 @@ rule map_brainmask_to_ct:
     shell:
         "flirt -in {input.brainmask_file} \
                             -ref {input.CT_NIFTI_IMG} \
-                            -applyxfm -init {input.MAPPING_FILE} \
+                            -applyxfm -init {input.MAPPING_FILE_ORIG} \
                             -out {output.brainmask_inct_file};"
 
 # rule convert_to_mgz:
