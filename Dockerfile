@@ -22,18 +22,7 @@ RUN apt-get update && apt-get install -y \
     gawk \
     unzip
 
-# Anaconda and Neuroimgpipe's dependencies
-RUN wget https://repo.anaconda.com/archive/Anaconda3-2019.10-Linux-x86_64.sh -O /home/anaconda.sh
-RUN bash /home/anaconda.sh -b -p /usr/local/anaconda
-ENV PATH=/usr/local/anaconcda/bin:$PATH
-RUN source /usr/local/anaconda/etc/profile.d/conda.sh && \
-    conda create -n neuroimgpipe && \
-    conda init bash && \
-    conda config --add channels bioconda && \
-    conda config --add channels conda-forge && \
-    conda install numpy scipy matplotlib scikit-learn scikit-image pandas seaborn nibabel mne snakemake mne-bids flask && \
-    conda install pytest black check-manifest pytest-cov pydocstyle
-RUN source ~/.bashrc
+
 
 
 # Freesurfer
@@ -70,9 +59,6 @@ ENV FSLDIR=/opt/fsl
 ENV USER=me
 RUN source $FSLDIR/etc/fslconf/fsl.sh
 
-# Neuroimg_pipeline
-COPY ./neuroimg /home/neuroimg
-
 # SPM
 RUN wget https://www.fil.ion.ucl.ac.uk/spm/download/restricted/eldorado/spm12.zip -O /home/spm12.zip
 RUN unzip -q /home/spm12.zip -d /home/spm12
@@ -80,20 +66,46 @@ RUN unzip -q /home/spm12.zip -d /home/spm12
 # Fieldtrip
 RUN wget ftp://ftp.fieldtriptoolbox.org/pub/fieldtrip/fieldtrip-20200302.zip -O /home/fieldtrip
 
+# Display variable for X11
+ENV DISPLAY=192.168.1.138:0.0
+
 # Matlab
 COPY ./docker/matlab.zip /home/matlab.zip
 RUN unzip -q /home/matlab.zip -d /home/matlab
 RUN /home/matlab/install
 
 # Remove temporary files
-RUN rm blender.tar.xz fslinstaller.py matlab.zip spm12.zip anaconda.sh
-
-# Display variable for X11
-ENV DISPLAY=192.168.1.156:0.0
+RUN rm blender.tar.xz fslinstaller.py matlab.zip spm12.zip
 
 # Webserver
     # Expose viz/webserver to the host
 EXPOSE 5000/tcp
 # Copy completed files from recon folder to static webserver folder (move this to a snakemake rule)
 
-# Set matlab paths
+# Anaconda and Neuroimgpipe's dependencies
+RUN wget https://repo.anaconda.com/archive/Anaconda3-2019.10-Linux-x86_64.sh -O /home/anaconda.sh
+RUN bash /home/anaconda.sh -b -p /usr/local/anaconda
+ENV PATH=/usr/local/anaconcda/bin:$PATH
+
+
+
+
+
+# Neuroimg_pipeline
+COPY ./neuroimg/environment.yml /home/neuroimg/environment.yml
+
+RUN source /usr/local/anaconda/etc/profile.d/conda.sh && \
+    conda env create -f neuroimg/environment.yml && \
+    conda init bash && \
+    conda activate seek
+    # conda create -n neuroimgpipe && \
+    # conda config --add channels bioconda && \
+    # conda config --add channels conda-forge && \
+    # conda install numpy scipy matplotlib scikit-learn scikit-image pandas seaborn nibabel mne snakemake mne-bids flask && \
+    # conda install pytest black check-manifest pytest-cov pydocstyle
+RUN source ~/.bashrc
+
+# Neuroimg_pipeline
+COPY ./neuroimg/ /home/neuroimg/
+
+WORKDIR /home/neuroimg/pipeline/05-visualization
