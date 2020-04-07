@@ -101,12 +101,12 @@ rule map_brainmask_to_ct:
         MAPPING_FILE_ORIG = os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt"),
     output:
         # mapping matrix for post to pre in T1
-        MAPPING_FILE = os.path.join(FSOUT_CT_FOLDER, "fsl_brainmask_to_ct_omat.txt"),
+        # MAPPING_FILE = os.path.join(FSOUT_CT_FOLDER, "fsl_brainmask_to_ct_omat.txt"),
         brainmask_inct_file = os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
     shell:
         "flirt -in {input.brainmask_file} \
                             -ref {input.CT_NIFTI_IMG} \
-                            -omat {output.MAPPING_FILE} \
+                            -applyxfm -init {input.MAPPING_FILE} \
                             -out {output.brainmask_inct_file};"
 
 # rule convert_to_mgz:
