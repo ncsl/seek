@@ -48,6 +48,13 @@ rule all:
     shell:
         "echo 'done'"
 
+rule convert_FS_T1_to_nifti:
+    input:
+        PREMRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.mgz"),
+    output:
+        PREMRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
+    shell:
+        "mrconvert {input.PREMRI_MGZ_IMG} {output.PREMRI_NIFTI_IMG};"
 
 """
 Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
