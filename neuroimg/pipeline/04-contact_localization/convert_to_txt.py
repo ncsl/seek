@@ -1,5 +1,5 @@
 import argparse
-
+from pathlib import Path
 import scipy.io
 
 
@@ -44,10 +44,11 @@ def read_label_coords(elecfilemat):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "clustered_points_file",
-        help="The output datafile with all the electrode points clustered.",
-    )
+    parser.add_argument('elecs_dir')
+    # parser.add_argument(
+    #     "clustered_points_file",
+    #     help="The output datafile with all the electrode points clustered.",
+    # )
     parser.add_argument(
         "outputcoordsfile",
         help="The output datafile for electrodes mapped to correct coords.",
@@ -55,8 +56,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # extract arguments from parser
-    clustered_points_file = args.clustered_points_file
+    elecs_dir = args.elecs_dir
+    # clustered_points_file = args.clustered_points_file
     outputcoordsfile = args.outputcoordsfile
+
+    matfiles = [x for x in Path(elecs_dir).glob("*.mat")]
+    if len(matfiles) > 1:
+        raise RuntimeError("There should only be one .mat file inside the "
+                           "FreeSurfer elecs directory. This should be created "
+                           "from manual annotation of at least entry/exit points "
+                           "on each electrode. (Possibly using Fieldtrip Toolbox)")
+    clustered_points_file = matfiles[0].name
 
     # read in electrodes file
     electxt = read_label_coords(clustered_points_file)
