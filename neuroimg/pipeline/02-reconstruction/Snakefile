@@ -185,6 +185,35 @@ rule convert_pial_surface_files_ascii:
         "mris_convert {params.lhpial} {output.lhpial};"
         "mris_convert {params.rhpial} {output.rhpial};"
 
+
+"""
+Rule for converting the pial surfaces to ascii data, so that it is readable by python/matlab.
+"""
+rule convert_freesurfer_T1_to_nifti:
+    input:
+        recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+    params:
+        lhpial = os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
+        rhpial = os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
+    output:
+        lhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
+        rhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
+    shell:
+        "mris_convert {params.lhpial} {output.lhpial};"
+        "mris_convert {params.rhpial} {output.rhpial};"
+
+
+rule convert_FS_T1_to_nifti:
+    input:
+        recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+    params:
+        PREMRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.mgz"),
+    output:
+        PREMRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
+    shell:
+        "mrconvert {params.PREMRI_MGZ_IMG} {output.PREMRI_NIFTI_IMG};"
+
+
 """
 Rule for converting brainmask image volume from MGZ to Nifti.
 """

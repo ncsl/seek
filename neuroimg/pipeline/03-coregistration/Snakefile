@@ -48,14 +48,6 @@ rule all:
     shell:
         "echo 'done'"
 
-rule convert_FS_T1_to_nifti:
-    input:
-        PREMRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.mgz"),
-    output:
-        PREMRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
-    shell:
-        "mrconvert {input.PREMRI_MGZ_IMG} {output.PREMRI_NIFTI_IMG};"
-
 """
 Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
 
@@ -63,11 +55,12 @@ E.g. useful for CT, and DTI images to be coregistered
 """
 rule coregistert1_ct_to_pre:
     input:
-        PREMRI_NIFTI_IMG_MGZ = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
+        PREMRI_NIFTI_IMG_MGZ = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1.nii")),
         CT_NIFTI_IMG_MGZ = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
     output:
         # mapped image from CT -> MRI
         CT_IN_PRE_NIFTI_IMG_ORIGgz = os.path.join(FSOUT_CT_FOLDER, "rCT.nii.gz"),
+        CT_IN_PRE_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "rCT.nii"),
         # mapping matrix for post to pre in T1
         MAPPING_FILE_ORIG = os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt"),
     shell:
@@ -75,6 +68,7 @@ rule coregistert1_ct_to_pre:
                             -ref {input.PREMRI_NIFTI_IMG_MGZ} \
                             -omat {output.MAPPING_FILE_ORIG} \
                             -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
+        "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_IMG};"
 
 
 """
@@ -88,7 +82,7 @@ rule convert_brainmask_to_nifti:
     output:
         brainmask_nifti = os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")
     shell:
-        "mri_convert {params.brainmask_mgz} {output.brainmask_nifti};"
+        "mrconvert {params.brainmask_mgz} {output.brainmask_nifti};"
 
 """
 Rule to map the brain mask over to the CT space.
@@ -139,13 +133,13 @@ rule map_brainmask_to_ct:
 #             shell("mri_convert -rt nearest --out_orientation RAS {input.desikan_orig_file} \
 #                                                             {output.ras_label_volume};")
 #             shell("mri_convert {input.desikan_orig_file} --apply_transform {input.talairach_transform_file} -oc 0 0 0 {output.tal_label_volume};")
-# 
+#
 #         elif wildcards.atlas == "destrieux":
 #             shell("echo 'Running on destrieux atlas!'")
 #             shell("mri_convert -rt nearest --out_orientation RAS {input.destrieux_orig_file} \
 #                                                             {output.ras_label_volume};")
 #             shell("mri_convert {input.destrieux_orig_file} --apply_transform {input.talairach_transform_file} -oc 0 0 0 {output.tal_label_volume};")
-# 
+#
 #         shell("fslreorient2std  {output.ras_label_volume} {output.ras_std_label_volume};")
 #         shell("fslreorient2std {output.tal_label_volume} {output.tal_std_label_volume};")
 

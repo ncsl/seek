@@ -13,6 +13,8 @@ addpath("/Users/adam2392/Dropbox/fieldtrip-20190129/");
 % ------- CHANGE THIS ------
 % neuroimaging output data dir
 studyname = 'epilepsy'; % 'efri'
+center = 'cleveland';
+
 RESULTS_DIR = fullfile('/home/ksr/Desktop/contact_localization/freesurfer_output/', studyname);
 % RESULTS_DIR = '/home/adam2392/hdd/data/neuroimaging/freesurfer_output/";
 RESULTS_DIR = fullfile('/Users/adam2392/Dropbox/epilepsy_bids/derivatives/freesurfer/');
@@ -20,14 +22,14 @@ RESULTS_DIR = fullfile('/Users/adam2392/Dropbox/epilepsy_bids/derivatives/freesu
 % ------- CHANGE THIS ------
 % raw data EEG dir
 RECORD_DATADIR = '/home/ksr/Desktop/contact_localization/freesurfer_output/epilepsy/'; % '/home/ksr/Desktop/contact_localization/freesurfer_output/epilepsy/';
-RECORD_DATADIR = '/Users/adam2392/Dropbox/epilepsy_bids/sourcedata/umf/';
+RECORD_DATADIR = fullfile('/Users/adam2392/Dropbox/epilepsy_bids/sourcedata/', center);
 
 % run setup of global variables to make tool GUI work
 ft_defaults
 
 % ------- CHANGE THIS ------
 % subj id to analyze
-subjID = 'umf004';      % e.g. efri01, pt01, umf001, tvb1
+subjID = 'la02';      % e.g. efri01, pt01, umf001, tvb1
 your_initials = 'AL';
 
 % results directory
@@ -45,7 +47,7 @@ MRIDIR = fullfile(SUBJDIR, 'mri');
 % filepath to your raw data (the header of the edf file has the channel
 % labels and stuff)
 data_id = [subjID '_ictal.edf'];
-data_id = 'Seizure.edf';
+% data_id = 'Seizure.edf';
 rawdatafilepath = fullfile(RECORD_DATADIR, subjID,  data_id); % if using .mat file
 rawdatafilepath = fullfile(RECORD_DATADIR, subjID, 'seeg', 'edf', data_id); % if using .edf file
 
@@ -64,11 +66,11 @@ elec_coords_filepath = fullfile(SUBJDIR, 'elecs', [subjID your_initials '_elec_i
 % NAME OUTPUT ACCORDINGLY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ctimgfile = fullfile(strcat('CT_IN_T1_mgz.nii.gz'))
-ctimgfile = fullfile(strcat('CT.nii'));
-% t1imgfile = fullfile(strcat('T1.nii'));
+ctimgfile = fullfile(strcat('rCT.nii.gz'));
+t1imgfile = fullfile(strcat('T1.mgz'));
 
 %% Read in Original MRI Scan
-% t1_img = ft_read_mri(fullfile(MRIDIR, t1imgfile));
+t1_img = ft_read_mri(fullfile(MRIDIR, t1imgfile));
 
 %% Read in Original CT Scan
 ct_img = ft_read_mri(fullfile(CTDIR, ctimgfile));
