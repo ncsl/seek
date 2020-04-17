@@ -88,7 +88,7 @@ RUN bash /home/anaconda.sh -b -p /usr/local/anaconda
 ENV PATH=/usr/local/anaconcda/bin:$PATH
 
 
-
+ 
 
 
 # Neuroimg_pipeline
