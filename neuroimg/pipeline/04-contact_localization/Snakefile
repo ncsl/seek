@@ -85,12 +85,16 @@ ct_voxel_electrodes_fname = ct_electrodes_fname.replace("electrodes", "voxelelec
 ct_voxel_electrodes_fname = ct_voxel_electrodes_fname.replace(".tsv", ".mat")
 
 subworkflow reconstruction_workflow:
+    workdir:
+        "../02-reconstruction/"
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:
         "../config/localconfig.yaml"
 
 subworkflow coregistration_workflow:
+    workdir:
+        "../03-coregistration/"
     snakefile:
         "../03-coregistration/Snakefile"
     configfile:
@@ -152,14 +156,16 @@ Converts output of fieldtrip toolbox .mat files named accordingly into txt files
 Note: This file should contain at least two contacts per electrode.
 """
 rule convert_CT_eleccoords_to_txt:
-    input:
-        clustered_center_points_mat = os.path.join(FSOUT_ELECS_FOLDER,
-                                                   # '{subject}_elec_f.mat'
-                                                   '{subject}CH_elec_initialize.mat'),
+    # input:
+    #     clustered_center_points_mat = os.path.join(FSOUT_ELECS_FOLDER,
+    #                                                # '{subject}_elec_f.mat'
+    #                                                '{subject}CH_elec_initialize.mat'),
+    params:
+        elecs_dir = FSOUT_ELECS_FOLDER,
     output:
         clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
     shell:
-        "python ./convert_to_txt.py {input.clustered_center_points_mat} {output.clustered_center_points};"
+        "python ./convert_to_txt.py {params.elecs_dir} {output.clustered_center_points};"
 
 rule copy_channnelstsv_to_freesurfer:
     input:

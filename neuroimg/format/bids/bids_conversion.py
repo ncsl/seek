@@ -68,11 +68,11 @@ def _update_electrodes_json(electrodes_json_fpath, **kwargs):
 
 
 def _write_coordsystem_json(
-    fname: str,
-    unit: str,
-    img_fname: str = None,
-    overwrite: bool = True,
-    verbose: bool = True,
+        fname: str,
+        unit: str,
+        img_fname: str = None,
+        overwrite: bool = True,
+        verbose: bool = True,
 ):
     system_description = (
         "FreeSurfer Coordinate System derived from the CT, or T1 MRI scan."
@@ -104,12 +104,12 @@ def _write_coordsystem_json(
 
 
 def _write_electrodes_tsv(
-    fname: str,
-    ch_names: Union[List, np.ndarray],
-    coords: Union[List, np.ndarray],
-    sizes: Union[List, np.ndarray] = None,
-    overwrite: bool = False,
-    verbose: bool = True,
+        fname: str,
+        ch_names: Union[List, np.ndarray],
+        coords: Union[List, np.ndarray],
+        sizes: Union[List, np.ndarray] = None,
+        overwrite: bool = False,
+        verbose: bool = True,
 ):
     """
     Create an electrodes.tsv file and save it.
@@ -147,7 +147,7 @@ def _write_electrodes_tsv(
         sizes = ["n/a"] * len(ch_names)
 
     data = OrderedDict(
-        [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes),]
+        [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes), ]
     )
 
     print(f"Writin data to {fname}: ")
@@ -164,11 +164,12 @@ def _convert_dicom_to_nifti(original_dicom_directory, output_fpath, verbose=True
 
     # try to run mrconvert and reorient to `LAS` direction
     output_dict = dicom2nifti.dicom_series_to_nifti(
-        original_dicom_directory, output_fpath, reorient_nifti=True
+        original_dicom_directory, output_fpath, reorient_nifti=False
     )
     nb_img = output_dict["NII"]
     image_input = output_dict["NII_FILE"]
 
+    print("Orientation of nifti image: ", nb.aff2axcodes(nb_img.affine))
     img = nb.load(image_input)
     print("Reoriented image to ", nb.aff2axcodes(img.affine))
 
@@ -236,28 +237,3 @@ def convert_img_to_bids(image_input, bids_root, bids_fname, verbose=True):
     # for point_idx, label in enumerate(("LPA", "NAS", "RPA")):
     #     plot_anat(Path(anat_dir, bids_fname), axes=axs[point_idx], title=label)
     # plt.show()
-
-
-if __name__ == "__main__":
-    # bids root to write BIDS data to
-    bids_root = Path("/home/adam2392/hdd2/data/")
-    # bids_root = Path("/home/adam2392/Documents/eztrack/data/bids_layout/")
-    # bids_root = Path("/Users/adam2392/Documents/eztrack/data/bids_layout/")
-
-    # path to original source data
-    center = "clevelandnl"
-    source_path = Path(bids_root / "sourcedata" / center)
-
-    # HACK: get all subject ids within sourcedata
-    subject_ids = natsorted(
-        [
-            x.name
-            for x in source_path.iterdir()
-            if not x.as_posix().startswith(".")
-            if x.is_dir()
-        ]
-    )[0:1]
-
-    # define BIDS identifiers
-    task = "monitor"
-    session = "seizure"

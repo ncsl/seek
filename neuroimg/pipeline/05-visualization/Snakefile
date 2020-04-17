@@ -69,12 +69,16 @@ electrodes_fname = make_bids_basename(
 
 
 subworkflow reconstruction_workflow:
+	workdir:
+        "../02-reconstruction/"
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:
         "../config/localconfig.yaml"
 
 subworkflow contact_localization_workflow:
+	workdir:
+        "../04-contact_localization/"
     snakefile:
         "../04-contact_localization/Snakefile"
     configfile:

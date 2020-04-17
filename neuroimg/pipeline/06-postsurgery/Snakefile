@@ -45,6 +45,14 @@ def _get_subject_dir(bids_root, subject):
 def _get_anat_bids_dir(bids_root, subject):
     return os.path.join(_get_subject_dir(bids_root, subject), f'ses-{session}', 'anat')
 
+subworkflow reconstruction_workflow:
+    workdir:
+        "../02-reconstruction/"
+    snakefile:
+        "../02-reconstruction/Snakefile"
+    configfile:
+        "../config/localconfig.yaml"
+
 
 # First rule
 rule all:
@@ -88,7 +96,7 @@ rule coregistert1_post_to_pre:
     input:
         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
                                      _get_bids_basename(subject_wildcard, imgtype='T1w')),
-        PREMRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
+        PREMRI_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1.nii")),
     output:
         PREMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "preT1.nii"),
         POSTMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "postT1_in_preT1.nii.gz"),

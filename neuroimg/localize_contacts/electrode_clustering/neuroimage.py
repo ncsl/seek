@@ -115,8 +115,10 @@ class BrainImage:
         # assign the affine transformation to use depending
         # if going from vox -> mm, or mm -> vox
         if coord_type == "vox":
+            # from mm -> voxel
             inv_affine = npl.inv(affine)
         else:
+            # from voxel -> mm
             inv_affine = affine
 
         new_coord = apply_affine(inv_affine, coord)
