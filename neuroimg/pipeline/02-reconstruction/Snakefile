@@ -18,10 +18,10 @@ Runs tests to ensure data is all in the corresponding format: BIDS iEEG
 
 If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
 """
-configfile: "../config/localconfig.yaml"
+configfile: "/neuroimg/pipeline/config/localconfig.yaml"
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(config['bids_root']))
+bids_root = BidsRoot(BIDS_ROOT(os.environ['bids_root']))
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
@@ -55,7 +55,7 @@ subworkflow prep_workflow:
     snakefile:
         "../01-prep/Snakefile"
     configfile:
-        "../config/localconfig.yaml"
+        "/neuroimg/pipeline/config/localconfig.yaml"
 
 # First rule
 rule all:
@@ -64,10 +64,10 @@ rule all:
                                subject=config['patients']),
         brainmask_nifti = expand(os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
                                subject=config['patients']),
-        lhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
-                                subject=config['patients']),
-        rhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
-                                subject=config['patients']),
+        # lhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
+        #                         subject=config['patients']),
+        # rhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
+        #                         subject=config['patients']),
         subcort_success_flag_file = expand(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_subcort_success.txt"),
                                 subject=config['patients']),
     shell:
@@ -105,8 +105,8 @@ rule prep_recon:
         "mkdir -p {params.elecsdir};"
         "mkdir -p {params.acpcdir};"
         "mkdir -p {params.INPUT_FS_ORIG_DIR};"
-        "mrconvert {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
-        "mrconvert {input.MRI_NIFTI_IMG} {output.MRI_MGZ_IMG};"
+        "mri_convert {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
+        "mri_convert {input.MRI_NIFTI_IMG} {output.MRI_MGZ_IMG};"
 
 
 """
@@ -120,7 +120,7 @@ Use ACPC aligned T1 image. Comment out if not using.
 #         MRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
 #     shell:
 #         "cp {params.ACPC_IMAGE} {output.FS_ACPC_IMAGE};"
-#         "mrconvert {input.FS_ACPC_IMAGE} {output.MRI_MGZ_IMG};"
+#         "mri_convert {input.FS_ACPC_IMAGE} {output.MRI_MGZ_IMG};"
 
 
 """
@@ -138,9 +138,9 @@ Converts another folder into more scans. WIP.
 #         MRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "origT1_2.nii"),
 #         MRI_CONFORMED_NIFTI_IMG = os.path.join(FS_PATIENT_OUTPUT_DIR, "mri", "T1_2conform.nii.gz")
 #     shell:
-#         "mrconvert {params.MRI_FOLDER} {output.MRI_NIFTI_IMG};"
+#         "mri_convert {params.MRI_FOLDER} {output.MRI_NIFTI_IMG};"
 #         "flirt -in {output.MRI_NIFTI_IMG} -ref {params.MRI1_NIFTI_IMG} -out {output.MRI_CONFORMED_NIFTI_IMG};"
-#         "mrconvert {output.MRI_CONFORMED_NIFTI_IMG} {output.MRI_MGZ_IMG};"
+#         "mri_convert {output.MRI_CONFORMED_NIFTI_IMG} {output.MRI_MGZ_IMG};"
 
 
 """
@@ -161,46 +161,46 @@ rule reconstruction:
     shell:
         "export SUBJECTS_DIR={params.SUBJECTS_DIR};" \
         "SUBJECTS_DIR={params.SUBJECTS_DIR};"
-        # "recon-all " \
-        #     "-cw256 " \
-        #     "-i {input.MRI_MGZ_IMG} " \
-        #     "-subjid {params.patient} " \
-        #     "-all "\
-        #     "-parallel -openmp 4;"
+        "recon-all " \
+            "-cw256 " \
+            # "-i {input.MRI_MGZ_IMG} " \
+            "-subject {params.patient} " \
+            "-all "\
+            "-parallel -openmp $(nproc);"
         "touch {output.outsuccess_file}"
 
 """
 Rule for converting the pial surfaces to ascii data, so that it is readable by python/matlab.
 """
-rule convert_pial_surface_files_ascii:
-    input:
-        recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
-    params:
-        lhpial = os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
-        rhpial = os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
-    output:
-        lhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
-        rhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
-    shell:
-        "mris_convert {params.lhpial} {output.lhpial};"
-        "mris_convert {params.rhpial} {output.rhpial};"
+# rule convert_pial_surface_files_ascii:
+#     input:
+#         recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+#     params:
+#         lhpial = os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
+#         rhpial = os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
+#     output:
+#         lhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
+#         rhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
+#     shell:
+#         "mris_convert {params.lhpial} {output.lhpial};"
+#         "mris_convert {params.rhpial} {output.rhpial};"
 
 
 """
 Rule for converting the pial surfaces to ascii data, so that it is readable by python/matlab.
 """
-rule convert_freesurfer_T1_to_nifti:
-    input:
-        recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
-    params:
-        lhpial = os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
-        rhpial = os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
-    output:
-        lhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
-        rhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
-    shell:
-        "mris_convert {params.lhpial} {output.lhpial};"
-        "mris_convert {params.rhpial} {output.rhpial};"
+# rule convert_freesurfer_T1_to_nifti:
+#     input:
+#         recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+#     params:
+#         lhpial = os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
+#         rhpial = os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
+#     output:
+#         lhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
+#         rhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
+#     shell:
+#         "mris_convert {params.lhpial} {output.lhpial};"
+#         "mris_convert {params.rhpial} {output.rhpial};"
 
 
 rule convert_FS_T1_to_nifti:
@@ -211,7 +211,7 @@ rule convert_FS_T1_to_nifti:
     output:
         PREMRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
     shell:
-        "mrconvert {params.PREMRI_MGZ_IMG} {output.PREMRI_NIFTI_IMG};"
+        "mri_convert {params.PREMRI_MGZ_IMG} {output.PREMRI_NIFTI_IMG};"
 
 
 """

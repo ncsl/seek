@@ -117,3 +117,5 @@ Dockerfile_old
 
 neuroimg/pipeline/visualization/webserver/templates/static/brain.mgz
 neuroimg/pipeline/visualization/webserver/templates/static/brain.glb
+Data/*
+neuroimg/pipeline/04-contact_localization/*

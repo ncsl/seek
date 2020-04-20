@@ -80,3 +80,26 @@ References:
 5. MRICloud. https://mricloud.org/
 6. Snakemake. https://snakemake.readthedocs.io/en/stable/
 7. FieldTrip Toolbox. http://www.fieldtriptoolbox.org/tutorial/human_ecog/
+
+
+### DOCKER
+1. Ensure that the data folder is set up as follows:
+    - Data/sourcedata/neuroimaging/{subject}/
+        - premri/*.dcm
+        - posmri/*.dcm
+        - postct/*.dcm
+2. Build image and start reconstruction container:
+    >
+    <code>host:~# docker-compose up --build</code>
+3. Enter container in bash environment:
+    >
+    <code>host:~# docker exec -it neuroimg_pipeline_reconstruction_1 /bin/bash</code>
+4. Prep the data
+    > 
+    <code>container:/neuroimg# snakemake --snakefile ./pipeline/01-prep/Snakefile --cores 2</code>
+5.  Perform reconstruction
+    >
+    <code>container:/neuroimg# snakemake --snakefile ./pipeline/02-reconstruction/Snakefile --cores 2</code>
+6. Perform coregistration
+    >
+    <code>container:/neuroimg# snakemake --snakefile ./pipeline/03-coregistration/Snakefile --cores 2</code>

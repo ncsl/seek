@@ -13,10 +13,10 @@ A snakemake file for running reconstructions on the neuroimaging data.
 snakemake --dag | dot -Tpdf > dag_pipeline_coregistration.pdf
 
 """
-configfile: "../config/localconfig.yaml"
+configfile: "/neuroimg/pipeline/config/localconfig.yaml"
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(config['bids_root']))
+bids_root = BidsRoot(BIDS_ROOT(os.environ['bids_root']))
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
