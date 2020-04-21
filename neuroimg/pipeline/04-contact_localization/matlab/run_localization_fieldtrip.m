@@ -59,7 +59,7 @@ rawdatafilepath = fullfile(RECORD_DATADIR, subjID, 'seeg', 'edf', data_id); % if
 
 %% Initialize Variablees and Parameters
 % output filepath for your electrode localization
-elec_coords_filepath = fullfile(SUBJDIR, 'elecs', [subjID your_initials '_elec_initialize.mat']);
+elec_coords_filepath = fullfile(SUBJDIR, 'elecs', [subjID your_initials '_elec_initialize2.mat']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CHOOSE EITHER COREGISTERED CT FILE, OR ORIGINAL CT IMAGE FILE.
@@ -70,7 +70,7 @@ ctimgfile = fullfile(strcat('rCT.nii.gz'));
 t1imgfile = fullfile(strcat('T1.mgz'));
 
 %% Read in Original MRI Scan
-t1_img = ft_read_mri(fullfile(MRIDIR, t1imgfile));
+% t1_img = ft_read_mri(fullfile(MRIDIR, t1imgfile));
 
 %% Read in Original CT Scan
 ct_img = ft_read_mri(fullfile(CTDIR, ctimgfile));

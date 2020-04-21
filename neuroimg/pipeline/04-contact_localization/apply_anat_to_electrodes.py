@@ -112,11 +112,20 @@ def apply_atlas(bids_root, electrodes_tsv_fpath, inv_affine, fspatdir, fs_lut_fp
     # load electrodes tsv
     electrodes_tsv = _from_tsv(electrodes_tsv_fpath)
     ch_names = electrodes_tsv["name"]
-    elecmatrix = []
-    for i in range(len(ch_names)):
-        elecmatrix.append([electrodes_tsv[x][i] for x in ["x", "y", "z"]])
+    eleccoords = {}
+    for i, ch_name in enumerate(ch_names):
+        if any(["n/a" in electrodes_tsv[x][i] for x in ['x', 'y', 'z']]):
+            continue
+        eleccoords[ch_name] = list(map(float, [electrodes_tsv[x][i] for x in ["x", "y", "z"]]))
+    elec_labels = list(eleccoords.keys())
+    elecmatrix = list(eleccoords.values())
+    # elecmatrix = []
+    # for i in range(len(ch_names)):
+    #     elecmatrix.append([electrodes_tsv[x][i] for x in ["x", "y", "z"]])
     elecmatrix = np.array(elecmatrix, dtype=float)
 
+    print(elec_labels)
+    print(elecmatrix.shape)
     # apply affine transform to put into Voxel space
     elecmatrix = apply_affine(inv_affine, elecmatrix)
 
@@ -146,11 +155,11 @@ def apply_atlas(bids_root, electrodes_tsv_fpath, inv_affine, fspatdir, fs_lut_fp
     # add atlas labeling to electrodes tsv data
     atlas_depth = "destriuex"
     electrodes_tsv = _update_electrodes_tsv(
-        electrodes_tsv_fpath, elec_labels_anat_destriuex, atlas_depth
+        electrodes_tsv_fpath, elec_labels, elec_labels_anat_destriuex, atlas_depth
     )
     atlas_depth = "desikan-killiany"
     electrodes_tsv = _update_electrodes_tsv(
-        electrodes_tsv_fpath, elec_labels_anat_dk, atlas_depth
+        electrodes_tsv_fpath, elec_labels, elec_labels_anat_dk, atlas_depth
     )
 
     # create sidecar electrodes json file

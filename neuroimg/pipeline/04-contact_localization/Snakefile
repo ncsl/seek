@@ -73,6 +73,10 @@ electrodes_fname = make_bids_basename(
     acquisition='seeg',
     suffix='electrodes.tsv', prefix=data_path)
 
+channels_fname = make_bids_basename(
+    subject=subject_wildcard, session='veeg',
+    acquisition='seeg',
+    suffix='channels.tsv', prefix=data_path)
 
 # channels_fname = get_channels_tsv_fpath(str(bids_root.bids_root), subject_id=subject_wildcard)
 
@@ -103,18 +107,20 @@ subworkflow coregistration_workflow:
 # First rule
 rule all:
     input:
-        figure_file = expand(os.path.join(FIGDIR, "summary_pca_elecs.png"),
-                             subject = config['patients']),
-        elecs3d_figure_fpath = expand(os.path.join(FIGDIR, "electrodes_in_voxel_space.png"),
-                     subject=config['patients']),
-        bids_electrodes_file = expand(os.path.join(electrodes_fname),
-                                    subject = config['patients']),
-        bids_electrodes_json_file = expand(os.path.join(electrodes_fname.replace('.tsv', '.json')),
-                                    subject = config['patients']),
+        # figure_file = expand(os.path.join(FIGDIR, "summary_pca_elecs.png"),
+        #                      subject = config['patients']),
+        # elecs3d_figure_fpath = expand(os.path.join(FIGDIR, "electrodes_in_voxel_space.png"),
+        #              subject=config['patients']),
+        # bids_electrodes_file = expand(os.path.join(electrodes_fname),
+        #                             subject = config['patients']),
+        # bids_electrodes_json_file = expand(os.path.join(electrodes_fname.replace('.tsv', '.json')),
+        #                             subject = config['patients']),
         manual_bids_electrodes_file = expand(os.path.join(manual_electrodes_fname),
                                       subject=config['patients']),
         manual_bids_electrodes_json_file = expand(os.path.join(manual_electrodes_fname.replace('.tsv', '.json')),
                                            subject=config['patients']),
+        clustered_center_points = expand(os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
+                subject=config['patients']),
     params:
         bids_root = bids_root.bids_root,
     shell:
@@ -156,16 +162,18 @@ Converts output of fieldtrip toolbox .mat files named accordingly into txt files
 Note: This file should contain at least two contacts per electrode.
 """
 rule convert_CT_eleccoords_to_txt:
-    # input:
+    input:
+        # channels_tsv_fpath = os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(get_channels_tsv_fpath(str(bids_root.bids_root),
+        channels_tsv_fpath = channels_fname,
     #     clustered_center_points_mat = os.path.join(FSOUT_ELECS_FOLDER,
     #                                                # '{subject}_elec_f.mat'
     #                                                '{subject}CH_elec_initialize.mat'),
     params:
-        elecs_dir = FSOUT_ELECS_FOLDER,
+        elecs_dir = str(FSOUT_ELECS_FOLDER),
     output:
         clustered_center_points = os.path.join(FSOUT_ELECS_FOLDER, '{subject}_elecxyz_inct.txt'),
     shell:
-        "python ./convert_to_txt.py {params.elecs_dir} {output.clustered_center_points};"
+        "python ./convert_to_txt.py {input.channels_tsv_fpath} {params.elecs_dir} {output.clustered_center_points};"
 
 rule copy_channnelstsv_to_freesurfer:
     input:

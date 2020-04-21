@@ -13,18 +13,22 @@ from neuroimg.format.bids.bids_conversion import _write_coordsystem_json
 
 
 def transform(coords, src_img, dest_img, transform_mat, coordinate_type="mm"):
-    coords_str = " ".join([str(x) for x in coords])
+    # if n/a coordinate, then don't transform
+    if "n/a" in coords:
+        return coords
+    else:
+        coords_str = " ".join([str(x) for x in coords])
 
-    cp = subprocess.run(
-        f"echo %s | img2imgcoord -{coordinate_type} -src %s -dest %s -xfm %s"
-        % (coords_str, src_img, dest_img, transform_mat),
-        shell=True,
-        stdout=subprocess.PIPE,
-    )
+        cp = subprocess.run(
+            f"echo %s | img2imgcoord -{coordinate_type} -src %s -dest %s -xfm %s"
+            % (coords_str, src_img, dest_img, transform_mat),
+            shell=True,
+            stdout=subprocess.PIPE,
+        )
 
-    transformed_coords = cp.stdout.decode("ascii").strip().split("\n")[-1]
-    # print(transformed_coords)
-    return np.array([float(x) for x in transformed_coords.split(" ") if x])
+        transformed_coords = cp.stdout.decode("ascii").strip().split("\n")[-1]
+        # print(transformed_coords)
+        return np.array([float(x) for x in transformed_coords.split(" ") if x])
 
 
 def read_label_coords(elecfile):

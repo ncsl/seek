@@ -2,6 +2,8 @@ import argparse
 from pathlib import Path
 import scipy.io
 
+from mne_bids.tsv_handler import _from_tsv
+
 
 def loadmat(filename):
     """Load .mat file into RAM."""
@@ -44,11 +46,8 @@ def read_label_coords(elecfilemat):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('channels_tsv_fpath')
     parser.add_argument('elecs_dir')
-    # parser.add_argument(
-    #     "clustered_points_file",
-    #     help="The output datafile with all the electrode points clustered.",
-    # )
     parser.add_argument(
         "outputcoordsfile",
         help="The output datafile for electrodes mapped to correct coords.",
@@ -56,17 +55,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # extract arguments from parser
+    channels_tsv_fpath = args.channels_tsv_fpath
     elecs_dir = args.elecs_dir
     # clustered_points_file = args.clustered_points_file
     outputcoordsfile = args.outputcoordsfile
 
     matfiles = [x for x in Path(elecs_dir).glob("*.mat")]
+    print(elecs_dir)
+    print(matfiles)
     if len(matfiles) > 1:
         raise RuntimeError("There should only be one .mat file inside the "
                            "FreeSurfer elecs directory. This should be created "
                            "from manual annotation of at least entry/exit points "
                            "on each electrode. (Possibly using Fieldtrip Toolbox)")
-    clustered_points_file = matfiles[0].name
+    clustered_points_file = matfiles[0]
 
     # read in electrodes file
     electxt = read_label_coords(clustered_points_file)
@@ -74,10 +76,20 @@ if __name__ == "__main__":
     print("Saving electrode coordinates as a txt file!")
     print(electxt)
 
+    _electxt = dict()
+    channels_tsv = _from_tsv(channels_tsv_fpath)
+    for ch in channels_tsv['name']:
+        if ch.upper() in electxt:
+            _electxt[ch] = electxt[ch]
+        else:
+            _electxt[ch] = ["n/a", "n/a", "n/a"]
+    electxt = _electxt
+
     # write the output to a txt file
     with open(outputcoordsfile, "w") as f:
         for i, name in enumerate(electxt.keys()):
             f.write(
-                "%s %.6f %.6f %.6f\n"
+                # "%s %.6f %.6f %.6f\n"
+                "%s %s %s %s\n"
                 % (name, electxt[name][0], electxt[name][1], electxt[name][2])
             )

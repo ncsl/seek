@@ -39,15 +39,18 @@ def bids_validate(bids_root):
     return _validate(bids_root)
 
 
-def _update_electrodes_tsv(electrodes_tsv_fpath, elec_labels_anat, atlas_depth):
+def _update_electrodes_tsv(electrodes_tsv_fpath, elec_labels, elec_labels_anat, atlas_depth):
+    print(electrodes_tsv_fpath)
     electrodes_tsv = _from_tsv(electrodes_tsv_fpath)
-
+    ch_names = electrodes_tsv["name"]
     if atlas_depth not in electrodes_tsv.keys():
-        electrodes_tsv[atlas_depth] = ["n/a"] * len(elec_labels_anat)
-    for i in range(len(elec_labels_anat)):
-        ch_name = electrodes_tsv["name"][i]
-        print(ch_name, elec_labels_anat[i])
-        electrodes_tsv[atlas_depth][i] = elec_labels_anat[i]
+        electrodes_tsv[atlas_depth] = ["n/a"] * len(ch_names)
+
+    print(len(ch_names))
+    for i, (name, anat) in enumerate(zip(elec_labels, elec_labels_anat)):
+        ch_ind = ch_names.index(name)
+        print(atlas_depth, name, anat, ch_ind)
+        electrodes_tsv[atlas_depth][ch_ind] = anat
     _to_tsv(electrodes_tsv, electrodes_tsv_fpath)
 
     return electrodes_tsv

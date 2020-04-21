@@ -81,12 +81,15 @@ def load_elecs_data(elecfile):
         with open(elecfile) as f:
             for l in f:
                 row = l.split()
-                if len(row) == 4:
-                    eleccoords_mm[row[0]] = np.array(list(map(float, row[1:])))
-                elif len(row) == 6:
-                    eleccoords_mm[row[1]] = np.array(list(map(float, row[2:5])))
+                if "n/a" in row:
+                    eleccoords_mm[row[0]] = ['n/a', 'n/a', 'n/a']
                 else:
-                    raise ValueError("Unrecognized electrode coordinate text format")
+                    if len(row) == 4:
+                        eleccoords_mm[row[0]] = np.array(list(map(float, row[1:])))
+                    elif len(row) == 6:
+                        eleccoords_mm[row[1]] = np.array(list(map(float, row[2:5])))
+                    else:
+                        raise ValueError("Unrecognized electrode coordinate text format")
     else:
         matreader = MatReader()
         data = matreader.loadmat(elecfile)
