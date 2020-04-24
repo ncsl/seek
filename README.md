@@ -83,17 +83,19 @@ References:
 
 
 ### DOCKER
+
+#### Reconstruction
 1. Ensure that the data folder is set up as follows:
     - Data/sourcedata/neuroimaging/{subject}/
         - premri/*.dcm
         - posmri/*.dcm
         - postct/*.dcm
-2. Build image and start reconstruction container:
+2. Build images:
     >
     <code>host:~# docker-compose up --build</code>
-3. Enter container in bash environment:
+3. Run reconstruction container:
     >
-    <code>host:~# docker exec -it neuroimg_pipeline_reconstruction_1 /bin/bash</code>
+    <code>host:~# docker-compose run reconstruction /bin/bash</code>
 4. Prep the data
     > 
     <code>container:/neuroimg# snakemake --snakefile ./pipeline/01-prep/Snakefile --cores 2</code>
@@ -103,3 +105,9 @@ References:
 6. Perform coregistration
     >
     <code>container:/neuroimg# snakemake --snakefile ./pipeline/03-coregistration/Snakefile --cores 2</code>
+
+#### Electrode localization (Bioimage suite)
+
+1. Run localization container:
+    >
+    <code>host:~# docker-compose run localization ./start_bioimagesuite</code>

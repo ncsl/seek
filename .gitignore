@@ -116,3 +116,4 @@ venv.bak/
 neuroimg/pipeline/visualization/webserver/templates/static/brain.mgz
 neuroimg/pipeline/visualization/webserver/templates/static/brain.glb
 neuroimg/pipeline/04-contact_localization/*
+Data/*
