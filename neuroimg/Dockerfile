@@ -3,6 +3,8 @@ FROM python:latest
 # SHELL ["/bin/bash", "-c"]
 LABEL authors="Christopher Coogan <c.coogan2201@gmail.com>, Adam Li <ali39@jhu.edu>"
 
+############# SYSTEM LEVEL INSTALLS #############
+# install basic ubuntu utilities
 RUN apt-get update && apt-get install -y \
     build-essential \
     wget \
@@ -24,13 +26,8 @@ RUN apt-get update && apt-get install -y \
     libxss1 \
     libjpeg62 \
     tcsh \
-    bc
-
-WORKDIR /neuroimg
-COPY ./Data /data
-COPY ./neuroimg/pipeline/01-prep /neuroimg/pipeline/01-prep
-COPY ./neuroimg/pipeline/02-reconstruction /neuroimg/pipeline/02-reconstruction
-COPY ./neuroimg/pipeline/03-coregistration /neuroimg/pipeline/03-coregistration
+    bc \
+    dialog
 
 # Freesurfer
 RUN wget -O- https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/dev/freesurfer-linux-centos7_x86_64-dev.tar.gz | \
@@ -53,14 +50,26 @@ RUN $FREESURFER_HOME/SetUpFreeSurfer.sh
 COPY ./neuroimg/freesurferlicense.txt /usr/local/freesurfer/.license
 ENV SUBJECTS_DIR=/data/derivatives/freesurfer
 
-
 # Neuroimgpipe dependencies
-RUN pip3 install snakemake mne-bids numpy scipy mne dicom2nifti 
+RUN pip3 install snakemake mne-bids numpy scipy mne dicom2nifti
 
 # Node & bids-validator
-RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - && apt-get install -y nodejs && npm i -g bids-validator
+RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - && \
+    apt-get install -y nodejs && \
+    npm i -g bids-validator
 
+############# KEEP BELOW SYSTEM LEVEL INSTALLS #############
+# setup working directories
+WORKDIR /neuroimg
+COPY ./Data /data
+COPY ./neuroimg/pipeline/01-prep /neuroimg/pipeline/01-prep
+COPY ./neuroimg/pipeline/02-reconstruction /neuroimg/pipeline/02-reconstruction
+COPY ./neuroimg/pipeline/03-coregistration /neuroimg/pipeline/03-coregistration
 
+# copy over files and functions
 COPY ./neuroimg/pipeline/fileutils.py /neuroimg/pipeline/fileutils.py
 COPY ./neuroimg/format /neuroimg/format
 COPY ./neuroimg/pipeline/config/localconfig.yaml /neuroimg/pipeline/config/localconfig.yaml
+
+# XXX: hack to make container stay open
+#CMD [ "bash", "-c", "-f /dev/null" ]

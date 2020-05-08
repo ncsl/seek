@@ -84,6 +84,27 @@ References:
 
 ### DOCKER
 
+Setup: Note that the docker container names are:
+
+    - neuroimg
+
+To setup the container in your system:
+
+    docker-compose up --build
+    
+    # run the container
+    docker-compose up 
+    
+Now if you type in `docker container ls`, you should see the corresponding container.
+    
+    # turn recipe to image
+    docker build <image_container_name>
+    
+    # turn image to containeer
+    docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
+
+# Creating persistent volumes
+
 #### Reconstruction
 1. Ensure that the data folder is set up as follows:
     - Data/sourcedata/neuroimaging/{subject}/

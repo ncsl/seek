@@ -9,6 +9,8 @@ services:
     environment:
       bids_root: /data
       derivatives_output_dir: /data/derivatives
+    tty: true  # keep container running
+    container_name: 'neuroimg'
 
   localization:
     image: thebrainchain/bioimagesuite35:latest
