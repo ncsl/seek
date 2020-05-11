@@ -102,4 +102,4 @@ jobs:
 
             - add_ssh_keys:
                 fingerprints:
-                  - "fd:39:54:fd:e0:85:47:67:c3:ef:e8:8d:99:30:f0:79"
+                  - "de:75:29:a1:56:a9:53:08:b5:8f:95:c8:12:7a:bf:44"
