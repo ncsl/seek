@@ -18,7 +18,8 @@ Runs tests to ensure data is all in the corresponding format: BIDS iEEG
 
 If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
 """
-configfile: "/seek/pipeline/config/localconfig.yaml"
+# configfile: "/seek/pipeline/config/localconfig.yaml"
+configfile: "../config/localconfig.yaml"
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(os.environ['bids_root']))
