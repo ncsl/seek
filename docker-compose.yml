@@ -1,0 +1,22 @@
+version: '3'
+services:
+  reconstruction:
+    build: 
+      context: . 
+      dockerfile: ./neuroimg/Dockerfile
+    volumes:
+      - ./Data:/data
+    environment:
+      bids_root: /data
+      derivatives_output_dir: /data/derivatives
+    tty: true  # keep container running
+    container_name: 'neuroimg'
+
+  localization:
+    image: thebrainchain/bioimagesuite35:latest
+    environment: 
+      DISPLAY: 192.168.1.138:0.0
+    volumes:
+      - ./Data:/data
+    depends_on:
+      - "reconstruction"

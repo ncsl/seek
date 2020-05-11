@@ -1,3 +1,3 @@
-class Test_Localization():
+class Test_Localization:
     def test_clustering(self):
         pass
