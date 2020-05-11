@@ -32,8 +32,16 @@ Anaconda and Python3.6+ :
         cd neuroimg/pipeline/reconstruction/
         snakemake -n    
    
-
-## 3rd Party Modules to Install (Docker Coming)
+Pip and setup.py install
+    
+    # run installation via setup.py
+    make inplace-all
+    
+    # install testing functionality
+    make install-tests
+    
+            
+## 3rd Party Modules to Install (or use Docker container)
 0. Octave
     Runs open-source. This runs various scripts for converting output files to object files for rendering visualizations.
     Follow: https://www.gnu.org/software/octave/#install

@@ -5,7 +5,7 @@ from mne_bids import make_bids_basename, make_bids_folders
 
 sys.path.append("../../../")
 
-from neuroimg.pipeline.fileutils import BidsRoot, BIDS_ROOT
+from neuroimg.pipeline.fileutils import BidsRoot, BIDS_ROOT, SESSION
 
 configfile: "../config/localconfig.yaml"
 BLENDER_PATH = config["blender_path"]
@@ -46,24 +46,24 @@ surface_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER, "blender_objects", 
 surface_fbx_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER, "blender_objects", "reconstruction.fbx"),
 
 # coordinate system and electrodes as tsv files
-data_path = make_bids_folders(subject=subject_wildcard, session='veeg',
+data_path = make_bids_folders(subject=subject_wildcard, session=SESSION,
                               bids_root=str(bids_root.bids_root), make_dir=False,
                               overwrite=False, verbose=False)
 manual_coordsystem_fname = make_bids_basename(
-    subject=subject_wildcard, session='veeg', processing='manual',
+    subject=subject_wildcard, session=SESSION, processing='manual',
     acquisition='seeg',
     suffix='coordsystem.json', prefix=data_path)
 manual_electrodes_fname = make_bids_basename(
-    subject=subject_wildcard, session='veeg', processing='manual',
+    subject=subject_wildcard, session=SESSION, processing='manual',
     acquisition='seeg',
     suffix='electrodes.tsv', prefix=data_path)
 
 coordsystem_fname = make_bids_basename(
-    subject=subject_wildcard, session='veeg', processing='seek',
+    subject=subject_wildcard, session=SESSION, processing='seek',
     acquisition='seeg',
     suffix='coordsystem.json', prefix=data_path)
 electrodes_fname = make_bids_basename(
-    subject=subject_wildcard, session='veeg', processing='seek',
+    subject=subject_wildcard, session=SESSION, processing='seek',
     acquisition='seeg',
     suffix='electrodes.tsv', prefix=data_path)
 

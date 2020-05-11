@@ -46,6 +46,11 @@ codespell-error:  # running on travis
 inplace:
 	$(PYTHON) setup.py install
 
+install-tests:
+	${PYTHON} -m pip install pytest black check-manifest pytest-cov pydocstyle sphinx sphinx-gallery
+    ${PYTHON} -m pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
+    ${PYTHON} -m pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
+
 test: inplace check-manifest
 	rm -f .coverage
 	$(PYTESTS) ./

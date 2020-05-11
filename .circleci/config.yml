@@ -6,6 +6,28 @@ jobs:
         steps:
             - checkout
 
+            # install docker compose
+            - run:
+                name: Install Docker Compose
+                command: |
+                  set -x
+                  curl -L https://github.com/docker/compose/releases/download/1.25.3/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+                  chmod +x /usr/local/bin/docker-compose
+            # let circle CI see docker
+            - setup_remote_docker:
+                docker_layer_caching: true
+
+            # create docker image
+            - run:
+                name: Build and push Docker image
+                command: |
+                  set -x
+                  docker-compose up -d
+                  docker run -v $PWD/Data:/data -it -e bids_root=/data \
+                            -e derivatives_output_dir=/data/derivatives \
+                            --rm neuroimg_pipeline_reconstruction bash
+
+            # run local python based installation and test
             - run:
                 name: Check environment.yml and doc/environment.yml syncing
                 # doc/environment.yml must be a perfect copy of environment.yml
@@ -22,43 +44,44 @@ jobs:
                 keys:
                   - pip-cache-0-{{ checksum "./environment.yml" }}
 
-            - run:
-                name: Install miniconda
-                command: |
-                  wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;
-                  chmod +x ~/miniconda.sh;
-                  ~/miniconda.sh -b -p ~/miniconda;
-                  echo "export PATH=~/miniconda/bin:$PATH" >> $BASH_ENV;
-
-            - run:
-                name: Setup Python environment via Conda
-                # ... but use latest version of EZTrack
-                command: |
-                  conda update --yes --quiet conda
-                  conda env create -f environment.yml --name=testenv
-                  source activate testenv
-                  conda config --add channels conda-forge
-                  conda config --add channels bioconda
-                  conda config --add channels aramislab
-                  conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
-                  pip install coverage-badge anybadge
-                  # dev versions of mne-python, mne-bids
-                  pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
-                  pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
-                  python setup.py develop
+#            - run:
+#                name: Install miniconda
+#                command: |
+#                  wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;
+#                  chmod +x ~/miniconda.sh;
+#                  ~/miniconda.sh -b -p ~/miniconda;
+#                  echo "export PATH=~/miniconda/bin:$PATH" >> $BASH_ENV;
+#
+#            - run:
+#                name: Setup Python environment via Conda
+#                # ... but use latest version of EZTrack
+#                command: |
+#                  conda update --yes --quiet conda
+#                  conda env create -f environment.yml --name=testenv
+#                  source activate testenv
+#                  conda config --add channels conda-forge
+#                  conda config --add channels bioconda
+#                  conda config --add channels aramislab
+#                  conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
+#                  pip install coverage-badge anybadge
+#                  # dev versions of mne-python, mne-bids
+#                  pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
+#                  pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
+#                  python setup.py develop
 
             - run:
                 name: Setup Python environment via Setup
                 # ... but use latest version of EZTrack
                 command: |
-                  conda env create --name=testenv2
-                  source activate testenv2
+                  python -m venv .venv
+                  source activate .venv/bin/activate
                   make inplace
+                  make install-tests
 
             - run:
                 name: Run unit and integration tests
                 command: |
-                  source activate testenv
+                  source activate .venv/bin/activate
                   make check
                   pytest ./tests/
 

@@ -36,7 +36,7 @@ MINIMUM_PYTHON_VERSION = 3, 6  # Minimum of Python 3.6
 REQUIRED_PACKAGES = [
     "numpy>=1.14.5",
     "scipy>=1.1.0",
-    "pandas>=0.23.4",
+    "pandas>=1.0.0",
     "pybids>=0.10",
     "pybv>=0.2.0",
     "joblib>=0.14",
@@ -48,8 +48,8 @@ REQUIRED_PACKAGES = [
     "snakemake",
     "matplotlib>=3.2.1",
     "seaborn",
-    "mne>=0.19.0",
-    "mne-bids>=0.3",
+    "mne>=0.20.0",
+    "mne-bids>=0.4",
 ]
 CLASSIFICATION_OF_PACKAGE = [
     # How mature is this project? Common values are

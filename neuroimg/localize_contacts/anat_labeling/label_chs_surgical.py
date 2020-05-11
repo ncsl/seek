@@ -46,13 +46,14 @@ def _compare_surgical_contacts(surg_chs, clinically_removed_contacts):
     return not_found_chs
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from pathlib import Path
     import nrrd
+
     bids_root = Path("/Users/adam2392/Dropbox/epilepsy_bids/")
-    deriv_dir = Path(bids_root / 'derivatives'/ 'freesurfer')
-    subject = 'la02'
-    postsurg_dir = Path(deriv_dir / subject / 'postsurgerymri')
+    deriv_dir = Path(bids_root / "derivatives" / "freesurfer")
+    subject = "la02"
+    postsurg_dir = Path(deriv_dir / subject / "postsurgerymri")
 
     # get the segmented fpath
     segmented_fpath = Path(postsurg_dir / f"{subject}-surgical-segmentation.nrrd")
@@ -67,10 +68,10 @@ if __name__ == '__main__':
     t1w_img = nb.load(T1w_fpath)
     t1w_affine = t1w_img.affine
     mm_to_voxel = np.linalg.inv(t1w_affine)
-    ct_fpath = Path(deriv_dir / 'CT' / 'CT.nii')
+    ct_fpath = Path(deriv_dir / "CT" / "CT.nii")
 
     # get the post -> pre T1 affine
-    post_to_pre_affine = np.loadtxt(Path(postsurg_dir / 'fsl_postt1-to-t1_omat.txt'))
+    post_to_pre_affine = np.loadtxt(Path(postsurg_dir / "fsl_postt1-to-t1_omat.txt"))
     pre_to_post_affine = np.linalg.inv(post_to_pre_affine)
 
     # print(surgmask_arr.shape, t1w_img.shape)
@@ -80,25 +81,31 @@ if __name__ == '__main__':
     # print(nb.io_orientation(t1w_img.affine))
 
     # read in electrodes
-    subj_dir = make_bids_folders(bids_root=bids_root.as_posix(), subject=subject,
-                                 session='veeg', make_dir=False)
+    subj_dir = make_bids_folders(
+        bids_root=bids_root.as_posix(), subject=subject, session="veeg", make_dir=False
+    )
     # get electrodes
-    electrodes_fpath = make_bids_basename(subject=subject,
-                                          session='veeg',
-                                          processing='manual',
-                                          acquisition='seeg',
-                                          prefix=subj_dir,
-                                          suffix="electrodes.tsv")
+    electrodes_fpath = make_bids_basename(
+        subject=subject,
+        session="veeg",
+        processing="manual",
+        acquisition="seeg",
+        prefix=subj_dir,
+        suffix="electrodes.tsv",
+    )
     electrodes_tsv = _from_tsv(electrodes_fpath)
 
-    ch_names = electrodes_tsv['name']
-    ch_coords = np.vstack((electrodes_tsv['x'], electrodes_tsv['y'], electrodes_tsv['z'])).T.astype(float)
+    ch_names = electrodes_tsv["name"]
+    ch_coords = np.vstack(
+        (electrodes_tsv["x"], electrodes_tsv["y"], electrodes_tsv["z"])
+    ).T.astype(float)
 
     # convert CT coordinates to voxels
 
-
     # convert coordinates to voxels
-    ch_voxs = np.array([apply_affine(mm_to_voxel, coord) for coord in ch_coords]).astype(int)
+    ch_voxs = np.array(
+        [apply_affine(mm_to_voxel, coord) for coord in ch_coords]
+    ).astype(int)
     # ch_voxs = np.swapaxes(ch_voxs)
     # ch_voxs = np.array([apply_affine(pre_to_post_affine, coord) for coord in ch_voxs]).astype(int)
     # print(ch_voxs)

@@ -68,11 +68,11 @@ def _update_electrodes_json(electrodes_json_fpath, **kwargs):
 
 
 def _write_coordsystem_json(
-        fname: str,
-        unit: str,
-        img_fname: str = None,
-        overwrite: bool = True,
-        verbose: bool = True,
+    fname: str,
+    unit: str,
+    img_fname: str = None,
+    overwrite: bool = True,
+    verbose: bool = True,
 ):
     system_description = (
         "FreeSurfer Coordinate System derived from the CT, or T1 MRI scan."
@@ -104,12 +104,12 @@ def _write_coordsystem_json(
 
 
 def _write_electrodes_tsv(
-        fname: str,
-        ch_names: Union[List, np.ndarray],
-        coords: Union[List, np.ndarray],
-        sizes: Union[List, np.ndarray] = None,
-        overwrite: bool = False,
-        verbose: bool = True,
+    fname: str,
+    ch_names: Union[List, np.ndarray],
+    coords: Union[List, np.ndarray],
+    sizes: Union[List, np.ndarray] = None,
+    overwrite: bool = False,
+    verbose: bool = True,
 ):
     """
     Create an electrodes.tsv file and save it.
@@ -147,7 +147,7 @@ def _write_electrodes_tsv(
         sizes = ["n/a"] * len(ch_names)
 
     data = OrderedDict(
-        [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes), ]
+        [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes),]
     )
 
     print(f"Writin data to {fname}: ")

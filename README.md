@@ -1,5 +1,7 @@
 Neuroimaging Pipeline
 ---------------------
+
+[![CircleCI](https://circleci.com/gh/adam2392/neuroimg_pipeline.svg?style=svg&circle-token=be3280d393039eac5067ac529b59241a235a2d4d)](https://circleci.com/gh/adam2392/neuroimg_pipeline)
 [![Build Status](https://travis-ci.com/adam2392/eegio.svg?token=6sshyCajdyLy6EhT8YAq&branch=master)](https://travis-ci.com/adam2392/neuroimg_pipeline)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 ![GitHub](https://img.shields.io/github/license/adam2392/neuroimg_pipeline)
