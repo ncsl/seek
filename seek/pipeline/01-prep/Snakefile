@@ -108,7 +108,7 @@ rule automatic_acpc_alignment:
     shell:
         "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
         "acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;"
-        "rm {input.MRI_bids_fname};"
+        # "rm {input.MRI_bids_fname};"
 
 
 
