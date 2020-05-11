@@ -18,8 +18,9 @@ Runs tests to ensure data is all in the corresponding format: BIDS iEEG
 
 If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
 """
+config_location = "../config/localconfig.yaml"
 # configfile: "/seek/pipeline/config/localconfig.yaml"
-configfile: "../config/localconfig.yaml"
+configfile: config_location
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']), center_id=config['center_id'])
@@ -55,8 +56,7 @@ subworkflow prep_workflow:
     snakefile:
         "../01-prep/Snakefile"
     configfile:
-        configfile
-        # "/seek/pipeline/config/localconfig.yaml"
+        config_location
 
 # First rule
 rule all:
