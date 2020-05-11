@@ -50,6 +50,12 @@ RUN $FREESURFER_HOME/SetUpFreeSurfer.sh
 COPY ./seek/freesurferlicense.txt /usr/local/freesurfer/.license
 ENV SUBJECTS_DIR=/data/derivatives/freesurfer
 
+# acpc detect
+ENV ARTHOME /usr/local/art
+RUN wget -O- https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz |
+    tar -xvzf --no-same-owner -C $ARTHOME
+ENV PATH $ARTHOME/bin:$PATH
+
 # Neuroimgpipe dependencies
 RUN pip3 install snakemake mne-bids numpy scipy mne dicom2nifti
 

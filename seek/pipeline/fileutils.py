@@ -37,11 +37,13 @@ class BidsRoot:
 
     """
 
-    def __init__(self, bids_root, derivatives_dir=None):
+    def __init__(self, bids_root, derivatives_dir=None, center_id=None):
         bids_root = Path(bids_root)
         if not bids_root.exists():
             raise RuntimeError(f"Bidsroot {bids_root} does not exist.")
         self.bids_root = bids_root
+        self.sourcedir = Path(self.bids_root / "sourcedata")
+        self.center_id = center_id
 
         # derivatives directory is either custom, or derived from bids_root.
         if derivatives_dir is None:
@@ -52,6 +54,9 @@ class BidsRoot:
     def __repr__(self):
         return self.bids_root
 
+    # def _check_center_id(self, patient_wildcard):
+    #     source_children = [x for x in self.sourcedir.glob("*") if patient_wildcard
+
     @property
     def freesurfer_dir(self):
         return Path(self.derivatives_dir / "freesurfer")
@@ -61,24 +66,20 @@ class BidsRoot:
 
     def get_premri_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / patient_wildcard / "premri"
+            self.sourcedir / self.center_id / patient_wildcard / "premri"
         ).as_posix()
 
     def get_postmri_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root
-            / "sourcedata"
-            / "neuroimaging"
-            / patient_wildcard
-            / "postmri"
+            self.sourcedir / self.center_id / patient_wildcard / "postmri"
         ).as_posix()
 
     def get_rawct_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / patient_wildcard / "postct"
+            self.sourcedir / self.center_id / patient_wildcard / "postct"
         ).as_posix()
 
     def get_rawacpc_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / patient_wildcard / "acpc"
+            self.sourcedir / self.center_id / patient_wildcard / "acpc"
         ).as_posix()

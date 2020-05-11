@@ -17,7 +17,7 @@ snakemake --dag | dot -Tpdf > dag_pipeline_coregistration.pdf
 configfile: "../config/localconfig.yaml"
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(os.environ['bids_root']))
+bids_root = BidsRoot(BIDS_ROOT(os.environ['bids_root']), center_id=config['center_id'])
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
