@@ -34,11 +34,11 @@ FSOUT_MRI_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard) /
 FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard) / "CT")
 
 
-def _get_bids_basename(subject, imgtype):
+def _get_bids_basename(subject, imgtype, ext='nii.gz'):
     """Wildcard function to get bids_basename."""
     bids_fname = make_bids_basename(subject,
                                     session=SESSION,
-                                    suffix=f"{imgtype}.nii.gz")
+                                    suffix=f"{imgtype}.{ext}")
     return bids_fname
 
 def _get_subject_dir(bids_root, subject):
@@ -75,7 +75,7 @@ rule convert_dicom_to_nifti:
         CT_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
                                      _get_bids_basename(subject_wildcard, imgtype='CT')),
         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-                                     _get_bids_basename(subject_wildcard, imgtype='T1w'))
+                                     _get_bids_basename(subject_wildcard, imgtype='T1w', ext='nii'))
     shell:
         "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
         "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
@@ -99,7 +99,7 @@ rule convert_dicom_to_nifti:
 rule automatic_acpc_alignment:
     input:
         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-                                     _get_bids_basename(subject_wildcard, imgtype='T1w'))
+                                     _get_bids_basename(subject_wildcard, imgtype='T1w', ext='nii'))
     params:
         anat_dir = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
     output:
