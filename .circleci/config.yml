@@ -26,6 +26,7 @@ jobs:
                   docker run -v $PWD/Data:/data -it -e bids_root=/data \
                             -e derivatives_output_dir=/data/derivatives \
                             --rm neuroimg_pipeline_reconstruction bash
+#                  docker push neuroseek/seek:tagname
 
             # run local python based installation and test
             - run:
