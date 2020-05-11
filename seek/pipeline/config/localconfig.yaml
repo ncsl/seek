@@ -13,7 +13,7 @@ bids_root:
 #  "/home/adam2392/hdd2/epilepsy_bids/derivatives/"
 
 center_id:
-  'cleveland',
+  "cleveland"
 #  'umf',
 
 ############# define list of files to run this for #############
