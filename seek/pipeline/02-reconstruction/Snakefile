@@ -54,8 +54,8 @@ subworkflow prep_workflow:
         "../01-prep/"
     snakefile:
         "../01-prep/Snakefile"
-    configfile:
-        "/seek/pipeline/config/localconfig.yaml"
+    # configfile:
+    #     "/seek/pipeline/config/localconfig.yaml"
 
 # First rule
 rule all:

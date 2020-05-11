@@ -111,8 +111,6 @@ rule automatic_acpc_alignment:
         "acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;"
         # "rm {input.MRI_bids_fname};"
 
-
-
 """
 Use ACPC aligned T1 image. Comment out if not using.
 """
