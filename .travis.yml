@@ -1,6 +1,10 @@
+services:
+  - docker
 language: python
+
 python:
   - "3.6"
+
 # command to install dependencies
 install:
   # commands to get Miniconda3 setup
@@ -18,9 +22,10 @@ install:
   # run conda /pip installation of packages
   - conda install -c anaconda natsort pytest black flake8 check-manifest pytest-cov pydocstyle
   - pip install codespell
+
 # command to run tests
 script:
   - pytest ./tests
   - make check
-#  - cd ./seek/pipeline/06-visualization/
-#  - snakemake -n
+  - docker build --tag neuroseek .
+  - docker run neuroseek

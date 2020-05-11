@@ -1,7 +1,7 @@
 SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
 ----------------------------------------------
 
-[![CircleCI](https://circleci.com/gh/ncsl/seek.svg?style=svg&circle-token=be3280d393039eac5067ac529b59241a235a2d4d)](https://circleci.com/gh/ncsl/seek)
+[![CircleCI](https://circleci.com/gh/ncsl/seek.svg?style=svg)](https://circleci.com/gh/ncsl/seek)
 [![Build Status](https://travis-ci.com/ncsl/seek.svg?token=6sshyCajdyLy6EhT8YAq&branch=master)](https://travis-ci.com/ncsl/seek)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 ![GitHub](https://img.shields.io/github/license/ncsl/seek)

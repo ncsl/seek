@@ -13,9 +13,9 @@ jobs:
                   set -x
                   curl -L https://github.com/docker/compose/releases/download/1.25.3/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
                   chmod +x /usr/local/bin/docker-compose
-            # let circle CI see docker
-            - setup_remote_docker:
-                docker_layer_caching: true
+            # let circle CI cache docker image (paid plan)
+#            - setup_remote_docker:
+#                docker_layer_caching: true
 
             # create docker image
             - run:
