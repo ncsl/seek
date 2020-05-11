@@ -23,7 +23,7 @@ To test on test pypi:
 """
 
 PACKAGE_NAME = "neuroimgpipe"
-with open(os.path.join('neuroimg', '__init__.py'), 'r') as fid:
+with open(os.path.join('seek', '__init__.py'), 'r') as fid:
     for line in (line.strip() for line in fid):
         if line.startswith('__version__'):
             version = line.split('=')[1].strip().strip('\'').strip('"')

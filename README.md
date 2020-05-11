@@ -1,13 +1,13 @@
-Neuroimaging Pipeline
----------------------
+SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
+----------------------------------------------
 
-[![CircleCI](https://circleci.com/gh/adam2392/neuroimg_pipeline.svg?style=svg&circle-token=be3280d393039eac5067ac529b59241a235a2d4d)](https://circleci.com/gh/adam2392/neuroimg_pipeline)
-[![Build Status](https://travis-ci.com/adam2392/eegio.svg?token=6sshyCajdyLy6EhT8YAq&branch=master)](https://travis-ci.com/adam2392/neuroimg_pipeline)
+[![CircleCI](https://circleci.com/gh/ncsl/seek.svg?style=svg)](https://circleci.com/gh/ncsl/seek)
+[![Build Status](https://travis-ci.com/ncsl/seek.svg?token=6sshyCajdyLy6EhT8YAq&branch=master)](https://travis-ci.com/ncsl/seek)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-![GitHub](https://img.shields.io/github/license/adam2392/neuroimg_pipeline)
-![GitHub last commit](https://img.shields.io/github/last-commit/adam2392/neuroimg_pipeline)
-<a href="https://codeclimate.com/github/adam2392/neuroimg_pipeline/maintainability"><img src="https://api.codeclimate.com/v1/badges/2c7d5910e89350b967c8/maintainability" /></a>
-![GitHub repo size](https://img.shields.io/github/repo-size/adam2392/neuroimg_pipeline)
+![GitHub](https://img.shields.io/github/license/ncsl/seek)
+![GitHub last commit](https://img.shields.io/github/last-commit/ncsl/seek)
+<a href="https://codeclimate.com/github/ncsl/seek/maintainability"><img src="https://api.codeclimate.com/v1/badges/2c7d5910e89350b967c8/maintainability" /></a>
+![GitHub repo size](https://img.shields.io/github/repo-size/ncsl/seek)
 [![DOI](https://zenodo.org/badge/160566959.svg)](https://zenodo.org/badge/latestdoi/160566959)
 
 This repo describes Sarma/Crone lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
@@ -39,50 +39,6 @@ Features
 Setup and Installation
 --------
 See [INSTALLATION GUIDE](doc/INSTALLATION.md)
-
-Data Organization
---------
-
-We use BIDS. 
-See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
-
-Pipeline Description
---------
-At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry, 
-regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
-
-See [PIPELINE GUIDE](doc/PIPELINE_DESCRIPTION.md)
-
-Semi-Automated Localizing Electrodes Process
--------- 
-Localizing SEEG electrodes requires at least two contacts on each electrode to initialize the algorithm.
-These can be say the deepest 2 contacts, or the entry point and target point (e.g. first and last contact on the electrode).
-
-For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
-be easily interpolated.
-
-See [LOCALIZATION_GUIDE](doc/LOCALIZATION_GUIDE.md)
-
-Documentation and Testing
---------
-
-    sphinx-quickstart
-    
-See [Testing Guide](doc/TESTING_SETUP.md)
-    
-### Pipeline Process Visualized
-[DAG of Pipeline in Snakemake](./neuroimg/neuroimg/pipeline/dag_neuroimaging_pipeline_reconstruction.pdf)
-
-References:
---------
-1. Recon-all. FreeSurfer. https://surfer.nmr.mgh.harvard.edu/fswiki/recon-all#References
-2. FSL Flirt. https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT
-3. MRTrix3. http://www.mrtrix.org/
-4. Img_pipe. https://github.com/ChangLabUcsf/img_pipe
-5. MRICloud. https://mricloud.org/
-6. Snakemake. https://snakemake.readthedocs.io/en/stable/
-7. FieldTrip Toolbox. http://www.fieldtriptoolbox.org/tutorial/human_ecog/
-
 
 ### DOCKER
 
@@ -134,3 +90,46 @@ Now if you type in `docker container ls`, you should see the corresponding conta
 1. Run localization container:
     >
     <code>host:~# docker-compose run localization ./start_bioimagesuite</code>
+
+Data Organization
+--------
+
+We use BIDS. 
+See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
+
+Pipeline Description
+--------
+At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry, 
+regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
+
+See [PIPELINE GUIDE](doc/PIPELINE_DESCRIPTION.md)
+
+Semi-Automated Localizing Electrodes Process
+-------- 
+Localizing SEEG electrodes requires at least two contacts on each electrode to initialize the algorithm.
+These can be say the deepest 2 contacts, or the entry point and target point (e.g. first and last contact on the electrode).
+
+For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
+be easily interpolated.
+
+See [LOCALIZATION_GUIDE](doc/LOCALIZATION_GUIDE.md)
+
+Documentation and Testing
+--------
+
+See [Testing Guide](doc/TESTING_SETUP.md)
+    
+### Pipeline Process Visualized
+[DAG of Pipeline in Snakemake](seek/neuroimg/pipeline/dag_neuroimaging_pipeline_reconstruction.pdf)
+
+References:
+--------
+1. Recon-all. FreeSurfer. https://surfer.nmr.mgh.harvard.edu/fswiki/recon-all#References
+2. FSL Flirt. https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT
+3. MRTrix3. http://www.mrtrix.org/
+4. Img_pipe. https://github.com/ChangLabUcsf/img_pipe
+5. MRICloud. https://mricloud.org/
+6. Snakemake. https://snakemake.readthedocs.io/en/stable/
+7. FieldTrip Toolbox. http://www.fieldtriptoolbox.org/tutorial/human_ecog/
+
+

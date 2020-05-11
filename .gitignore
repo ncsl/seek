@@ -113,8 +113,8 @@ venv.bak/
 # VSCode settings
 .vscode/
 
-neuroimg/pipeline/visualization/webserver/templates/static/brain.mgz
-neuroimg/pipeline/visualization/webserver/templates/static/brain.glb
-neuroimg/pipeline/04-contact_localization/*
+seek/pipeline/visualization/webserver/templates/static/brain.mgz
+seek/pipeline/visualization/webserver/templates/static/brain.glb
+seek/pipeline/04-contact_localization/*
 [D]ata/*
 Data/sourcedata/*
