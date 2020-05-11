@@ -107,6 +107,7 @@ rule automatic_acpc_alignment:
                                      _get_bids_basename(subject_wildcard, imgtype='T1w_RAS', ext='nii'))
     shell:
         "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
+        "echo {output.MRI_bids_fname};"
         "acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;"
         # "rm {input.MRI_bids_fname};"
 
