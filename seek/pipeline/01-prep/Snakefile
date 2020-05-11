@@ -52,7 +52,7 @@ def _get_anat_bids_dir(bids_root, subject):
 rule all:
     input:
         MRI_NIFTI_IMG = expand(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-                                            _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
+                                            _get_bids_basename(subject_wildcard, imgtype='T1w_RAS', ext='nii')),
                                             subject=config['patients']),
     params:
         bids_root = bids_root.bids_root,
