@@ -7,8 +7,8 @@ services:
     volumes:
       - ./Data:/data
     environment:
-      bids_root: /data
-      derivatives_output_dir: /data/derivatives
+      BIDS_ROOT: /data
+      DERIVATIVES_OUTPUT_DIR: /data/derivatives
     tty: true  # keep container running
     container_name: 'seek'
 

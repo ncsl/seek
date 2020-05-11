@@ -23,7 +23,7 @@ If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
 configfile: "../config/localconfig.yaml"
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(os.environ['bids_root']))
+bids_root = BidsRoot(BIDS_ROOT(config['bids_root']))
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
