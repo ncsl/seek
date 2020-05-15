@@ -18,10 +18,12 @@ BIDS_ROOT = lambda bidsroot: os.getenv("BIDS_ROOT", bidsroot)
 
 SESSION = "efri"
 
+
 def ensure_str(func):
     def func_wrapper(*args, **kwargs):
         output = func(*args, **kwargs)
         return str(output)
+
     return func_wrapper
 
 
@@ -51,7 +53,7 @@ class BidsRoot:
         self.sourcedir = Path(self.bids_root / "sourcedata")
 
         if center_id is None:
-            center_id = ''
+            center_id = ""
         self.center_id = center_id
 
         # derivatives directory is either custom, or derived from bids_root.
