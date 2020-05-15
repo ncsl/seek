@@ -16,7 +16,7 @@ resamp_target = "fsaverage5"
 
 BIDS_ROOT = lambda bidsroot: os.getenv("BIDS_ROOT", bidsroot)
 
-SESSION = "presurgery"
+SESSION = "efri"
 
 
 class BidsRoot:

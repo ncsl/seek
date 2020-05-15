@@ -17,6 +17,9 @@ center_id:
 #  "cleveland"
 #  'umf',
 
+session:
+  "efri"
+
 ############# define list of files to run this for #############
 patients:
   [
