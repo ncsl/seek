@@ -18,6 +18,12 @@ BIDS_ROOT = lambda bidsroot: os.getenv("BIDS_ROOT", bidsroot)
 
 SESSION = "efri"
 
+def ensure_str(func):
+    def func_wrapper(*args, **kwargs):
+        output = func(*args, **kwargs)
+        return str(output)
+    return func_wrapper
+
 
 class BidsRoot:
     """
@@ -64,24 +70,29 @@ class BidsRoot:
     def freesurfer_dir(self):
         return Path(self.derivatives_dir / "freesurfer")
 
+    @ensure_str
     def get_freesurfer_patient_dir(self, patient_wildcard="{subject}"):
-        return Path(self.derivatives_dir / "freesurfer" / patient_wildcard)
+        return Path(self.derivatives_dir / "freesurfer" / patient_wildcard).as_posix()
 
+    @ensure_str
     def get_premri_dir(self, patient_wildcard="{subject}"):
         return Path(
             self.sourcedir / self.center_id / patient_wildcard / "premri"
         ).as_posix()
 
+    @ensure_str
     def get_postmri_dir(self, patient_wildcard="{subject}"):
         return Path(
             self.sourcedir / self.center_id / patient_wildcard / "postmri"
         ).as_posix()
 
+    @ensure_str
     def get_rawct_dir(self, patient_wildcard="{subject}"):
         return Path(
             self.sourcedir / self.center_id / patient_wildcard / "postct"
         ).as_posix()
 
+    @ensure_str
     def get_rawacpc_dir(self, patient_wildcard="{subject}"):
         return Path(
             self.sourcedir / self.center_id / patient_wildcard / "acpc"
