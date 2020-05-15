@@ -43,6 +43,9 @@ class BidsRoot:
             raise RuntimeError(f"Bidsroot {bids_root} does not exist.")
         self.bids_root = bids_root
         self.sourcedir = Path(self.bids_root / "sourcedata")
+
+        if center_id is None:
+            center_id = ''
         self.center_id = center_id
 
         # derivatives directory is either custom, or derived from bids_root.
