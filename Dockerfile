@@ -47,13 +47,13 @@ RUN wget -O- https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/dev/freesurf
 ENV PATH=/usr/local/freesurfer/bin:/usr/local/freesurfer/mni/bin:$PATH
 ENV FREESURFER_HOME /usr/local/freesurfer
 RUN $FREESURFER_HOME/SetUpFreeSurfer.sh
-COPY ./Data/scripts/freesurferlicense.txt /usr/local/freesurfer/.license
+COPY data_examples/scripts/freesurferlicense.txt /usr/local/freesurfer/.license
 ENV SUBJECTS_DIR=/data/derivatives/freesurfer
 
 # acpc detect
 RUN mkdir /usr/local/art
 ENV ARTHOME /usr/local/art
-COPY ./Data/scripts/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz /usr/local/art
+COPY data_examples/scripts/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz /usr/local/art
 RUN tar -xvzf /usr/local/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz --no-same-owner -C $ARTHOME
 RUN rm /usr/local/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 # doesn't work yet cuz we need to wget from a login page... :(
@@ -77,7 +77,7 @@ WORKDIR /seek
 ENV SEEKHOME /seek
 
 # copy over data files
-COPY ./Data /data
+COPY data_examples /data
 COPY ./seek/pipeline/01-prep /seek/pipeline/01-prep
 COPY ./seek/pipeline/02-reconstruction /seek/pipeline/02-reconstruction
 COPY ./seek/pipeline/03-coregistration /seek/pipeline/03-coregistration

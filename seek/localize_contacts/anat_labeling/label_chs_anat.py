@@ -581,7 +581,7 @@ def _split_surf_depth_electrodes(elecmatrix, elecmontage):
     return isnotdepth, elec_labels, elecmatrix
 
 
-def label_elecs(
+def label_ewlecs(
     bids_root,
     ch_names,
     elecmatrix,

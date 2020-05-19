@@ -7,7 +7,7 @@ import logging
 import os
 import pickle
 
-# Data structure manipulations and conversions
+# data_examples structure manipulations and conversions
 import re
 import subprocess
 import tempfile

@@ -1,6 +1,6 @@
 % REFERENCE: http://www.fieldtriptoolbox.org/tutorial/human_ecog
 
-%% Setup Paths and Directories for Registration Results and Raw EEG Data
+%% Setup Paths and Directories for Registration Results and Raw EEG data_examples
 addpath("/home/adam2392/Documents/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Documents/MATLAB/spm12");
@@ -33,7 +33,7 @@ atlasfile = fullfile(SUBJDIR, 'aparc+aseg.mgz')
 testdata = load('./SubjectUCI29_data.mat');
 testdata = testdata.data;
 
-%% Load Brain Data
+%% Load Brain data_examples
 % load in atlas-labeled brain volume
 atlas = ft_read_atlas(atlasfile); 
 % atlas.coordsys = 'acpc';
@@ -68,7 +68,7 @@ cfg.smooth      = 3;
 cfg.spmversion = 'spm12';
 mesh_rha = ft_prepare_mesh(cfg, seg);
 
-%% Example Freq Data on testdata
+%% Example Freq data_examples on testdata
 % compute FFT
 % cfg            = [];
 % cfg.method     = 'mtmconvol';
@@ -94,7 +94,7 @@ mesh_rha = ft_prepare_mesh(cfg, seg);
 % cfg.avgovertime = 'yes';
 % freq_sel = ft_selectdata(cfg, freq_blc);
 
-%% Example Fragility Data
+%% Example Fragility data_examples
 data = load(eegfile);
 
 % filepaths

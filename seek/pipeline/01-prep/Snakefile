@@ -6,7 +6,6 @@ from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, SESSION, _get_seek_config
-from seek.format.bids import bids_conversion
 
 """
 export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/

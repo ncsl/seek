@@ -5,7 +5,7 @@ services:
       context: . 
       dockerfile: Dockerfile
     volumes:
-      - ./Data:/data
+      - ./data_examples:/data
     environment:
       BIDS_ROOT: /data
       DERIVATIVES_OUTPUT_DIR: /data/derivatives
@@ -17,6 +17,6 @@ services:
     environment: 
       DISPLAY: 192.168.1.138:0.0
     volumes:
-      - ./Data:/data
+      - ./data_examples:/data
     depends_on:
       - "reconstruction"

@@ -23,7 +23,7 @@ bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
                      )
 subject_wildcard = "{subject}"
 
-METADATA_FOLDER = "../../../data/"
+METADATA_FOLDER = "../../../data_examples/sourcedata/"
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir

@@ -1,5 +1,5 @@
 % REFERENCE: http://www.fieldtriptoolbox.org/tutorial/human_ecog
-%% Setup Paths and Directories for Registration Results and Raw EEG Data
+%% Setup Paths and Directories for Registration Results and Raw EEG data_examples
 addpath("/home/adam2392/Documents/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Dropbox/fieldtrip-20181108");
 addpath("/Users/adam2392/Documents/MATLAB/spm12");
@@ -32,7 +32,7 @@ t1imgfile = fullfile(strcat('T1.nii.gz'))
 
 figdir = fullfile('./', subjID);
 
-%% Load Data
+%% Load data_examples
 % load elecs
 elec_data = load(elecfile);
 elec_f = elec_data.elecf;

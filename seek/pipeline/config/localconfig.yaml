@@ -7,12 +7,6 @@ bids_root:
 #  "/home/adam2392/hdd2/Dropbox/efri/"
 #  '/Users/adam2392/Downloads/neuroimg/'
 
-#derivatives_output_dir:
-##    "/home/ksr/Desktop/contact_localization/efri/raw_msb/"
-## "/Users/ChesterHuynh/sarmalab/contact_localization_proj/rawdata"
-##  "/Users/adam2392/Downloads/neuroimg/derivatives/"
-#  "/home/adam2392/hdd2/epilepsy_bids/derivatives/"
-
 center_id:
 #  "cleveland"
 #  'umf',

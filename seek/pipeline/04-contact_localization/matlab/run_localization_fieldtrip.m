@@ -3,7 +3,7 @@ close all
 clc
 
 % REFERENCE: http://www.fieldtriptoolbox.org/tutorial/human_ecog
-%% Setup Paths and Directories for Registration Results and Raw EEG Data
+%% Setup Paths and Directories for Registration Results and Raw EEG data_examples
 % ------- CHANGE THIS ------
 % addpath("/home/ksr/Downloads/fieldtrip-20190615"); %fieldtrip package
 % addpath("/home/ksr/Downloads/spm12") % SPM12 pacakge 
