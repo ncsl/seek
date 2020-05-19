@@ -16,8 +16,10 @@ resamp_target = "fsaverage5"
 
 BIDS_ROOT = lambda bidsroot: os.getenv("BIDS_ROOT", bidsroot)
 
-SESSION = "efri"
+DEFAULT_SESSION = "presurgery"
 
+def _get_session_name(config):
+    return config.get('session', DEFAULT_SESSION)
 
 def _get_seek_config():
     """Get relative path to the config file."""

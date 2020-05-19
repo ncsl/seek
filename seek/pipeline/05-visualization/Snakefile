@@ -5,7 +5,7 @@ from mne_bids import make_bids_basename, make_bids_folders
 
 sys.path.append("../../../")
 
-from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, SESSION, _get_seek_config
+from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, _get_session_name, _get_seek_config
 
 configfile: _get_seek_config()
 BLENDER_PATH = config["blender_path"]
@@ -46,24 +46,24 @@ surface_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER, "blender_objects", 
 surface_fbx_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER, "blender_objects", "reconstruction.fbx"),
 
 # coordinate system and electrodes as tsv files
-data_path = make_bids_folders(subject=subject_wildcard, session=SESSION,
+data_path = make_bids_folders(subject=subject_wildcard, session=_get_session_name(config),
                               bids_root=str(bids_root.bids_root), make_dir=False,
                               overwrite=False, verbose=False)
 manual_coordsystem_fname = make_bids_basename(
-    subject=subject_wildcard, session=SESSION, processing='manual',
+    subject=subject_wildcard, session=_get_session_name(config), processing='manual',
     acquisition='seeg',
     suffix='coordsystem.json', prefix=data_path)
 manual_electrodes_fname = make_bids_basename(
-    subject=subject_wildcard, session=SESSION, processing='manual',
+    subject=subject_wildcard, session=_get_session_name(config), processing='manual',
     acquisition='seeg',
     suffix='electrodes.tsv', prefix=data_path)
 
 coordsystem_fname = make_bids_basename(
-    subject=subject_wildcard, session=SESSION, processing='seek',
+    subject=subject_wildcard, session=_get_session_name(config), processing='seek',
     acquisition='seeg',
     suffix='coordsystem.json', prefix=data_path)
 electrodes_fname = make_bids_basename(
-    subject=subject_wildcard, session=SESSION, processing='seek',
+    subject=subject_wildcard, session=_get_session_name(config), processing='seek',
     acquisition='seeg',
     suffix='electrodes.tsv', prefix=data_path)
 

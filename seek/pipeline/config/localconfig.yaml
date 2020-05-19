@@ -8,11 +8,11 @@ bids_root:
 #  '/Users/adam2392/Downloads/neuroimg/'
 
 center_id:
-#  "cleveland"
+  "cleveland"
 #  'umf',
 
 session:
-  "efri"
+  "presurgery"
 
 ############# define list of files to run this for #############
 patients:
