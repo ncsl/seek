@@ -19,6 +19,16 @@ BIDS_ROOT = lambda bidsroot: os.getenv("BIDS_ROOT", bidsroot)
 SESSION = "efri"
 
 
+def _get_seek_config():
+    """Get relative path to the config file."""
+    import seek
+
+    base_path = os.path.dirname(seek.__file__)
+    seekdir = os.getenv("SEEKHOME", base_path)
+    config_path = os.path.join(seekdir, "pipeline", "config", "localconfig.yaml")
+    return config_path
+
+
 def ensure_str(func):
     def func_wrapper(*args, **kwargs):
         output = func(*args, **kwargs)

@@ -9,6 +9,7 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
 <a href="https://codeclimate.com/github/ncsl/seek/maintainability"><img src="https://api.codeclimate.com/v1/badges/2c7d5910e89350b967c8/maintainability" /></a>
 ![GitHub repo size](https://img.shields.io/github/repo-size/ncsl/seek)
 [![DOI](https://zenodo.org/badge/160566959.svg)](https://zenodo.org/badge/latestdoi/160566959)
+[![](https://images.microbadger.com/badges/version/neuroseek/seek.svg)](https://microbadger.com/images/neuroseek/seek "Get your own version badge on microbadger.com")
 
 This repo describes Sarma/Crone lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). 

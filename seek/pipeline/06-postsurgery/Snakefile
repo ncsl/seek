@@ -5,7 +5,7 @@ from pathlib import Path
 from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
-from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT
+from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, _get_seek_config
 from seek.format.bids import bids_conversion
 
 """
@@ -16,7 +16,7 @@ A snakemake file for running reconstructions on the neuroimaging data.
 snakemake --dag | dot -Tpdf > dag_pipeline_coregistration.pdf
 
 """
-configfile: "../config/localconfig.yaml"
+configfile: _get_seek_config()
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']))

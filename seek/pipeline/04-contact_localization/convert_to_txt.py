@@ -44,7 +44,7 @@ def read_label_coords(elecfilemat):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('elecs_dir')
+    parser.add_argument("elecs_dir")
     # parser.add_argument(
     #     "clustered_points_file",
     #     help="The output datafile with all the electrode points clustered.",
@@ -62,10 +62,12 @@ if __name__ == "__main__":
 
     matfiles = [x for x in Path(elecs_dir).glob("*.mat")]
     if len(matfiles) > 1:
-        raise RuntimeError("There should only be one .mat file inside the "
-                           "FreeSurfer elecs directory. This should be created "
-                           "from manual annotation of at least entry/exit points "
-                           "on each electrode. (Possibly using Fieldtrip Toolbox)")
+        raise RuntimeError(
+            "There should only be one .mat file inside the "
+            "FreeSurfer elecs directory. This should be created "
+            "from manual annotation of at least entry/exit points "
+            "on each electrode. (Possibly using Fieldtrip Toolbox)"
+        )
     clustered_points_file = matfiles[0].name
 
     # read in electrodes file

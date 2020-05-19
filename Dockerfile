@@ -47,13 +47,18 @@ RUN wget -O- https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/dev/freesurf
 ENV PATH=/usr/local/freesurfer/bin:/usr/local/freesurfer/mni/bin:$PATH
 ENV FREESURFER_HOME /usr/local/freesurfer
 RUN $FREESURFER_HOME/SetUpFreeSurfer.sh
-COPY ./seek/freesurferlicense.txt /usr/local/freesurfer/.license
+COPY ./Data/scripts/freesurferlicense.txt /usr/local/freesurfer/.license
 ENV SUBJECTS_DIR=/data/derivatives/freesurfer
 
 # acpc detect
+RUN mkdir /usr/local/art
 ENV ARTHOME /usr/local/art
-RUN wget -O- https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz |
-    tar -xvzf --no-same-owner -C $ARTHOME
+COPY ./Data/scripts/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz /usr/local/art
+RUN tar -xvzf /usr/local/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz --no-same-owner -C $ARTHOME
+RUN rm /usr/local/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
+# doesn't work yet cuz we need to wget from a login page... :(
+#RUN wget -O- https://www.nitrc.org/frs/download.php/10595/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz |
+#    tar -xvzf --no-same-owner -C $ARTHOME
 ENV PATH $ARTHOME/bin:$PATH
 
 # Neuroimgpipe dependencies
@@ -67,6 +72,11 @@ RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - && \
 ############# KEEP BELOW SYSTEM LEVEL INSTALLS #############
 # setup working directories
 WORKDIR /seek
+
+# set environment variable for where analysis takes place
+ENV SEEKHOME /seek
+
+# copy over data files
 COPY ./Data /data
 COPY ./seek/pipeline/01-prep /seek/pipeline/01-prep
 COPY ./seek/pipeline/02-reconstruction /seek/pipeline/02-reconstruction
@@ -76,6 +86,3 @@ COPY ./seek/pipeline/03-coregistration /seek/pipeline/03-coregistration
 COPY ./seek/pipeline/fileutils.py /seek/pipeline/fileutils.py
 COPY ./seek/format /seek/format
 COPY ./seek/pipeline/config/localconfig.yaml /seek/pipeline/config/localconfig.yaml
-
-# XXX: hack to make container stay open
-#CMD [ "bash", "-c", "-f /dev/null" ]

@@ -18,9 +18,7 @@ from seek.base.utils.io import (
     load_elecs_data,
 )
 
-from seek.localize_contacts.electrode_clustering.neuroimage import (
-    ClusteredBrainImage,
-)
+from seek.localize_contacts.electrode_clustering.neuroimage import ClusteredBrainImage
 from seek.localize_contacts.electrode_clustering.electrode import Electrodes
 
 

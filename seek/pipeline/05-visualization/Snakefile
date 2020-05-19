@@ -5,9 +5,9 @@ from mne_bids import make_bids_basename, make_bids_folders
 
 sys.path.append("../../../")
 
-from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, SESSION
+from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, SESSION, _get_seek_config
 
-configfile: "../config/localconfig.yaml"
+configfile: _get_seek_config()
 BLENDER_PATH = config["blender_path"]
 BLENDER_PATH = "blender"
 # BLENDER_PATH = os.environ.get("blender")

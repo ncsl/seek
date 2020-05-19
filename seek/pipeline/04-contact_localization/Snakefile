@@ -5,7 +5,7 @@ from pathlib import Path
 from mne_bids import make_bids_basename, make_bids_folders
 
 sys.path.append("../../../")
-from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, SESSION
+from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, SESSION, _get_seek_config
 
 """
 A snakemake file for running contact localizations workflow on the neuroimaging data.
@@ -15,7 +15,7 @@ snakemake --dag | dot -Tpdf > dag_pipeline_contactlocalize.pdf
 Runs tests to ensure data is all in the corresponding format: BIDS iEEG
 """
 
-configfile: "../config/localconfig.yaml"
+configfile: _get_seek_config()
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
