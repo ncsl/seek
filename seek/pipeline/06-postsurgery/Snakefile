@@ -27,8 +27,8 @@ RAW_CT_FOLDER = bids_root.get_rawct_dir(subject_wildcard)
 RAW_MRI_FOLDER = bids_root.get_postmri_dir(subject_wildcard)
 FS_DIR = bids_root.freesurfer_dir
 FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
-FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "mri")
-FSOUT_POSTMRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "postsurgerymri")
+FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "mri"
+FSOUT_POSTMRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "postsurgerymri"
 
 session = 'postsurgery'
 
