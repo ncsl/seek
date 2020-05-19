@@ -54,7 +54,7 @@ subworkflow prep_workflow:
     snakefile:
         "../01-prep/Snakefile"
     configfile:
-        config_location
+        _get_seek_config()
 
 # First rule
 rule all:

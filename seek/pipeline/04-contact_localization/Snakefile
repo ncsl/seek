@@ -91,7 +91,7 @@ subworkflow reconstruction_workflow:
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:
-        "../config/localconfig.yaml"
+        _get_seek_config()
 
 subworkflow coregistration_workflow:
     workdir:
@@ -99,7 +99,7 @@ subworkflow coregistration_workflow:
     snakefile:
         "../03-coregistration/Snakefile"
     configfile:
-        "../config/localconfig.yaml"
+        _get_seek_config()
 
 # First rule
 rule all:

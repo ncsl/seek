@@ -9,7 +9,6 @@ bids_root:
 
 center_id:
   "cleveland"
-#  'umf',
 
 session:
   "presurgery"

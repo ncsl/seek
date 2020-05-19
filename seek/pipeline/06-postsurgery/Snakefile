@@ -51,7 +51,7 @@ subworkflow reconstruction_workflow:
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:
-        "../config/localconfig.yaml"
+        _get_seek_config()
 
 
 # First rule

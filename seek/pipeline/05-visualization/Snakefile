@@ -74,7 +74,7 @@ subworkflow reconstruction_workflow:
     snakefile:
         "../02-reconstruction/Snakefile"
     configfile:
-        "../config/localconfig.yaml"
+        _get_seek_config()
 
 subworkflow contact_localization_workflow:
 	workdir:
@@ -82,7 +82,7 @@ subworkflow contact_localization_workflow:
     snakefile:
         "../04-contact_localization/Snakefile"
     configfile:
-        "../config/localconfig.yaml"
+        _get_seek_config()
 
 rule all:
 	input:
