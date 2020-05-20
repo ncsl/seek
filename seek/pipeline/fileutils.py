@@ -17,6 +17,7 @@ resamp_target = "fsaverage5"
 BIDS_ROOT = lambda bidsroot: os.getenv("BIDS_ROOT", bidsroot)
 
 DEFAULT_SESSION = "presurgery"
+TEMPLATE_SUBJECT = 'cvs_avg35_inMNI152'
 
 def _get_session_name(config):
     return config.get('session', DEFAULT_SESSION)

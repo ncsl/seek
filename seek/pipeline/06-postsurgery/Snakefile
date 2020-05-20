@@ -42,14 +42,14 @@ def _get_bids_basename(subject, imgtype):
 def _get_subject_dir(bids_root, subject):
     return os.path.join(bids_root, f"sub-{subject}")
 
-def _get_anat_bids_dir(bids_root, subject):
+def _get_anat_bids_dir(bids_root, subject, session):
     return os.path.join(_get_subject_dir(bids_root, subject), f'ses-{session}', 'anat')
 
-subworkflow reconstruction_workflow:
+subworkflow prep_workflow:
     workdir:
-        "../02-reconstruction/"
+        "../01-prep/"
     snakefile:
-        "../02-reconstruction/Snakefile"
+        "../02-prep/Snakefile"
     configfile:
         _get_seek_config()
 
@@ -88,20 +88,24 @@ rule convert_dicom_to_bids:
 
 
 """
-Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
+Rule for coregistering postsurgical T1 to presurgical T1 RAS.
 
-E.g. useful for CT, and DTI images to be coregistered
+This is because RAS is the preferred direction in Seg3D when we segment the image, it should be this one.
+Then the corersponding coregistration from the RAS to FreeSurfer space gives the correct orientation.
+
+postsurgical_T1w -> presurgical_T1w_RAS.
 """
-rule coregistert1_post_to_pre:
+rule coregistert1_post_to_pre_RAS:
     input:
-        MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-                                     _get_bids_basename(subject_wildcard, imgtype='T1w')),
-        PREMRI_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1.nii")),
+        MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=session),
+                                     _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
+        PREMRI_NIFTI_IMG = prep_workflow(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery'),
+                                     _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
     output:
-        PREMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "preT1.nii"),
-        POSTMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "postT1_in_preT1.nii.gz"),
+        PREMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "preT1_RAS.nii"),
+        POSTMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "postT1_in_preT1_RAS.nii.gz"),
         # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG = os.path.join(FSOUT_POSTMRI_FOLDER, "fsl_postt1-to-t1_omat.txt"),
+        MAPPING_FILE_ORIG = os.path.join(FSOUT_POSTMRI_FOLDER, "fsl_postt1-to-t1RAS_omat.txt"),
     shell:
         "cp {input.PREMRI_NIFTI_IMG} {output.PREMRI_NIFTI_IMG};"
         "flirt -in {input.MRI_bids_fname} \

@@ -203,10 +203,10 @@ rule create_subcortical_volume:
         outsuccess_file = os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
     params:
         SUBJECTS_DIR = FS_DIR,
-        patient="{subject}",
+        patient=subject_wildcard,
         scripts_dir=SCRIPTS_UTIL_DIR,
     output:
-        subcort_success_flag_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_subcort_success.txt"),
+        subcort_success_flag_file=os.path.join(FSPATIENT_SUBJECT_DIR, subject_wildcard + "_subcort_success.txt"),
     shell:
         # generate subcortical region volume bounding surfaces
         "export SUBJECTS_DIR={params.SUBJECTS_DIR};"
@@ -214,4 +214,64 @@ rule create_subcortical_volume:
         "{params.scripts_dir}/aseg2srf -s {params.patient};"
         "touch {output.subcort_success_flag_file};"
 
+"""
+rule to convert 
+"""
+# rule convert_freesurfer_to_ras:
+#     input:
+#         talairach_xfm_fpath = os.path.join(FSOUT_MRI_FOLDER, 'transforms', 'talairach.xfm'),
+#         input_ = ,
+#     params:
+#         SUBJECTS_DIR = FS_DIR,
+#         subject=subject_wildcard,
+#     output:
+#         target_fpath = ,
+#     shell:
+        # "python;"
 
+       """
+       patient.apply_xfm
+
+(xfm_dir='mri/transforms',
+
+xfm_file='talairach.xfm',
+
+source_file='elecs/TDT_elecs_all.mat',
+
+target_file='elecs/
+
+TDT_elecs_all_2tal.mat',
+
+file_type='elecs')
+
+◦ patient.apply_xfm
+
+(xfm_dir='mri/transforms',
+
+xfm_file='talairach.xfm',
+
+source_file='Meshes/
+
+rh_pial_trivert.mat',
+
+target_file='Meshes/
+
+rh_pial_trivert_2tal.mat',
+
+file_type='surf')
+
+◦ patient.apply_xfm
+
+(xfm_dir='mri/transforms',
+
+xfm_file='talairach.xfm',
+
+source_file='Meshes/
+
+lh_pial_trivert.mat',
+
+target_file='Meshes/
+
+lh_pial_trivert_2tal.mat',
+
+file_type='surf')"""

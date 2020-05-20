@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import pickle
+from functools import reduce
 
 # data_examples structure manipulations and conversions
 import re
@@ -17,9 +18,44 @@ from typing import List, Optional
 import nibabel as nb
 import numpy as np
 import scipy.io
+import pandas as pd
+from mne_bids.tsv_handler import _from_tsv
 
 from seek.base.objects.baseneuroimage import Hemisphere
 from seek.base.objects.baseneuroimage import RegionIndexMapping
+
+
+def apply_xfm_to_elecs(xfm_fpath, electrodes_fname, t1w_fpath):
+    # First load the matrix in the xfm file:
+    xfm_arr = np.genfromtxt(xfm_fpath, skip_header=5,
+                            delimiter=' ', comments=';')
+
+    # get the vox2ras affine
+    t1w = nb.load(t1w_fpath)
+    vox2ras = t1w.affine
+    vox2ras_tk = vox2ras
+
+    # load in the electrodes data
+    electrodes_tsv = pd.read_csv(electrodes_fname, delimiter='\t')
+    ch_names = electrodes_tsv['name'].tolist()
+    ch_coords = electrodes_tsv[['x', 'y', 'z']].to_numpy(dtype=float)
+    native_coords = []
+    for name, coord in zip(ch_names, ch_coords):
+        native_coord = _apply_xfm_to_native(xfm_arr, vox2ras, vox2ras_tk, coord)
+        native_coords.append(native_coord)
+    native_coords = np.array(native_coords)
+    return native_coords
+
+def _apply_xfm_to_native(xfm_arr, vox2ras, vox2ras_tk, input_vec):
+    if len(input_vec) == 3:
+        input_vec = np.concatenate((input_vec, [1]))
+
+    # perform seriees of affine transformations to obtain native space coordinate
+    input_vec_xfm = reduce(np.dot, [xfm_arr,
+                                vox2ras,
+                                np.linalg.inv(vox2ras_tk),
+                                input_vec.T]).T
+    return input_vec_xfm
 
 
 def _contact_numbers_on_electrode(entry_ch, exit_ch):
