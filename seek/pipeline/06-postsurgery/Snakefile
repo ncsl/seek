@@ -32,11 +32,11 @@ FSOUT_POSTMRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "postsurgerymri"
 
 SESSION = 'postsurgery'
 
-def _get_bids_basename(subject, imgtype, session=SESSION):
+def _get_bids_basename(subject, imgtype, session=SESSION, ext='nii.gz'):
     """Wildcard function to get bids_basename."""
     bids_fname = make_bids_basename(subject,
                                     session=SESSION,
-                                    suffix=f"{imgtype}.nii.gz")
+                                    suffix=f"{imgtype}.{ext}")
     return bids_fname
 
 
@@ -84,10 +84,10 @@ rule convert_dicom_to_bids:
         bids_root = bids_root.bids_root,
     output:
         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=SESSION),
-                                      _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
-    run:
-        bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)
-
+                                      _get_bids_basename(subject_wildcard, imgtype='T1w_RAS', ext='nii')),
+    shell:
+        "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
+        # bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)
 
 
 """
@@ -101,9 +101,9 @@ postsurgical_T1w -> presurgical_T1w_RAS.
 rule coregistert1_post_to_pre_RAS:
     input:
         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=SESSION),
-                                      _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
+                                      _get_bids_basename(subject_wildcard, imgtype='T1w_RAS', ext='nii')),
         PREMRI_NIFTI_IMG = prep_workflow(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery'),
-                                         _get_bids_basename(subject_wildcard, imgtype='T1w_RAS'))),
+                                         _get_bids_basename(subject_wildcard, imgtype='T1w_RAS', ext='nii'))),
     output:
         PREMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "preT1_RAS.nii"),
         POSTMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "postT1_in_preT1_RAS.nii.gz"),
