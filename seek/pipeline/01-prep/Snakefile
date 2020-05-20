@@ -111,6 +111,7 @@ rule automatic_acpc_alignment:
     shell:
         "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
         "echo {output.MRI_bids_fname};"
+        "mkdir -p {output.MRI_bids_fname_fscopy};"
         "cp {input.MRI_bids_fname} {output.MRI_bids_fname_fscopy};"
         "acpcdetect -i {output.MRI_bids_fname_fscopy} -center-AC -output-orient RAS;"
         "cp {output.MRI_bids_fname_fscopy} {output.MRI_bids_fname};"
