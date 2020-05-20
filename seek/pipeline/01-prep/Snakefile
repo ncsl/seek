@@ -88,7 +88,7 @@ rule convert_dicom_to_nifti:
         bids_root = bids_root.bids_root,
     output:
         CT_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, ct_bids_fname),
-        MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname)
+        MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
     shell:
         "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
         "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
@@ -101,13 +101,13 @@ aligned.
 """
 rule automatic_acpc_alignment:
     input:
-        MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname)
+        MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
     params:
         anat_dir = BIDS_PRESURG_ANAT_DIR,
         acpc_fs_dir = FSOUT_ACPC_FOLDER,
     output:
-        MRI_bids_fname_fscopy = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname)
-        MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)
+        MRI_bids_fname_fscopy = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+        MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
     shell:
         "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
         "echo {output.MRI_bids_fname};"
