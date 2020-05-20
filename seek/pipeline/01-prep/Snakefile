@@ -103,8 +103,8 @@ rule automatic_acpc_alignment:
     input:
         MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
     params:
-        anat_dir = BIDS_PRESURG_ANAT_DIR,
-        acpc_fs_dir = FSOUT_ACPC_FOLDER,
+        anat_dir = str(BIDS_PRESURG_ANAT_DIR),
+        acpc_fs_dir = str(FSOUT_ACPC_FOLDER),
     output:
         MRI_bids_fname_fscopy = os.path.join(FSOUT_ACPC_FOLDER, premri_native_bids_fname),
         MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
