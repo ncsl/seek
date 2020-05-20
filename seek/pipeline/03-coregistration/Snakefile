@@ -2,6 +2,8 @@ import os
 import sys
 from pathlib import Path
 
+from mne_bids import make_bids_basename
+
 sys.path.append("../../../")
 from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, _get_seek_config
 
@@ -27,6 +29,13 @@ FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
 FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "mri"
 FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "CT"
 
+from_id = 'CT'  # post implant CT
+to_id = 'fsT1w'  # freesurfer's T1w
+kind = 'xfm'
+pre_to_post_transform_fname = make_bids_basename(subject=subject_wildcard) + \
+                              f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
+
+
 subworkflow reconstruction_workflow:
     workdir:
         "../02-reconstruction/"
@@ -42,7 +51,7 @@ rule all:
         CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(FSOUT_CT_FOLDER, "rCT.nii.gz"),
                                     subject=config['patients']),
         # mapping matrix for CT to T1
-        MAPPING_FILE=expand(os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt"),
+        MAPPING_FILE=expand(os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
                                     subject=config['patients']),
         # MAPPED BRAIN MASK TO CT SPACE
         brainmask_inct_file = expand(os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
@@ -57,14 +66,14 @@ E.g. useful for CT, and DTI images to be coregistered
 """
 rule coregistert1_ct_to_pre:
     input:
-        PREMRI_NIFTI_IMG_MGZ = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1.nii")),
+        PREMRI_NIFTI_IMG_MGZ = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1_fs_LIA.nii")),
         CT_NIFTI_IMG_MGZ = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
     output:
         # mapped image from CT -> MRI
-        CT_IN_PRE_NIFTI_IMG_ORIGgz = os.path.join(FSOUT_CT_FOLDER, "rCT.nii.gz"),
-        CT_IN_PRE_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "rCT.nii"),
+        CT_IN_PRE_NIFTI_IMG_ORIGgz = os.path.join(FSOUT_CT_FOLDER, "CT_in_T1w.nii.gz"),
+        CT_IN_PRE_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT_in_T1w.nii"),
         # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG = os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt"),
+        MAPPING_FILE_ORIG = os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
     shell:
         "flirt -in {input.CT_NIFTI_IMG_MGZ} \
                             -ref {input.PREMRI_NIFTI_IMG_MGZ} \
@@ -94,10 +103,9 @@ rule map_brainmask_to_ct:
         brainmask_file = os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
         CT_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
         # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG = os.path.join(FSOUT_CT_FOLDER, "fsl_ct-to-t1_omat.txt"),
+        MAPPING_FILE_ORIG = os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
     output:
         # mapping matrix for post to pre in T1
-        # MAPPING_FILE = os.path.join(FSOUT_CT_FOLDER, "fsl_brainmask_to_ct_omat.txt"),
         brainmask_inct_file = os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
     shell:
         "flirt -in {input.brainmask_file} \
