@@ -84,7 +84,7 @@ rule convert_dicom_to_nifti:
 # rule nifti_to_bids:
 #     params:
 #         CT_FOLDER = RAW_CT_FOLDER,
-#         MRI_FOLDER = RAW_MRI_FOLDER,
+#         MRI_FOLDER = RAW_POSTMRI_FOLDER,
 #         bids_root = bids_root.bids_root,
 #     output:
 #         CT_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
