@@ -35,7 +35,7 @@ SESSION = 'postsurgery'
 def _get_bids_basename(subject, imgtype, session=SESSION, ext='nii.gz'):
     """Wildcard function to get bids_basename."""
     bids_fname = make_bids_basename(subject,
-                                    session=SESSION,
+                                    session=session,
                                     suffix=f"{imgtype}.{ext}")
     return bids_fname
 
