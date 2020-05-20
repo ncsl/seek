@@ -106,13 +106,13 @@ rule automatic_acpc_alignment:
         anat_dir = BIDS_PRESURG_ANAT_DIR,
         acpc_fs_dir = FSOUT_ACPC_FOLDER,
     output:
-        MRI_bids_fname_fscopy = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+        MRI_bids_fname_fscopy = os.path.join(FSOUT_ACPC_FOLDER, premri_native_bids_fname),
         MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
     shell:
         # create BIDS session directory and copy file there
         "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
         "echo {output.MRI_bids_fname};"
-        "mkdir -p {params.anat_dir};"
+        "mkdir -p {params.acpc_fs_dir};"
         "cp {input.MRI_bids_fname} {output.MRI_bids_fname_fscopy};"
 
         # run acpc auto detection
