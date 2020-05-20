@@ -84,7 +84,7 @@ rule convert_dicom_to_bids:
         bids_root = bids_root.bids_root,
     output:
         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=SESSION),
-                                      _get_bids_basename(subject_wildcard, imgtype='T1w')),
+                                      _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
     run:
         bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)
 
