@@ -115,3 +115,7 @@ rule coregistert1_post_to_pre_RAS:
                             -ref {input.PREMRI_NIFTI_IMG} \
                             -omat {output.MAPPING_FILE_ORIG} \
                             -out {output.POSTMRI_NIFTI_IMG};"
+
+
+# rule map_postRAS_to_preFS:
+    
