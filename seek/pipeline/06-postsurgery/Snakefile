@@ -5,7 +5,8 @@ from pathlib import Path
 from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
-from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, _get_seek_config
+from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
+                                    _get_anat_bids_dir, _get_bids_basename)
 from seek.format.bids import bids_conversion
 
 """
@@ -23,6 +24,8 @@ bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
                      center_id=config['center_id'])
 subject_wildcard = "{subject}"
 
+SESSION = 'postsurgery'
+
 # initialize directories that we access in this snakemake
 RAW_CT_FOLDER = bids_root.get_rawct_dir(subject_wildcard)
 RAW_POSTMRI_FOLDER = bids_root.get_postmri_dir(subject_wildcard)
@@ -31,23 +34,20 @@ FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
 FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "mri"
 FSOUT_POSTMRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "postsurgerymri"
 
+BIDS_POSTSURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=SESSION)
+BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
+postmri_bids_fname = _get_bids_basename(subject_wildcard, session=SESSION,
+                                        space='RAS', imgtype='T1w', ext='nii')
+premri_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                       space='RAS', imgtype='T1w', ext='nii')
+
+from_id = 'presurgeryT1w'
+to_id = 'postsurgeryT1w'
+kind = 'xfm'
+pre_to_post_transform_fname = make_bids_basename(subject=subject_wildcard) + \
+                              f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
+
 SESSION = 'postsurgery'
-
-def _get_bids_basename(subject, imgtype, session=SESSION, ext='nii.gz'):
-    """Wildcard function to get bids_basename."""
-    bids_fname = make_bids_basename(subject,
-                                    session=session,
-                                    suffix=f"{imgtype}.{ext}")
-    return bids_fname
-
-
-def _get_subject_dir(bids_root, subject):
-    return os.path.join(bids_root, f"sub-{subject}")
-
-
-def _get_anat_bids_dir(bids_root, subject, session):
-    return os.path.join(_get_subject_dir(bids_root, subject), f'ses-{session}', 'anat')
-
 
 subworkflow prep_workflow:
     workdir:
@@ -88,7 +88,6 @@ rule convert_dicom_to_bids:
                                       _get_bids_basename(subject_wildcard, imgtype='T1w_RAS', ext='nii')),
     shell:
         "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
-        # bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)
 
 
 """
@@ -101,15 +100,13 @@ postsurgical_T1w -> presurgical_T1w_RAS.
 """
 rule coregistert1_post_to_pre_RAS:
     input:
-        MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=SESSION),
-                                      _get_bids_basename(subject_wildcard, imgtype='T1w_RAS', ext='nii')),
-        PREMRI_NIFTI_IMG = prep_workflow(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery'),
-                                         _get_bids_basename(subject_wildcard, session='presurgery', imgtype='T1w_RAS', ext='nii'))),
+        MRI_bids_fname = os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_bids_fname),
+        PREMRI_NIFTI_IMG = prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)),
     output:
-        PREMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "preT1_RAS.nii"),
-        POSTMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "postT1_in_preT1_RAS.nii.gz"),
+        PREMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, premri_bids_fname),
+        POSTMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, postmri_bids_fname),
         # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG = os.path.join(FSOUT_POSTMRI_FOLDER, "fsl_postt1-to-t1RAS_omat.txt"),
+        MAPPING_FILE_ORIG = os.path.join(FSOUT_POSTMRI_FOLDER, pre_to_post_transform_fname),
     shell:
         "cp {input.PREMRI_NIFTI_IMG} {output.PREMRI_NIFTI_IMG};"
         "flirt -in {input.MRI_bids_fname} \

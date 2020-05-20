@@ -5,7 +5,9 @@ from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from seek.pipeline.fileutils import SCRIPTS_UTIL_DIR
-from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, _get_session_name, _get_seek_config
+from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_session_name,
+                                     _get_seek_config,
+                                     _get_anat_bids_dir, _get_bids_basename)
 
 """
 export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
@@ -32,21 +34,6 @@ FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "CT"
 FSOUT_ELECS_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "elecs"
 FSOUT_ACPC_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "acpc"
 FSOUT_SURF_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "surf"
-
-
-def _get_bids_basename(subject, imgtype,ext='nii.gz'):
-    """Wildcard function to get bids_basename."""
-    bids_fname = make_bids_basename(subject,
-                                    session=_get_session_name(config),
-                                    suffix=f"{imgtype}.{ext}")
-    return bids_fname
-
-def _get_subject_dir(bids_root, subject):
-    return os.path.join(bids_root, f"sub-{subject}")
-
-def _get_anat_bids_dir(bids_root, subject):
-    return os.path.join(_get_subject_dir(bids_root, subject), f'ses-{_get_session_name(config)}', 'anat')
-
 
 subworkflow prep_workflow:
     workdir:

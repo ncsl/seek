@@ -5,7 +5,9 @@ from pathlib import Path
 from mne_bids import make_bids_basename, make_bids_folders
 
 sys.path.append("../../../")
-from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, _get_seek_config, TEMPLATE_SUBJECT, _get_session_name
+from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
+                                     TEMPLATE_SUBJECT, _get_session_name,
+                                     _get_anat_bids_dir, _get_bids_basename)
 
 """
 export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
@@ -34,19 +36,6 @@ FSOUT_CVS_DIR = Path(FSPATIENT_SUBJECT_DIR) / 'cvs'
 session = _get_session_name(config)
 acquisition = 'seeg'
 # acquisition = _get_acquisition_name(config)
-
-def _get_bids_basename(subject, imgtype):
-    """Wildcard function to get bids_basename."""
-    bids_fname = make_bids_basename(subject,
-                                    session=session,
-                                    suffix=f"{imgtype}.nii.gz")
-    return bids_fname
-
-def _get_subject_dir(bids_root, subject):
-    return os.path.join(bids_root, f"sub-{subject}")
-
-def _get_anat_bids_dir(bids_root, subject):
-    return os.path.join(_get_subject_dir(bids_root, subject), f'ses-{session}', 'anat')
 
 data_path = make_bids_folders(subject=subject_wildcard, session=session,
                               bids_root=str(bids_root.bids_root), make_dir=False,
