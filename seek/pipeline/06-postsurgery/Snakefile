@@ -52,7 +52,7 @@ subworkflow prep_workflow:
     workdir:
         "../01-prep/"
     snakefile:
-        "../02-prep/Snakefile"
+        "../01-prep/Snakefile"
     configfile:
         _get_seek_config()
 
@@ -102,8 +102,7 @@ rule coregistert1_post_to_pre_RAS:
     input:
         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=SESSION),
                                       _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
-        PREMRI_NIFTI_IMG = prep_workflow(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery'),
-                                     _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
+        PREMRI_NIFTI_IMG = prep_workflow(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery'), _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
     output:
         PREMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "preT1_RAS.nii"),
         POSTMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, "postT1_in_preT1_RAS.nii.gz"),
