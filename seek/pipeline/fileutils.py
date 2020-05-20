@@ -20,7 +20,7 @@ DEFAULT_SESSION = "presurgery"
 TEMPLATE_SUBJECT = 'cvs_avg35_inMNI152'
 
 def _get_session_name(config):
-    return config.get('session', DEFAULT_SESSION)
+    return config.get('SESSION', DEFAULT_SESSION)
 
 def _get_seek_config():
     """Get relative path to the config file."""

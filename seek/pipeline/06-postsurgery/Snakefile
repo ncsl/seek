@@ -30,20 +30,23 @@ FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
 FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "mri"
 FSOUT_POSTMRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "postsurgerymri"
 
-session = 'postsurgery'
+SESSION = 'postsurgery'
 
-def _get_bids_basename(subject, imgtype):
+def _get_bids_basename(subject, imgtype, session=SESSION):
     """Wildcard function to get bids_basename."""
     bids_fname = make_bids_basename(subject,
-                                    session=session,
+                                    session=SESSION,
                                     suffix=f"{imgtype}.nii.gz")
     return bids_fname
+
 
 def _get_subject_dir(bids_root, subject):
     return os.path.join(bids_root, f"sub-{subject}")
 
+
 def _get_anat_bids_dir(bids_root, subject, session):
     return os.path.join(_get_subject_dir(bids_root, subject), f'ses-{session}', 'anat')
+
 
 subworkflow prep_workflow:
     workdir:
@@ -80,8 +83,8 @@ rule convert_dicom_to_bids:
         MRI_FOLDER = RAW_POSTMRI_FOLDER,
         bids_root = bids_root.bids_root,
     output:
-        MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=session),
-                                     _get_bids_basename(subject_wildcard, imgtype='T1w')),
+        MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=SESSION),
+                                      _get_bids_basename(subject_wildcard, imgtype='T1w')),
     run:
         bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)
 
@@ -97,8 +100,8 @@ postsurgical_T1w -> presurgical_T1w_RAS.
 """
 rule coregistert1_post_to_pre_RAS:
     input:
-        MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=session),
-                                     _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
+        MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session=SESSION),
+                                      _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
         PREMRI_NIFTI_IMG = prep_workflow(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery'),
                                      _get_bids_basename(subject_wildcard, imgtype='T1w_RAS')),
     output:
