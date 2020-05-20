@@ -54,6 +54,7 @@ RAW_CT_FOLDER = bids_root.get_rawct_dir(subject_wildcard)
 RAW_MRI_FOLDER = bids_root.get_premri_dir(subject_wildcard)
 FSOUT_MRI_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard)) / "mri"
 FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard)) / "CT"
+FSOUT_ACPC_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard)) / "acpc"
 
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 premri_native_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
@@ -103,12 +104,16 @@ rule automatic_acpc_alignment:
         MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname)
     params:
         anat_dir = BIDS_PRESURG_ANAT_DIR,
+        acpc_fs_dir = FSOUT_ACPC_FOLDER,
     output:
+        MRI_bids_fname_fscopy = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname)
         MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)
     shell:
         "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
         "echo {output.MRI_bids_fname};"
-        "acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;"
+        "cp {input.MRI_bids_fname} {output.MRI_bids_fname_fscopy};"
+        "acpcdetect -i {input.MRI_bids_fname_fscopy} -center-AC -output-orient RAS;"
+        "cp {output.MRI_bids_fname_fscopy} {output.MRI_bids_fname};"
 
 
 # not needed unless defacing is used...

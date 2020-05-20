@@ -19,11 +19,11 @@ resamp_target = "fsaverage5"
 BIDS_ROOT = lambda bidsroot: os.getenv("BIDS_ROOT", bidsroot)
 
 DEFAULT_SESSION = "presurgery"
-TEMPLATE_SUBJECT = 'cvs_avg35_inMNI152'
+TEMPLATE_SUBJECT = "cvs_avg35_inMNI152"
 
 
 def _get_session_name(config):
-    return config.get('SESSION', DEFAULT_SESSION)
+    return config.get("SESSION", DEFAULT_SESSION)
 
 
 def _get_seek_config():
@@ -44,11 +44,11 @@ def ensure_str(func):
     return func_wrapper
 
 
-def _get_bids_basename(subject, session, imgtype, ext='nii.gz', **bids_kwargs):
+def _get_bids_basename(subject, session, imgtype, ext="nii.gz", **bids_kwargs):
     """Wildcard function to get bids_basename."""
-    bids_fname = make_bids_basename(subject, session=session,
-                                    **bids_kwargs,
-                                    suffix=f"{imgtype}.{ext}")
+    bids_fname = make_bids_basename(
+        subject, session=session, **bids_kwargs, suffix=f"{imgtype}.{ext}"
+    )
     return bids_fname
 
 
@@ -57,7 +57,7 @@ def _get_subject_dir(bids_root, subject):
 
 
 def _get_anat_bids_dir(bids_root, subject, session):
-    return os.path.join(_get_subject_dir(bids_root, subject), f'ses-{session}', 'anat')
+    return os.path.join(_get_subject_dir(bids_root, subject), f"ses-{session}", "anat")
 
 
 class BidsRoot:
