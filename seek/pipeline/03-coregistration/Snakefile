@@ -6,7 +6,7 @@ from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                     _get_bids_basename)
+                                     _get_bids_basename, _get_anat_bids_dir)
 
 """
 export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
@@ -30,6 +30,7 @@ FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
 FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "mri"
 FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "CT"
 
+BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                     imgtype='CT', ext='nii')
 
