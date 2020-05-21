@@ -102,7 +102,7 @@ registration.
 """
 rule cvs_register:
     input:
-        PREMRI_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1.nii")),
+        PREMRI_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1_fs_LIA.nii")),
     params:
         subject = subject_wildcard,
         template = TEMPLATE_SUBJECT,
