@@ -1,11 +1,30 @@
+"""
+============================================
+02. Reconstruction Workflow using FreeSurfer
+============================================
+
+In this pipeline, we prep the reconstruction workflow
+by putting MRI and CT data into the BIDS layout and
+re-orient images to RAS with ACPC alignment.
+
+We assume that there is only one set of dicoms for CT and MRI
+data.
+
+This pipeline depends on the following functions:
+
+    * mrconvert
+    * acpcdetect
+
+from FreeSurfer6+, acpcdetect2.0.
+"""
+
 import os
 import sys
 from pathlib import Path
-from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from seek.pipeline.fileutils import SCRIPTS_UTIL_DIR
-from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_session_name,
+from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT,
                                      _get_seek_config,
                                      _get_anat_bids_dir, _get_bids_basename)
 
@@ -55,10 +74,10 @@ rule all:
                                subject=config['patients']),
         brainmask_nifti = expand(os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
                                subject=config['patients']),
-        # lhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
-        #                         subject=config['patients']),
-        # rhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
-        #                         subject=config['patients']),
+        lhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
+                                subject=config['patients']),
+        rhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
+                                subject=config['patients']),
         subcort_success_flag_file = expand(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_subcort_success.txt"),
                                 subject=config['patients']),
     shell:
@@ -206,49 +225,3 @@ rule to convert
 #     shell:
         # "python;"
 
-       """
-       patient.apply_xfm
-
-(xfm_dir='mri/transforms',
-
-xfm_file='talairach.xfm',
-
-source_file='elecs/TDT_elecs_all.mat',
-
-target_file='elecs/
-
-TDT_elecs_all_2tal.mat',
-
-file_type='elecs')
-
-◦ patient.apply_xfm
-
-(xfm_dir='mri/transforms',
-
-xfm_file='talairach.xfm',
-
-source_file='Meshes/
-
-rh_pial_trivert.mat',
-
-target_file='Meshes/
-
-rh_pial_trivert_2tal.mat',
-
-file_type='surf')
-
-◦ patient.apply_xfm
-
-(xfm_dir='mri/transforms',
-
-xfm_file='talairach.xfm',
-
-source_file='Meshes/
-
-lh_pial_trivert.mat',
-
-target_file='Meshes/
-
-lh_pial_trivert_2tal.mat',
-
-file_type='surf')"""
