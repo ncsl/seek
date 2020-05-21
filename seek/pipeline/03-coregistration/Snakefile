@@ -5,7 +5,8 @@ from pathlib import Path
 from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
-from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, _get_seek_config
+from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
+                                     _get_bids_basename)
 
 """
 export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
@@ -29,12 +30,22 @@ FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
 FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "mri"
 FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "CT"
 
+ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                    imgtype='CT', ext='nii')
+
 from_id = 'CT'  # post implant CT
 to_id = 'fsT1w'  # freesurfer's T1w
 kind = 'xfm'
 pre_to_post_transform_fname = make_bids_basename(subject=subject_wildcard) + \
                               f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
+subworkflow prep_workflow:
+    workdir:
+        "../01-prep/"
+    snakefile:
+        "../01-prep/Snakefile"
+    configfile:
+        _get_seek_config()
 
 subworkflow reconstruction_workflow:
     workdir:
@@ -58,6 +69,16 @@ rule all:
                                     subject=config['patients']),
     shell:
         "echo 'done'"
+
+rule prep_ct_for_coregistration:
+    input:
+        CT_NIFTI_IMG = prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, ct_bids_fname)),
+    params:
+        CTDIR = str(FSOUT_CT_FOLDER),
+    output:
+        CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
+    shell:
+        "mri_convert {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
 
 """
 Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.

@@ -57,6 +57,8 @@ FSOUT_SURF_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "surf"
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 premri_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                        space='RAS', imgtype='T1w', ext='nii')
+ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                    imgtype='CT', ext='nii')
 
 
 subworkflow prep_workflow:
@@ -98,23 +100,17 @@ Rule for converting .dicom -> .niftiPUT_DIR,
 """
 rule prep_recon:
     input:
-        CT_NIFTI_IMG = prep_workflow(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-                                     _get_bids_basename(subject_wildcard, imgtype='CT'))),
         MRI_NIFTI_IMG = prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)),
     params:
-        CTDIR = str(FSOUT_CT_FOLDER),
         elecsdir = str(FSOUT_ELECS_FOLDER),
         acpcdir = str(FSOUT_ACPC_FOLDER),
         INPUT_FS_ORIG_DIR = os.path.join(FSOUT_MRI_FOLDER, "orig"),
     output:
         MRI_MGZ_IMG=os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
-        CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
     shell:
-        "mkdir -p {params.CTDIR};"
         "mkdir -p {params.elecsdir};"
         "mkdir -p {params.acpcdir};"
         "mkdir -p {params.INPUT_FS_ORIG_DIR};"
-        "mri_convert {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
         "mri_convert {input.MRI_NIFTI_IMG} {output.MRI_MGZ_IMG};"
 
 
