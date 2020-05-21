@@ -1,3 +1,23 @@
+"""
+======================================================
+07. Group Analysis Workflow using FreeSurfer to MNI152
+======================================================
+
+In this pipeline, we prep the reconstruction workflow
+by putting MRI and CT data into the BIDS layout and
+re-orient images to RAS with ACPC alignment.
+
+We assume that there is only one set of dicoms for CT and MRI
+data.
+
+This pipeline depends on the following functions:
+
+    * mrconvert
+    * acpcdetect
+
+from FreeSurfer6+, acpcdetect2.0.
+"""
+
 import os
 import sys
 from pathlib import Path
@@ -66,11 +86,8 @@ subworkflow reconstruction_workflow:
 # First rule
 rule all:
     input:
-        # MRI_NIFTI_IMG = expand(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-        #                                     _get_bids_basename(subject_wildcard, imgtype='T1w')),
-        #                                     subject=config['patients']),
-        # mapping matrix for post T1 to pre T1
-        morph_file =  = expand(os.path.join(FSOUT_CVS_DIR, f'combined_to{TEMPLATE_SUBJECT}_elreg_afteraseg-norm.tm3d'),
+        # morph file from {subject} to template subject
+        morph_file = expand(os.path.join(FSOUT_CVS_DIR, f'combined_to{TEMPLATE_SUBJECT}_elreg_afteraseg-norm.tm3d'),
                               subject=config['patients']),
     params:
         bids_root = bids_root.bids_root,
