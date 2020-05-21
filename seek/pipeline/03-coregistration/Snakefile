@@ -68,7 +68,7 @@ subworkflow reconstruction_workflow:
 rule all:
     input:
          # FLIRT FSL OUTPUT COREGISTRATION
-         CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(FSOUT_CT_FOLDER, "CT_in_T1w.nii.gz"),
+         CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname),
                                         subject=config['patients']),
          # mapping matrix for CT to T1
          MAPPING_FILE=expand(os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
