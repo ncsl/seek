@@ -1,3 +1,16 @@
+"""
+======================================================
+03. Coregistration (FSL-Flirt) from CT to T1 MRI
+======================================================
+
+This pipeline depends on the following functions:
+
+    * flirt
+    * mri_convert
+
+from FreeSurfer6+, FSL.
+"""
+
 import os
 import sys
 from pathlib import Path
@@ -8,14 +21,6 @@ sys.path.append("../../../")
 from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
                                      _get_bids_basename, _get_anat_bids_dir)
 
-"""
-export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
-
-A snakemake file for running reconstructions on the neuroimaging data.
-
-snakemake --dag | dot -Tpdf > dag_pipeline_coregistration.pdf
-
-"""
 configfile: _get_seek_config()
 
 # get the freesurfer patient directory
@@ -32,7 +37,10 @@ FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "CT"
 
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
-                                    imgtype='CT', ext='nii')
+                                   imgtype='CT', ext='nii')
+
+ctint1_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                       imgtype='CTinT1', ext='nii')
 
 from_id = 'CT'  # post implant CT
 to_id = 'fsT1w'  # freesurfer's T1w
@@ -42,44 +50,44 @@ pre_to_post_transform_fname = make_bids_basename(subject=subject_wildcard) + \
 
 subworkflow prep_workflow:
     workdir:
-        "../01-prep/"
+           "../01-prep/"
     snakefile:
-        "../01-prep/Snakefile"
+             "../01-prep/Snakefile"
     configfile:
-        _get_seek_config()
+              _get_seek_config()
 
 subworkflow reconstruction_workflow:
     workdir:
-        "../02-reconstruction/"
+           "../02-reconstruction/"
     snakefile:
-        "../02-reconstruction/Snakefile"
+             "../02-reconstruction/Snakefile"
     configfile:
-        _get_seek_config()
+              _get_seek_config()
 
 # First rule
 rule all:
     input:
-        # FLIRT FSL OUTPUT COREGISTRATION
-        CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(FSOUT_CT_FOLDER, "CT_in_T1w.nii.gz"),
-                                    subject=config['patients']),
-        # mapping matrix for CT to T1
-        MAPPING_FILE=expand(os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
-                                    subject=config['patients']),
-        # MAPPED BRAIN MASK TO CT SPACE
-        brainmask_inct_file = expand(os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
+         # FLIRT FSL OUTPUT COREGISTRATION
+         CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(FSOUT_CT_FOLDER, "CT_in_T1w.nii.gz"),
+                                        subject=config['patients']),
+         # mapping matrix for CT to T1
+         MAPPING_FILE=expand(os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
+                             subject=config['patients']),
+         # MAPPED BRAIN MASK TO CT SPACE
+         brainmask_inct_file=expand(os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
                                     subject=config['patients']),
     shell:
-        "echo 'done'"
+         "echo 'done'"
 
 rule prep_ct_for_coregistration:
     input:
-        CT_NIFTI_IMG = prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, ct_bids_fname)),
+         CT_NIFTI_IMG=prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, ct_bids_fname)),
     params:
-        CTDIR = str(FSOUT_CT_FOLDER),
+          CTDIR=str(FSOUT_CT_FOLDER),
     output:
-        CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
+          CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
     shell:
-        "mri_convert {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
+         "mri_convert {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
 
 """
 Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
@@ -88,52 +96,51 @@ E.g. useful for CT, and DTI images to be coregistered
 """
 rule coregistert1_ct_to_pre:
     input:
-        PREMRI_NIFTI_IMG_MGZ = reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1_fs_LIA.nii")),
-        CT_NIFTI_IMG_MGZ = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
+         PREMRI_NIFTI_IMG_MGZ=reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1_fs_LIA.nii")),
+         CT_NIFTI_IMG_MGZ=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
     output:
-        # mapped image from CT -> MRI
-        CT_IN_PRE_NIFTI_IMG_ORIGgz = os.path.join(FSOUT_CT_FOLDER, "CT_in_T1w.nii.gz"),
-        CT_IN_PRE_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, "CT_in_T1w.nii"),
-        # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG = os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
+          # mapped image from CT -> MRI
+          CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname + ".gz"),
+          CT_IN_PRE_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname),
+          # mapping matrix for post to pre in T1
+          MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
     shell:
-        "flirt -in {input.CT_NIFTI_IMG_MGZ} \
-                            -ref {input.PREMRI_NIFTI_IMG_MGZ} \
-                            -omat {output.MAPPING_FILE_ORIG} \
-                            -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
-        "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_IMG};"
-
+         "flirt -in {input.CT_NIFTI_IMG_MGZ} \
+                             -ref {input.PREMRI_NIFTI_IMG_MGZ} \
+                             -omat {output.MAPPING_FILE_ORIG} \
+                             -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
+         "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_IMG};"
 
 """
 Rule for converting brainmask image volume from MGZ to Nifti
 """
 rule convert_brainmask_to_nifti:
     input:
-        recon_success_file = reconstruction_workflow(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")),
+         recon_success_file=reconstruction_workflow(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")),
     params:
-        brainmask_mgz = os.path.join(FSOUT_MRI_FOLDER, "brainmask.mgz")
+          brainmask_mgz=os.path.join(FSOUT_MRI_FOLDER, "brainmask.mgz")
     output:
-        brainmask_nifti = os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")
+          brainmask_nifti=os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")
     shell:
-        "mrconvert {params.brainmask_mgz} {output.brainmask_nifti};"
+         "mrconvert {params.brainmask_mgz} {output.brainmask_nifti};"
 
 """
 Rule to map the brain mask over to the CT space.
 """
 rule map_brainmask_to_ct:
     input:
-        brainmask_file = os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
-        CT_NIFTI_IMG = reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
-        # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG = os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
+         brainmask_file=os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
+         CT_NIFTI_IMG=reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
+         # mapping matrix for post to pre in T1
+         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
     output:
-        # mapping matrix for post to pre in T1
-        brainmask_inct_file = os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
+          # mapping matrix for post to pre in T1
+          brainmask_inct_file=os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
     shell:
-        "flirt -in {input.brainmask_file} \
-                            -ref {input.CT_NIFTI_IMG} \
-                            -applyxfm -init {input.MAPPING_FILE_ORIG} \
-                            -out {output.brainmask_inct_file};"
+         "flirt -in {input.brainmask_file} \
+                             -ref {input.CT_NIFTI_IMG} \
+                             -applyxfm -init {input.MAPPING_FILE_ORIG} \
+                             -out {output.brainmask_inct_file};"
 
 # rule convert_to_mgz:
 #     input:
@@ -197,4 +204,3 @@ Rule for robust registration of two volumes within two volumes
 #                             -weights {output.weights_file} \
 #                             --satit \
 #                             --iscale;"
-

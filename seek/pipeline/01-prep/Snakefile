@@ -15,7 +15,10 @@ This pipeline depends on the following functions:
     * mrconvert
     * acpcdetect
 
-from FreeSurfer6+, acpcdetect2.0.
+from FreeSurfer6+, acpcdetect2.0. To create a DAG pipeline, run:
+
+    snakemake --dag | dot -Tpdf > dag_pipeline_reconstruction.pdf
+
 """
 
 # Authors: Adam Li <adam2392@gmail.com>
@@ -29,17 +32,6 @@ sys.path.append("../../../")
 from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
                                      _get_anat_bids_dir, _get_bids_basename)
 
-"""
-export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
-
-A snakemake file for running reconstructions on the neuroimaging data.
-
-snakemake --dag | dot -Tpdf > dag_pipeline_reconstruction.pdf
-
-Runs tests to ensure data is all in the corresponding format: BIDS iEEG
-
-If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
-"""
 configfile: _get_seek_config()
 
 # get the freesurfer patient directory
@@ -64,19 +56,18 @@ premri_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
 ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                    imgtype='CT', ext='nii')
 
-
 # First rule
 rule all:
     input:
-        MRI_bids_fname_fscopy = expand(os.path.join(FSOUT_ACPC_FOLDER, premri_native_bids_fname),
-                                       subject=config['patients']),
-        MRI_NIFTI_IMG = expand(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
-                                            subject=config['patients']),
+         MRI_bids_fname_fscopy=expand(os.path.join(FSOUT_ACPC_FOLDER, premri_native_bids_fname),
+                                      subject=config['patients']),
+         MRI_NIFTI_IMG=expand(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
+                              subject=config['patients']),
     params:
-        bids_root = bids_root.bids_root,
+          bids_root=bids_root.bids_root,
     shell:
-        "echo 'done';"
-        "bids-validator {params.bids_root};"
+         "echo 'done';"
+         "bids-validator {params.bids_root};"
 
 """
 Rule for prepping fs_recon by converting dicoms -> NIFTI images.
@@ -85,15 +76,15 @@ For more information, see BIDS specification.
 """
 rule convert_dicom_to_nifti:
     params:
-        CT_FOLDER = RAW_CT_FOLDER,
-        MRI_FOLDER = RAW_MRI_FOLDER,
-        bids_root = bids_root.bids_root,
+          CT_FOLDER=RAW_CT_FOLDER,
+          MRI_FOLDER=RAW_MRI_FOLDER,
+          bids_root=bids_root.bids_root,
     output:
-        CT_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, ct_bids_fname),
-        MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+          CT_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, ct_bids_fname),
+          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
     shell:
-        "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
-        "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
+         "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
+         "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
 
 """
 Rule for automatic ACPC alignment using acpcdetect software. 
@@ -103,35 +94,34 @@ aligned.
 """
 rule automatic_acpc_alignment:
     input:
-        MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+         MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
     params:
-        anat_dir = str(BIDS_PRESURG_ANAT_DIR),
-        acpc_fs_dir = str(FSOUT_ACPC_FOLDER),
+          anat_dir=str(BIDS_PRESURG_ANAT_DIR),
+          acpc_fs_dir=str(FSOUT_ACPC_FOLDER),
     output:
-        MRI_bids_fname_fscopy = os.path.join(FSOUT_ACPC_FOLDER, premri_native_bids_fname),
-        MRI_bids_fname = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
+          MRI_bids_fname_fscopy=os.path.join(FSOUT_ACPC_FOLDER, premri_native_bids_fname),
+          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
     shell:
-        # create BIDS session directory and copy file there
-        "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
-        "echo {output.MRI_bids_fname};"
-        "mkdir -p {params.acpc_fs_dir};"
-        "cp {input.MRI_bids_fname} {output.MRI_bids_fname_fscopy};"
-        # run acpc auto detection
-        "acpcdetect -i {output.MRI_bids_fname_fscopy} -center-AC -output-orient RAS;"
-        "cp {output.MRI_bids_fname_fscopy} {output.MRI_bids_fname};"
+         # create BIDS session directory and copy file there
+         "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
+         "echo {output.MRI_bids_fname};"
+         "mkdir -p {params.acpc_fs_dir};"
+         "cp {input.MRI_bids_fname} {output.MRI_bids_fname_fscopy};"
+         # run acpc auto detection
+         "acpcdetect -i {output.MRI_bids_fname_fscopy} -center-AC -output-orient RAS;"
+         "cp {output.MRI_bids_fname_fscopy} {output.MRI_bids_fname};"
 
-
-# not needed unless defacing is used...
-# rule nifti_to_bids:
-#     params:
-#         CT_FOLDER = RAW_CT_FOLDER,
-#         MRI_FOLDER = RAW_POSTMRI_FOLDER,
-#         bids_root = bids_root.bids_root,
-#     output:
-#         CT_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-#                                      _get_bids_basename(subject_wildcard, imgtype='CT')),
-#         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-#                                      _get_bids_basename(subject_wildcard, imgtype='T1w'))
-#     run:
-#         bids_conversion._convert_dicom_to_nifti(params.CT_FOLDER, output.CT_bids_fname)
-#         bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)
+         # not needed unless defacing is used...
+         # rule nifti_to_bids:
+         #     params:
+         #         CT_FOLDER = RAW_CT_FOLDER,
+         #         MRI_FOLDER = RAW_POSTMRI_FOLDER,
+         #         bids_root = bids_root.bids_root,
+         #     output:
+         #         CT_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
+         #                                      _get_bids_basename(subject_wildcard, imgtype='CT')),
+         #         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
+         #                                      _get_bids_basename(subject_wildcard, imgtype='T1w'))
+         #     run:
+         #         bids_conversion._convert_dicom_to_nifti(params.CT_FOLDER, output.CT_bids_fname)
+         #         bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)

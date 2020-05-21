@@ -48,6 +48,8 @@ source_file='Meshes/
 lh_pial_trivert.mat',
 target_file='Meshes/
 lh_pial_trivert_2tal.mat',file_type='surf')"""
+
+
 def apply_xfm_to_elecs(xfm_fpath, electrodes_fname, t1w_fpath):
     # First load the matrix in the xfm file:
     xfm_arr = np.genfromtxt(xfm_fpath, skip_header=5, delimiter=" ", comments=";")

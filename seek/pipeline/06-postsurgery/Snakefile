@@ -1,3 +1,16 @@
+"""
+===============================================
+06. Postsurgery T1 MRI registration and workflow
+================================================
+
+This pipeline depends on the following functions:
+
+    * mrconvert
+    * flirt
+
+from FreeSurfer6+, FSL.
+"""
+
 import os
 import sys
 from pathlib import Path
@@ -6,16 +19,8 @@ from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                    _get_anat_bids_dir, _get_bids_basename)
+                                     _get_anat_bids_dir, _get_bids_basename)
 
-"""
-export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
-
-A snakemake file for running reconstructions on the neuroimaging data.
-
-snakemake --dag | dot -Tpdf > dag_pipeline_coregistration.pdf
-
-"""
 configfile: _get_seek_config()
 
 # get the freesurfer patient directory
@@ -52,27 +57,26 @@ SESSION = 'postsurgery'
 
 subworkflow prep_workflow:
     workdir:
-        "../01-prep/"
+           "../01-prep/"
     snakefile:
-        "../01-prep/Snakefile"
+             "../01-prep/Snakefile"
     configfile:
-        _get_seek_config()
-
+              _get_seek_config()
 
 # First rule
 rule all:
     input:
-        # MRI_NIFTI_IMG = expand(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-        #                                     _get_bids_basename(subject_wildcard, imgtype='T1w')),
-        #                                     subject=config['patients']),
-        # mapping matrix for post T1 to pre T1
-        MAPPING_FILE = expand(os.path.join(FSOUT_POSTMRI_FOLDER, pre_to_post_transform_fname),
-                              subject=config['patients']),
+         # MRI_NIFTI_IMG = expand(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
+         #                                     _get_bids_basename(subject_wildcard, imgtype='T1w')),
+         #                                     subject=config['patients']),
+         # mapping matrix for post T1 to pre T1
+         MAPPING_FILE=expand(os.path.join(FSOUT_POSTMRI_FOLDER, pre_to_post_transform_fname),
+                             subject=config['patients']),
     params:
-        bids_root = bids_root.bids_root,
+          bids_root=bids_root.bids_root,
     shell:
-        "echo 'done';"
-        "bids-validator {params.bids_root};"
+         "echo 'done';"
+         "bids-validator {params.bids_root};"
 
 """
 Rule for prepping fs_recon by converting dicoms -> NIFTI images.
@@ -82,13 +86,12 @@ BIDS specification.
 """
 rule convert_dicom_to_bids:
     params:
-        MRI_FOLDER = RAW_POSTMRI_FOLDER,
-        bids_root = bids_root.bids_root,
+          MRI_FOLDER=RAW_POSTMRI_FOLDER,
+          bids_root=bids_root.bids_root,
     output:
-        MRI_bids_fname = os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
+          MRI_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
     shell:
-        "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
-
+         "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
 
 """
 Rule for coregistering postsurgical T1 to presurgical T1 RAS.
@@ -100,21 +103,20 @@ postsurgical_T1w -> presurgical_T1w_RAS.
 """
 rule coregistert1_post_to_pre_RAS:
     input:
-        MRI_bids_fname = os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
-        PREMRI_NIFTI_IMG = prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)),
+         MRI_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
+         PREMRI_NIFTI_IMG=prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)),
     output:
-        PREMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, premri_bids_fname),
-        POSTMRI_NIFTI_IMG = os.path.join(FSOUT_POSTMRI_FOLDER, postmri_bids_fname),
-        POSTMRI_bids_fname = os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_bids_fname),
-        # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG = os.path.join(FSOUT_POSTMRI_FOLDER, pre_to_post_transform_fname),
+          PREMRI_NIFTI_IMG=os.path.join(FSOUT_POSTMRI_FOLDER, premri_bids_fname),
+          POSTMRI_NIFTI_IMG=os.path.join(FSOUT_POSTMRI_FOLDER, postmri_bids_fname),
+          POSTMRI_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_bids_fname),
+          # mapping matrix for post to pre in T1
+          MAPPING_FILE_ORIG=os.path.join(FSOUT_POSTMRI_FOLDER, pre_to_post_transform_fname),
     shell:
-        "cp {input.PREMRI_NIFTI_IMG} {output.PREMRI_NIFTI_IMG};"
-        "flirt -in {input.MRI_bids_fname} \
-                            -ref {input.PREMRI_NIFTI_IMG} \
-                            -omat {output.MAPPING_FILE_ORIG} \
-                            -out {output.POSTMRI_NIFTI_IMG};"
-        "cp {output.POSTMRI_NIFTI_IMG} {output.POSTMRI_bids_fname};"
+         "cp {input.PREMRI_NIFTI_IMG} {output.PREMRI_NIFTI_IMG};"
+         "flirt -in {input.MRI_bids_fname} \
+                             -ref {input.PREMRI_NIFTI_IMG} \
+                             -omat {output.MAPPING_FILE_ORIG} \
+                             -out {output.POSTMRI_NIFTI_IMG};"
+         "cp {output.POSTMRI_NIFTI_IMG} {output.POSTMRI_bids_fname};"
 
-
-# rule map_postRAS_to_preFS:
+         # rule map_postRAS_to_preFS:

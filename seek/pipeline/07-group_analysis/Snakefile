@@ -3,19 +3,11 @@
 07. Group Analysis Workflow using FreeSurfer to MNI152
 ======================================================
 
-In this pipeline, we prep the reconstruction workflow
-by putting MRI and CT data into the BIDS layout and
-re-orient images to RAS with ACPC alignment.
-
-We assume that there is only one set of dicoms for CT and MRI
-data.
-
 This pipeline depends on the following functions:
 
-    * mrconvert
-    * acpcdetect
+    * mri_cvs_register
 
-from FreeSurfer6+, acpcdetect2.0.
+from FreeSurfer6+
 """
 
 import os
