@@ -130,7 +130,7 @@ Rule to map the brain mask over to the CT space.
 rule map_brainmask_to_ct:
     input:
          brainmask_file=os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
-         CT_NIFTI_IMG=reconstruction_workflow(os.path.join(FSOUT_CT_FOLDER, "CT.nii")),
+         CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
          # mapping matrix for post to pre in T1
          MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
     output:
