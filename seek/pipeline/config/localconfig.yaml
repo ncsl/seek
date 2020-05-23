@@ -17,9 +17,9 @@ session:
 patients:
   [
 #   'la01',
-#    'la02', 'la05', 'la08', 'la15', 'la23',
-   'la03', 'la04', 'la06', 'la07', 'la09', 'la10', 'la11', 'la12',
-   'la13', 'la16', 'la17', 'la21', 'la22', 'la24',
+    'la02', 'la05', 'la08', 'la15', 'la23', 'la13',
+#   'la03', 'la04', 'la06', 'la07', 'la09', 'la10', 'la11', 'la12',
+#   'la13', 'la16', 'la17', 'la21', 'la22', 'la24',
 #   'la27', 'la28', 'la29', 'la31',
 
 #   'efri02', 'efri06', 'efri07', 'efri09', 'efri10', 'efri12', 'efri13',
