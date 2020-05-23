@@ -14,20 +14,20 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
 This repo describes Sarma/Crone lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). 
 
-For incorporation of DTI data, see ndmeg: https://github.com/neurodata/ndmg
+For incorporation of DTI data, see [ndmeg](https://github.com/neurodata/ndmg).
 
 <!-- MarkdownTOC -->
 
 - Features
 - Setup and Installation
-    - Modules to Install
+    - DOCKER
+- Creating persistent volumes
+        - Reconstruction
+        - Electrode localization \(Bioimage suite\)
 - Data Organization
-- Running Your Own Image Patients
 - Pipeline Description
-- Localizing Electrodes Process
-    - Running Localization GUI
-- Documentation
-        - Pipeline Process Visualized
+- Documentation and Testing
+    - Pipeline Process Visualized
 - References:
 
 <!-- /MarkdownTOC -->
@@ -39,64 +39,56 @@ Features
 
 Setup and Installation
 --------
-See [INSTALLATION GUIDE](doc/INSTALLATION.md)
+See [INSTALLATION GUIDE](doc/INSTALLATION.md). SEEK uses the [Snakemake](https://snakemake.readthedocs.io/en/stable/) 
+workflow management system to create the different workflows. We chose this because
+it is easy to run individual workflows, as well as an entire workflow from the command line.
 
 ### DOCKER
 
 Setup: Note that the docker container names are:
 
-    - neuroimg
+    - seek_reconstruction
+    - seek_localization  # tbd
+    - seek_visualization  # tbd
 
 To setup the container in your system:
-
+    
     docker-compose up --build
     
-    # run the container
-    docker-compose up 
-    
-Now if you type in `docker container ls`, you should see the corresponding container.
-    
-    # turn recipe to image
-    docker build <image_container_name>
+In another terminal run the pipeline commands.
     
     # turn image to containeer
     docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
 
-# Creating persistent volumes
+For running individual pipelines, see [INSTALLATION GUIDE](doc/INSTALLATION.md).
 
-#### Reconstruction
-1. Ensure that the data folder is set up as follows:
-    - Data/sourcedata/neuroimaging/{subject}/
-        - premri/*.dcm
-        - posmri/*.dcm
-        - postct/*.dcm
-2. Build images:
-    >
-    <code>host:~# docker-compose up --build</code>
-3. Run reconstruction container:
-    >
-    <code>host:~# docker-compose run reconstruction /bin/bash</code>
-4. Prep the data
-    > 
-    <code>container:/neuroimg# snakemake --snakefile ./pipeline/01-prep/Snakefile --cores 2</code>
-5.  Perform reconstruction
-    >
-    <code>container:/neuroimg# snakemake --snakefile ./pipeline/02-reconstruction/Snakefile --cores 2</code>
-6. Perform coregistration
-    >
-    <code>container:/neuroimg# snakemake --snakefile ./pipeline/03-coregistration/Snakefile --cores 2</code>
+# Creating persistent volumes
+If one wants to make a persistent data volume that reflects changes in the Docker container running Snakemake workflows, 
+then one can just make a `Data/` directory inside this repository. Then add in sourcedata. This
+directory serves as the BIDS root of the workflows.
 
 #### Electrode localization (Bioimage suite)
 
 1. Run localization container:
-    >
-    <code>host:~# docker-compose run localization ./start_bioimagesuite</code>
+
+    > docker-compose run localization ./start_bioimagesuite
 
 Data Organization
 --------
 
 We use BIDS. 
 See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
+
+Before data is converted to BIDS in `seek/pipeline/01-prep` pipeline, 
+then `sourcedata/` should contain a semi-structured format of the neuroimaging data that will
+be put through the workflow.
+
+**sourcedata/**
+       
+    /{subject}/
+        - premri/*.dcm
+        - posmri/*.dcm
+        - postct/*.dcm
 
 Pipeline Description
 --------

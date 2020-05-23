@@ -62,6 +62,7 @@ RUN rm /usr/local/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 ENV PATH $ARTHOME/bin:$PATH
 
 # Neuroimgpipe dependencies
+RUN pip3 -m install --upgrade pip3
 RUN pip3 install snakemake mne-bids numpy scipy mne dicom2nifti
 
 # Node & bids-validator

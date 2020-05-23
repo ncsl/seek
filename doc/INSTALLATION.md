@@ -1,5 +1,82 @@
 # INSTALLATION GUIDE
+To install the SEEK pipeline, one must install the necessary python runtimes, as well as the necessary 3rd party 
+softwares. 
 
+The best way to do so is via a Docker installation.
+
+<!-- MarkdownTOC -->
+
+- Docker Installation
+- Manual Installation
+    - Python Installations
+    - Pipeline Installations \(3rd Party Modules to Install\)
+
+<!-- /MarkdownTOC -->
+
+## Docker Installation
+To run the SEEK pipeline in Docker, first follow instructions to install [Docker](https://docs.docker.com/get-docker/).
+
+**NOTE: You will need approximately at least 8-9 GB free disc space to run the Docker container.**
+
+To setup the container in your system:
+
+    # build the composition in `docker-compose.yml`
+    docker-compose up --build
+    
+    # run the container
+    docker-compose up 
+    
+Now if you type in `docker container ls`, you should see the corresponding container.
+    
+    # turn recipe to image
+    docker build <image_container_name>
+    
+    # turn image to containeer
+    docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
+
+### Running Individual Workflows on Docker
+
+#### Reconstruction Workflow
+Setup the sourcedata directory as follows:
+
+ **sourcedata/**
+       
+    /{subject}/
+        - premri/*.dcm
+        - posmri/*.dcm
+        - postct/*.dcm
+        
+Edit the `seek/pipeline/config/localconfig.yml` file to include a list of 
+subject ids that you want to analyze.
+
+Then run the following commands (assuming you built the container w/ Docker already):
+
+   1. Run reconstruction container:
+   
+        > docker-compose run reconstruction /bin/bash
+
+   2. Prep the data
+   
+        >snakemake --snakefile ./pipeline/01-prep/Snakefile --cores 2
+                              
+   3.  Perform reconstruction
+        
+        > snakemake --snakefile ./pipeline/02-reconstruction/Snakefile --cores 2
+   
+   4. Perform coregistration
+   
+        > snakemake --snakefile ./pipeline/03-coregistration/Snakefile --cores 2
+
+#### Electrode Localization Workflow
+TBD
+
+#### Visualization of Localized Electrodes
+TBD
+
+
+
+## Manual Installation
+### Python Installations
 There are a couple of tools that you need to install in your system before everything is working. You ar recommended to use a Linux based OS. 
 Follow links and tutorials on each respective tool to install. Preferably this is done via Docker, or Singularity, but if not, then:
 
@@ -39,9 +116,9 @@ Pip and setup.py install
     
     # install testing functionality
     make install-tests
-    
-            
-## 3rd Party Modules to Install (or use Docker container)
+
+
+### Pipeline Installations (3rd Party Modules to Install)
 0. Octave
     Runs open-source. This runs various scripts for converting output files to object files for rendering visualizations.
     Follow: https://www.gnu.org/software/octave/#install
