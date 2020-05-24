@@ -1,4 +1,5 @@
-# PIPELINE DESCRIPTION
+PIPELINE DESCRIPTION
+--------------------
 The Snakemake rule-based workflow essentially abstracts the following rules and workflows.
 
 0. (Optional) ACPC Alignment:
@@ -57,8 +58,8 @@ The Snakemake rule-based workflow essentially abstracts the following rules and 
 
     TBD
 
-# Running Your Own Image Patients
-
+Running Your Own Image Patients
+-------------------------------
 0. Setup your raw data directory for your patient to be read in:
     
     * study_name/

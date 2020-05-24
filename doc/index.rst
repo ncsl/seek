@@ -1,2 +1,1 @@
-.. mdinclude:: ../README.md
-.. include:: ./install.rst
+.. include:: ../README.rst

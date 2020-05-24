@@ -18,14 +18,12 @@ import seek
 curdir = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(curdir, '..', 'seek')))
 
-
-
 # -- Project information -----------------------------------------------------
 
 project = seek.__name__
 td = date.today()
-copyright = u'2019-%s, MNE Developers. Last updated on %s' % (td.year,
-                                                              td.isoformat())
+copyright = u'2019-%s, SEEK Developers. Last updated on %s' % (td.year,
+                                                               td.isoformat())
 
 author = u'SEEK Developers'
 
@@ -53,7 +51,6 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx_gallery.gen_gallery',
     'numpydoc',
-    'm2r',
 ]
 
 # generate autosummary even if no references
