@@ -51,6 +51,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx_gallery.gen_gallery',
     'numpydoc',
+    "seek.sphinxext.snakemakerule",
 ]
 
 # generate autosummary even if no references
@@ -119,7 +120,8 @@ html_theme_options = {
     'navbar_links': [
         ("Examples", "auto_examples/index"),
         ('Tutorials', 'auto_tutorials/index'),
-        ("API", "api"),
+        ("Pipeline", "pipeline"),
+        # ('Rules', 'rules'),
         ("What's new", "whats_new"),
         ("GitHub", "https://github.com/ncsl/seek", True),
     ]
@@ -156,3 +158,34 @@ sphinx_gallery_conf = {
     'filename_pattern': '^((?!sgskip).)*$',
     'backreferences_dir': 'generated',
 }
+
+# def collect_pages(app: Sphinx):
+#     """Add Snakefiles to documentation (in HTML mode)
+#     """
+#     if not hasattr(app.env, '_snakefiles'):
+#         return
+#
+#     highlight_block = app.builder.highlighter.highlight_block
+#
+#     for snakefile in app.env._snakefiles:
+#         try:
+#             with open(os.path.join(BASEPATH, snakefile), 'r') as f:
+#                 code = f.read()
+#         except IOError:
+#             logger.error("failed to open {}".format(snakefile))
+#             continue
+#         highlighted = highlight_block(code, 'snakemake', lineanchors="line")
+#         context = {
+#             'title': snakefile,
+#             'body': '<h1>Snakefile "{}"</h1>'.format(snakefile) +
+#             highlighted
+#         }
+#         yield (os.path.join('_snakefiles', snakefile), context, 'page.html')
+#
+#     html = ['\n']
+#     context = {
+#         'title': ('Overview: Snakemake rule files'),
+#         'body': '<h1>All Snakemake rule files</h1>' +
+#         ''.join(html)
+#     }
+#     yield ('_snakefiles/index', context, 'page.html')
