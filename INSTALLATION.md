@@ -46,6 +46,7 @@ Setup the sourcedata directory as follows:
         - posmri/*.dcm
         - postct/*.dcm
         
+ 
 Edit the `seek/pipeline/config/localconfig.yml` file to include a list of 
 subject ids that you want to analyze.
 
@@ -119,48 +120,50 @@ Pip and setup.py install
 
 
 ### Pipeline Installations (3rd Party Modules to Install)
-0. Octave
-    Runs open-source. This runs various scripts for converting output files to object files for rendering visualizations.
-    Follow: https://www.gnu.org/software/octave/#install
+
+1. Octave
+
+Runs open-source. This runs various scripts for converting output files to object files for rendering visualizations.
+Follow: https://www.gnu.org/software/octave/#install
     
-   
     brew install octave
        
-0. Gawk
+2. Gawk
     Runs command line tools.
     https://brewinstall.org/Install-gawk-on-Mac-with-Brew/
 
-0. Blender
+3. Blender
     https://www.blender.org/download/Blender2.81/blender-2.81-linux-glibc217-x86_64.tar.bz2/
 
-1. Reconstruction
+4. Reconstruction
     * Freesurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall)
     * This step is necessary to generate a parcellation and surface reconstruction of the patient's brain. The general requirements is just a 
     Linux, or OSX computer with enough RAM. Currently, this repo is designed to work with FreeSurfer.
     
-2. Coregistration
+5. Coregistration
     * FSL Flirt (https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation/)
     * This step is necessary to map different imaging sessions together. Specifically, for this pipeline, we need it to map CT images to T1 MRI
     * Note that as of 2019, installation still requires Python2, which should come in any Linux distribution.
         
             python2 <run_installer>
     
-3. Utility
+6. Utility
     * MRTrix3 (https://mrtrix.readthedocs.io/en/latest/installation/linux_install.html)
 
-4. SPM 
+7. SPM 
     * SPM install (preferably 12): https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
 
-5. Contact-Localization Software (FieldTripToolbox, Img_Pipe, MATLAB)
+8. Contact-Localization Software (FieldTripToolbox, Img_Pipe, MATLAB)
     * FieldTripToolbox (http://www.fieldtriptoolbox.org/download/)
     * Img_Pipe from the Chang-Lab at UCSF will come as a submodule in this git repo. This heavily handles ECoG data only.
  
-6. (Optional) Cloud Reconstruction (MRICLOUD):
+9. ACPC Auto Detection (V2):
+    * https://www.nitrc.org/projects/art/
+    
+10. (Optional) Cloud Reconstruction (MRICLOUD):
     * MRICloud (cloud based soln; just send images here) (https://mricloud.org/)
     * the nice thing is that this usually works even when FS fails (e.g. the T1 MRI image isn't good enough quality, or there is a major lesion, etc.).
 
-7. (Optional) ACPC Auto Detection:
-    * https://www.nitrc.org/projects/art/
-    
-8. (Optional) Nonlinear Registration NDREG:
+
+11. (Optional) Nonlinear Registration NDREG:
     * NDReg (https://github.com/neurodata/ndreg)

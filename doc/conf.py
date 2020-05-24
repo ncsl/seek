@@ -1,33 +1,38 @@
-# -*- coding: utf-8 -*-
-#
-# Configuration file for the Sphinx documentation builder.
-#
-# This file does only contain a selection of the most common options. For a
-# full list see the documentation:
-# http://www.sphinx-doc.org/en/master/config
+import os
+import sys
+from datetime import date
+
+import sphinx_bootstrap_theme
+import sphinx_gallery  # noqa: F401
+from sphinx_gallery.sorting import ExampleTitleSortKey
+
+sys.path.append('../')
+import seek
 
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+
+curdir = os.path.dirname(__file__)
+sys.path.append(os.path.abspath(os.path.join(curdir, '..', 'seek')))
+
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'neuroimgpipe'
-copyright = '2019, Adam Li'
-author = 'Adam Li'
+project = seek.__name__
+td = date.today()
+copyright = u'2019-%s, MNE Developers. Last updated on %s' % (td.year,
+                                                              td.isoformat())
+
+author = u'SEEK Developers'
 
 # The short X.Y version
-version = ''
+version = seek.__version__
 # The full version, including alpha/beta/rc tags
-release = '0.1'
-
+release = version
 
 # -- General configuration ---------------------------------------------------
 
@@ -39,7 +44,20 @@ release = '0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.githubpages',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
+    'sphinx_gallery.gen_gallery',
+    'numpydoc',
+    'm2r',
 ]
+
+# generate autosummary even if no references
+autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -68,13 +86,18 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
-
 # -- Options for HTML output -------------------------------------------------
+
+# HTML options (e.g., theme)
+# see: https://sphinx-bootstrap-theme.readthedocs.io/en/latest/README.html
+# Clean up sidebar: Do not show "Source" link
+html_show_sourcelink = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'bootstrap'
+html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -85,89 +108,54 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# The default sidebars (for documents that don't match any pattern) are
-# defined by theme itself.  Builtin themes are using these templates by
-# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
-# 'searchbox.html']``.
-#
-# html_sidebars = {}
-
-
-# -- Options for HTMLHelp output ---------------------------------------------
-
-# Output file base name for HTML help builder.
-htmlhelp_basename = 'neuroimgpipedoc'
-
-
-# -- Options for LaTeX output ------------------------------------------------
-
-latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #
-    # 'papersize': 'letterpaper',
-
-    # The font size ('10pt', '11pt' or '12pt').
-    #
-    # 'pointsize': '10pt',
-
-    # Additional stuff for the LaTeX preamble.
-    #
-    # 'preamble': '',
-
-    # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+html_theme_options = {
+    'navbar_title': 'SEEK',
+    'bootswatch_theme': "flatly",
+    'navbar_sidebarrel': False,  # no "previous / next" navigation
+    'navbar_pagenav': False,  # no "Page" navigation in sidebar
+    'bootstrap_version': "3",
+    'navbar_links': [
+        ("Examples", "auto_examples/index"),
+        ('Tutorials', 'auto_tutorials/index'),
+        ("API", "api"),
+        ("What's new", "whats_new"),
+        ("GitHub", "https://github.com/ncsl/seek", True),
+    ]
 }
 
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (master_doc, 'neuroimgpipe.tex', 'neuroimgpipe Documentation',
-     'Adam Li', 'manual'),
-]
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'mne': ('https://mne.tools/dev', None),
+    'mne-bids': ('https://mne.tools/mne-bids/dev', None),
+    'numpy': ('https://numpy.org/devdocs', None),
+    'scipy': ('https://scipy.github.io/devdocs', None),
+    'matplotlib': ('https://matplotlib.org', None),
+    'nilearn': ('https://nilearn.github.io', None),
+    'snakemake': ('https://snakemake.readthedocs.io/en/stable/', None),
+}
+intersphinx_timeout = 5
 
+# Resolve binder filepath_prefix. From the docs:
+# "A prefix to append to the filepath in the Binder links. You should use this
+# if you will store your built documentation in a sub-folder of a repository,
+# instead of in the root."
+# we will store dev docs in a `dev` subdirectory and all other docs in a
+# directory "v" + version_str. E.g., "v0.3"
+if 'dev' in version:
+    filepath_prefix = 'dev'
+else:
+    filepath_prefix = 'v{}'.format(version)
 
-# -- Options for manual page output ------------------------------------------
-
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'neuroimgpipe', 'neuroimgpipe Documentation',
-     [author], 1)
-]
-
-
-# -- Options for Texinfo output ----------------------------------------------
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-    (master_doc, 'neuroimgpipe', 'neuroimgpipe Documentation',
-     author, 'neuroimgpipe', 'One line description of project.',
-     'Miscellaneous'),
-]
-
-
-# -- Options for Epub output -------------------------------------------------
-
-# Bibliographic Dublin Core info.
-epub_title = project
-
-# The unique identifier of the text. This can be a ISBN number
-# or the project homepage.
-#
-# epub_identifier = ''
-
-# A unique identification for the text.
-#
-# epub_uid = ''
-
-# A list of files that should not be packed into the epub file.
-epub_exclude_files = ['search.html']
+sphinx_gallery_conf = {
+    'examples_dirs': ['../examples', '../tutorials'],
+    'within_subsection_order': ExampleTitleSortKey,
+    'gallery_dirs': ['auto_examples', 'auto_tutorials'],
+    'filename_pattern': '^((?!sgskip).)*$',
+    'backreferences_dir': 'generated',
+}

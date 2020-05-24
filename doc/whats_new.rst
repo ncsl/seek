@@ -27,7 +27,8 @@ Version 0.1
 Changelog
 ~~~~~~~~~
 
-- Refactored semi-automated algorithm for localizing contacts on CT img, in :code:`eztrack/localized_contacts` by `Chester Huynh`_ (`#16 <https://github.com/adam2392/neuroimg_pipeline/pull/16>`_)
+- Refactored semi-automated algorithm for localizing contacts on CT img, in :code:`seek/localizae_contacts/electrode_clustering` by `Chester Huynh`_ (`#16 <https://github.com/adam2392/neuroimg_pipeline/pull/16>`_)
+- Pipeline for group comparisons with the MNI152 atlas at :code:`seek/pipeline/07-group_analysis` by `Adam Li`_ (`#25 <https://github.com/ncsl/seek/pull/25>`_)
 
 Bug
 ~~~

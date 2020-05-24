@@ -1,5 +1,5 @@
 SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
-----------------------------------------------
+--------------------------------------------------------------
 
 [![CircleCI](https://circleci.com/gh/ncsl/seek.svg?style=svg)](https://circleci.com/gh/ncsl/seek)
 [![Build Status](https://travis-ci.com/ncsl/seek.svg?token=6sshyCajdyLy6EhT8YAq&branch=master)](https://travis-ci.com/ncsl/seek)
@@ -38,8 +38,8 @@ Features
 - [ ] Create unit and integration tests using pytest that test: pipeline in both snakemake and Python
 
 Setup and Installation
---------
-See [INSTALLATION GUIDE](doc/INSTALLATION.md). SEEK uses the [Snakemake](https://snakemake.readthedocs.io/en/stable/) 
+------------------------
+See [INSTALLATION GUIDE](INSTALLATION.md). SEEK uses the [Snakemake](https://snakemake.readthedocs.io/en/stable/) 
 workflow management system to create the different workflows. We chose this because
 it is easy to run individual workflows, as well as an entire workflow from the command line.
 
@@ -60,7 +60,7 @@ In another terminal run the pipeline commands.
     # turn image to containeer
     docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
 
-For running individual pipelines, see [INSTALLATION GUIDE](doc/INSTALLATION.md).
+For running individual pipelines, see [INSTALLATION GUIDE](INSTALLATION.md).
 
 # Creating persistent volumes
 If one wants to make a persistent data volume that reflects changes in the Docker container running Snakemake workflows, 
@@ -74,7 +74,7 @@ directory serves as the BIDS root of the workflows.
     > docker-compose run localization ./start_bioimagesuite
 
 Data Organization
---------
+------------------------
 
 We use BIDS. 
 See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
@@ -90,33 +90,34 @@ be put through the workflow.
         - posmri/*.dcm
         - postct/*.dcm
 
+
 Pipeline Description
---------
+------------------------
 At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry, 
 regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
 
-See [PIPELINE GUIDE](doc/PIPELINE_DESCRIPTION.md)
+See [PIPELINE GUIDE](PIPELINE_DESCRIPTION.md)
 
 Semi-Automated Localizing Electrodes Process
--------- 
+-------- ----------------------------------------
 Localizing SEEG electrodes requires at least two contacts on each electrode to initialize the algorithm.
 These can be say the deepest 2 contacts, or the entry point and target point (e.g. first and last contact on the electrode).
 
 For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
 be easily interpolated.
 
-See [LOCALIZATION_GUIDE](doc/LOCALIZATION_GUIDE.md)
+See [LOCALIZATION_GUIDE](LOCALIZATION_GUIDE.md)
 
 Documentation and Testing
---------
+--------------------------------
 
-See [Testing Guide](doc/TESTING_SETUP.md)
+See [Testing Guide](TESTING_SETUP.md)
     
 ### Pipeline Process Visualized
 [DAG of Pipeline in Snakemake](seek/neuroimg/pipeline/dag_neuroimaging_pipeline_reconstruction.pdf)
 
 References:
---------
+----------------
 1. Recon-all. FreeSurfer. https://surfer.nmr.mgh.harvard.edu/fswiki/recon-all#References
 2. FSL Flirt. https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FLIRT
 3. MRTrix3. http://www.mrtrix.org/
