@@ -103,9 +103,11 @@ rule cvs_register:
     params:
           subject=subject_wildcard,
           template=TEMPLATE_SUBJECT,
+          SUBJECTS_DIR=FS_DIR,
     output:
           morph_file=os.path.join(FSOUT_CVS_DIR, f'combined_to{TEMPLATE_SUBJECT}_elreg_afteraseg-norm.tm3d'),
     shell:
+         "export SUBJECTS_DIR={params.SUBJECTS_DIR};"
          "echo 'Performing mri cvs nonlinear warping to MNI template...';"
          'mri_cvs_register --mov {params.subject} ' \
          '--template {params.template} ' \
