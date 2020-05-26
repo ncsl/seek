@@ -105,6 +105,8 @@ rule coregistert1_post_to_pre_RAS:
     input:
          MRI_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
          PREMRI_NIFTI_IMG=prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)),
+    params:
+         FSOUT_POSTMRI_FOLDER = FSOUT_POSTMRI_FOLDER,
     output:
           PREMRI_NIFTI_IMG=os.path.join(FSOUT_POSTMRI_FOLDER, premri_bids_fname),
           POSTMRI_NIFTI_IMG=os.path.join(FSOUT_POSTMRI_FOLDER, postmri_bids_fname),
@@ -112,6 +114,7 @@ rule coregistert1_post_to_pre_RAS:
           # mapping matrix for post to pre in T1
           MAPPING_FILE_ORIG=os.path.join(FSOUT_POSTMRI_FOLDER, pre_to_post_transform_fname),
     shell:
+         "mkdir {params.FSOUT_POSTMRI_FOLDER};"
          "cp {input.PREMRI_NIFTI_IMG} {output.PREMRI_NIFTI_IMG};"
          "flirt -in {input.MRI_bids_fname} \
                              -ref {input.PREMRI_NIFTI_IMG} \
