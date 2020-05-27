@@ -21,6 +21,7 @@ def get_rule_doc(name):
     """Decode and return the docstring(s) of a sequana/snakemake rule."""
     try:
         from sequana import Module
+
         rule = Module(name)
         filename = rule.path + "/%s.rules" % name
         data = open(filename, "r").read()
@@ -31,7 +32,7 @@ def get_rule_doc(name):
     # Try to identify the rule and therefore possible docstring
     # It may be a standard rule or a dynamic rule !
     # standard one
-    if name.endswith('_dynamic'):
+    if name.endswith("_dynamic"):
         name = name[:-8]
     rulename_tag = "rule %s" % name
     if rulename_tag in data:
@@ -55,12 +56,12 @@ def get_rule_doc(name):
         return "no docstring found for %s " % name
 
     start = data.find(quotes)
-    end = data[start + 3:].find(quotes) + start + 3
+    end = data[start + 3 :].find(quotes) + start + 3
 
     if end == -1 or end < start:
         return "no end of docstring found for %s " % name
 
-    docstring = data[start + 3:end]
+    docstring = data[start + 3 : end]
     return docstring
 
 
@@ -102,17 +103,18 @@ def setup(app):
     setup.app = app
     setup.config = app.config
     setup.confdir = app.confdir
-    app.add_directive('snakemakerule', SnakemakeDirective)
+    app.add_directive("snakemakerule", SnakemakeDirective)
 
     # Add visit/depart methods to HTML-Translator:
     def visit_perform(self, node):
         # Ideally, we should use sphinx but this is a simple temporary solution
         from docutils import core
         from docutils.writers.html4css1 import Writer
+
         w = Writer()
         try:
-            res = core.publish_parts(node.rule_docstring, writer=w)['html_body']
-            self.body.append('<div class="snakemake">' + res + '</div>')
+            res = core.publish_parts(node.rule_docstring, writer=w)["html_body"]
+            self.body.append('<div class="snakemake">' + res + "</div>")
             node.children = []
         except Exception as err:
             print(err)
@@ -129,12 +131,14 @@ def setup(app):
 
     import sequana
 
-    app.add_node(snakemake_rule,
-                 html=(visit_perform, depart_perform),
-                 latex=(visit_ignore, depart_ignore))
+    app.add_node(
+        snakemake_rule,
+        html=(visit_perform, depart_perform),
+        latex=(visit_ignore, depart_ignore),
+    )
 
     return {
-        'version': sequana.version,
-        'parallel_read_safe': True,
-        'parallel_write_safe': True,
+        "version": sequana.version,
+        "parallel_read_safe": True,
+        "parallel_write_safe": True,
     }

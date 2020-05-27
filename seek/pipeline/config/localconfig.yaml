@@ -22,6 +22,14 @@ patients:
    'la13', 'la16', 'la17', 'la21', 'la22', 'la24',
 #   'la27', 'la28', 'la29', 'la31',
 
+  'nl02', 'nl06', 'nl11',
+  'nl01', 'nl03', 'nl04', 'nl05', 'nl07', 'nl08', 'nl09', 'nl10', 'nl12',
+   'nl13', 'nl14', 'nl15', 'nl16', 'nl17', 'nl18', 'nl19', 'nl20',
+#   'nl21', 'nl22', 'nl23', 'nl24',
+
+#   'tvb1', 'tvb2','tvb5', 'tvb7', 'tvb8', 'tvb11', 'tvb12', 'tvb14', 'tvb17',
+#   'tvb18', 'tvb19', 'tvb23', 'tvb27', 'tvb28', 'tvb29',
+
 #   'efri02', 'efri06', 'efri07', 'efri09', 'efri10', 'efri12', 'efri13',
 #   'efri14', 'efri15', 'efri16', 'efri17', 'efri18', 'efri20',
 #   'efri21', 'efri25', 'efri26',

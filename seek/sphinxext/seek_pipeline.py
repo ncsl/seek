@@ -9,20 +9,24 @@ The name must be a valid sequana rule in the rules directory accesible via the
 """
 import re
 from docutils.parsers.rst import Directive
-from docutils.parsers.rst import  directives
+from docutils.parsers.rst import directives
 from docutils import nodes
 from docutils.nodes import Body, Element
 import urllib
 from sphinx.util.docutils import SphinxDirective
 
+
 def get_rule_doc(name):
     """Decode and return the docstring(s) of a sequana/snakemake rule."""
 
-    url = "https://raw.githubusercontent.com/ncsl/seek_{}/master/README.rst".format(name)
+    url = "https://raw.githubusercontent.com/ncsl/seek_{}/master/README.rst".format(
+        name
+    )
     data = urllib.request.urlopen(url).read().decode("utf8")
 
     try:
         from sequana import Module
+
         m = Module(name)
         version = m.version
     except:
@@ -43,6 +47,7 @@ def get_rule_doc(name):
     return docstring
 """
 
+
 class snakemake_base(Body, Element):
     def dont_traverse(self, *args, **kwargs):
         return []
@@ -59,7 +64,7 @@ def run(content, node_class, state, content_offset):
     return [node]
 
 
-#def sequana_pipeline_directive(name, arguments, options, content, lineno,
+# def sequana_pipeline_directive(name, arguments, options, content, lineno,
 #                        content_offset, block_text, state, state_machine):
 #   return run(content, sequana_pipeline_rule, state, content_offset)
 
@@ -72,24 +77,24 @@ class PipelineDirective(SphinxDirective):
 
 
 def setup(app):
-    #app.add_autodocumenter(RuleDocumenter)
-    #app.add_directive('sequana_pipeline', sequana_pipeline_directive, True, (0,0,0))
-    app.add_directive('sequana_pipeline', PipelineDirective)
+    # app.add_autodocumenter(RuleDocumenter)
+    # app.add_directive('sequana_pipeline', sequana_pipeline_directive, True, (0,0,0))
+    app.add_directive("sequana_pipeline", PipelineDirective)
 
     # Add visit/depart methods to HTML-Translator:
     def visit_perform(self, node):
         # Ideally, we should use sphinx but this is a simple temporary solution
         from docutils import core
         from docutils.writers.html4css1 import Writer
+
         w = Writer()
         try:
-            res = core.publish_parts(node.rule_docstring, writer=w)['html_body']
-            self.body.append('<div class="">' + res + '</div>' )
+            res = core.publish_parts(node.rule_docstring, writer=w)["html_body"]
+            self.body.append('<div class="">' + res + "</div>")
             node.children = []
         except Exception as err:
             print(err)
-            self.body.append('<div class=""> no docstring </div>' )
-
+            self.body.append('<div class=""> no docstring </div>')
 
     def depart_perform(self, node):
         node.children = []
@@ -100,6 +105,8 @@ def setup(app):
     def depart_ignore(self, node):
         node.children = []
 
-    app.add_node(sequana_pipeline_rule,
-                 html=(visit_perform, depart_perform),
-                 latex=(visit_ignore, depart_ignore))
+    app.add_node(
+        sequana_pipeline_rule,
+        html=(visit_perform, depart_perform),
+        latex=(visit_ignore, depart_ignore),
+    )
