@@ -99,7 +99,7 @@ Rule for coregistering postsurgical T1 to presurgical T1 RAS.
 This is because RAS is the preferred direction in Seg3D when we segment the image, it should be this one.
 Then the corersponding coregistration from the RAS to FreeSurfer space gives the correct orientation.
 
-postsurgical_T1w -> presurgical_T1w_RAS.
+postsurgical_T1w -> presurgical_T1w_RAS. Note FSL Flirt outputs files in 'nii.gz' format.
 """
 rule coregistert1_post_to_pre_RAS:
     input:
