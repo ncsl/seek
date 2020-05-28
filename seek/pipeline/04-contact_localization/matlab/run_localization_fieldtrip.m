@@ -29,7 +29,7 @@ ft_defaults
 
 % ------- CHANGE THIS ------
 % subj id to analyze
-subjID = 'la02';      % e.g. efri01, pt01, umf001, tvb1
+subjID = 'la03';      % e.g. efri01, pt01, umf001, tvb1
 your_initials = 'AL';
 
 % results directory
@@ -66,7 +66,7 @@ elec_coords_filepath = fullfile(SUBJDIR, 'elecs', [subjID your_initials '_elec_i
 % NAME OUTPUT ACCORDINGLY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ctimgfile = fullfile(strcat('CT_IN_T1_mgz.nii.gz'))
-ctimgfile = fullfile(strcat('rCT.nii.gz'));
+ctimgfile = fullfile(strcat('sub-la03_ses-presurgery_CT.nii'));
 t1imgfile = fullfile(strcat('T1.mgz'));
 
 %% Read in Original MRI Scan
@@ -89,4 +89,4 @@ elecf = ft_electrodeplacement(cfg, ct_img);
 elecf
 
 % save it into .mat file - name it accordingly
-save(elec_coords_filepath, 'elecf');
+% save(elec_coords_filepath, 'elecf');
