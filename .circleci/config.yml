@@ -1,106 +1,200 @@
 version: 2.1
+
 jobs:
-    build:
-        docker:
-            - image: circleci/python:3.7.3-stretch
-        steps:
-            - checkout
+  docs-build:
+    docker:
+      - image: circleci/python:3.7.3-stretch
+    steps:
+      - checkout
+
+      - run:
+          name: Check environment.yml and doc/environment.yml syncing
+          # doc/environment.yml must be a perfect copy of environment.yml
+          # with a single line "  - mne_bids>=0.X,<0.Y" added in the pip section
+          command: diff <(grep -v '^  - mne_bids>=0.*,<0.*$' doc/environment.yml) <(cat environment.yml)
+
+      # restore cache from last build. Unless __init__.py has changed since then
+      - restore_cache:
+          keys:
+            - data-cache-0-{{ checksum "./seek/__init__.py" }}
+
+      # Also restore pip cache to speed up installations
+      - restore_cache:
+          keys:
+            - pip-cache-0-{{ checksum "./environment.yml" }}
+
+      - run:
+          name: Install miniconda
+          command: |
+            wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;
+            chmod +x ~/miniconda.sh;
+            ~/miniconda.sh -b -p ~/miniconda;
+            echo "export PATH=~/miniconda/bin:$PATH" >> $BASH_ENV;
+
+      - run:
+          name: Setup Python environment
+          # ... but use latest version of MNE
+          command: |
+            conda update --yes --quiet conda
+            conda env create -f environment.yml --name=testenv
+            source activate testenv
+            python setup.py develop
+
+      - run:
+          name: Build the documentation
+          command: |
+            source activate testenv
+            make build-doc
+
+      - persist_to_workspace:
+          root: doc/_build
+          paths: html
+
+      - store_artifacts:
+          path: doc/_build/html/
+          destination: html
+
+      # Store the data cache
+      - save_cache:
+          key: data-cache-0-{{ checksum "./mne_bids/__init__.py" }}
+          paths:
+            - ~/mne_data
+
+      # Store pip cache
+      - save_cache:
+          key: pip-cache-0-{{ checksum "./environment.yml" }}
+          paths:
+            - ~/.cache/pip
+
+  docs-deploy:
+    # will only be run on master branch
+    docker:
+      - image: node:8.10.0
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: doc/_build
+
+      - run:
+          name: Install and configure dependencies
+          command: |
+            npm install -g --silent gh-pages@2.2
+            git config --global user.email "circle@seek.com"
+            git config --global user.name "Circle Ci"
+
+      - add_ssh_keys:
+          fingerprints:
+            - "de:75:29:a1:56:a9:53:08:b5:8f:95:c8:12:7a:bf:44"
+
+      - run:
+          # push built docs into the `dev` directory on the `gh-pages` branch
+          name: Deploy docs to gh-pages branch
+          command: gh-pages --dotfiles --message "doc updates [skip ci]" --dist doc/_build/html --dest ./dev
+
+workflows:
+  build:
+    jobs:
+      - docs-build
+      - docs-deploy:
+          requires:
+            - docs-build
+          filters:
+            branches:
+              only: master
 
             # install docker compose
-            - run:
-                name: Install Docker Compose
-                command: |
-                  set -x
-                  curl -L https://github.com/docker/compose/releases/download/1.25.3/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-                  chmod +x /usr/local/bin/docker-compose
+            #            - run:
+            #                name: Install Docker Compose
+            #                command: |
+            #                  set -x
+            #                  curl -L https://github.com/docker/compose/releases/download/1.25.3/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+            #                  chmod +x /usr/local/bin/docker-compose
             # let circle CI cache docker image (paid plan)
-#            - setup_remote_docker:
-#                docker_layer_caching: true
+            #            - setup_remote_docker:
+            #                docker_layer_caching: true
 
             # create docker image
-            - run:
-                name: Build and push Docker image
-                command: |
-                  set -x
-                  docker-compose up -d
-                  docker run -v $PWD/Data:/data -it -e bids_root=/data \
-                            -e derivatives_output_dir=/data/derivatives \
-                            --rm neuroimg_pipeline_reconstruction bash
-#                  docker push neuroseek/seek:tagname
+            #            - run:
+            #                name: Build and push Docker image
+            #                command: |
+            #                  set -x
+            #                  docker-compose up -d
+            #                  docker run -v $PWD/Data:/data -it -e bids_root=/data \
+            #                            -e derivatives_output_dir=/data/derivatives \
+            #                            --rm neuroimg_pipeline_reconstruction bash
+            #                  docker push neuroseek/seek:tagname
 
             # run local python based installation and test
-            - run:
-                name: Check environment.yml and doc/environment.yml syncing
-                # doc/environment.yml must be a perfect copy of environment.yml
-                # with a single line "  - neuroimgpipe~=0.X" added in the pip section
-                command: diff <(grep -v '^  - neuroimgpipe~=0.1.0$' environment.yml) <(cat environment.yml)
+            #            - run:
+            #                name: Check environment.yml and doc/environment.yml syncing
+            #                # doc/environment.yml must be a perfect copy of environment.yml
+            #                # with a single line "  - neuroimgpipe~=0.X" added in the pip section
+            #                command: diff <(grep -v '^  - neuroimgpipe~=0.1.0$' environment.yml) <(cat environment.yml)
+            #
+            #            # restore cache from last build. Unless __init__.py has changed since then
+            #            - restore_cache:
+            #                keys:
+            #                  - data-cache-0-{{ checksum "./seek/__init__.py" }}
+            #
+            #            # Also restore pip cache to speed up installations
+            #            - restore_cache:
+            #                keys:
+            #                  - pip-cache-0-{{ checksum "./environment.yml" }}
 
-            # restore cache from last build. Unless __init__.py has changed since then
-            - restore_cache:
-                keys:
-                  - data-cache-0-{{ checksum "./seek/__init__.py" }}
+            #            - run:
+            #                name: Install miniconda
+            #                command: |
+            #                  wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;
+            #                  chmod +x ~/miniconda.sh;
+            #                  ~/miniconda.sh -b -p ~/miniconda;
+            #                  echo "export PATH=~/miniconda/bin:$PATH" >> $BASH_ENV;
+            #
+            #            - run:
+            #                name: Setup Python environment via Conda
+            #                # ... but use latest version of EZTrack
+            #                command: |
+            #                  conda update --yes --quiet conda
+            #                  conda env create -f environment.yml --name=testenv
+            #                  source activate testenv
+            #                  conda config --add channels conda-forge
+            #                  conda config --add channels bioconda
+            #                  conda config --add channels aramislab
+            #                  conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
+            #                  pip install coverage-badge anybadge
+            #                  # dev versions of mne-python, mne-bids
+            #                  pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
+            #                  pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
+            #                  python setup.py develop
 
-            # Also restore pip cache to speed up installations
-            - restore_cache:
-                keys:
-                  - pip-cache-0-{{ checksum "./environment.yml" }}
+            #            - run:
+            #                name: Setup Python environment via Setup
+            #                # ... but use latest version of EZTrack
+            #                command: |
+            #                  python -m venv .venv
+            #                  source activate .venv/bin/activate
+            #                  make inplace
+            #                  make install-tests
+            #
+            #            - run:
+            #                name: Run unit and integration tests
+            #                command: |
+            #                  source activate .venv/bin/activate
+            #                  make check
+            #                  pytest ./tests/
 
-#            - run:
-#                name: Install miniconda
-#                command: |
-#                  wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh;
-#                  chmod +x ~/miniconda.sh;
-#                  ~/miniconda.sh -b -p ~/miniconda;
-#                  echo "export PATH=~/miniconda/bin:$PATH" >> $BASH_ENV;
-#
-#            - run:
-#                name: Setup Python environment via Conda
-#                # ... but use latest version of EZTrack
-#                command: |
-#                  conda update --yes --quiet conda
-#                  conda env create -f environment.yml --name=testenv
-#                  source activate testenv
-#                  conda config --add channels conda-forge
-#                  conda config --add channels bioconda
-#                  conda config --add channels aramislab
-#                  conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
-#                  pip install coverage-badge anybadge
-#                  # dev versions of mne-python, mne-bids
-#                  pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
-#                  pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
-#                  python setup.py develop
-
-            - run:
-                name: Setup Python environment via Setup
-                # ... but use latest version of EZTrack
-                command: |
-                  python -m venv .venv
-                  source activate .venv/bin/activate
-                  make inplace
-                  make install-tests
-
-            - run:
-                name: Run unit and integration tests
-                command: |
-                  source activate .venv/bin/activate
-                  make check
-                  pytest ./tests/
-
-#            - run:
-#                name: Build the documentation
-#                command: |
-#                    source activate testenv
-#                    make build-doc
-#            - store_artifacts:
-#                path: doc/_build/html/
-#                destination: html
+            #            - run:
+            #                name: Build the documentation
+            #                command: |
+            #                    source activate testenv
+            #                    make build-doc
+            #            - store_artifacts:
+            #                path: doc/_build/html/
+            #                destination: html
 
             # Store pip cache
-            - save_cache:
-                key: pip-cache-0-{{ checksum "./environment.yml" }}
-                paths:
-                  - ~/.cache/pip
+#            - save_cache:
+#                key: pip-cache-0-{{ checksum "./environment.yml" }}
+#                paths:
+#                  - ~/.cache/pip
 
-            - add_ssh_keys:
-                fingerprints:
-                  - "de:75:29:a1:56:a9:53:08:b5:8f:95:c8:12:7a:bf:44"

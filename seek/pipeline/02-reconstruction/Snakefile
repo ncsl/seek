@@ -1,77 +1,77 @@
+"""
+============================================
+02. Reconstruction Workflow using FreeSurfer
+============================================
+
+In this pipeline, we prep the reconstruction workflow
+by putting MRI and CT data into the BIDS layout and
+re-orient images to RAS with ACPC alignment.
+
+We assume that there is only one set of dicoms for CT and MRI
+data.
+
+This pipeline depends on the following functions:
+
+    * mrconvert
+    * acpcdetect
+
+from FreeSurfer6+, acpcdetect2.0.
+"""
+
 import os
 import sys
 from pathlib import Path
-from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from seek.pipeline.fileutils import SCRIPTS_UTIL_DIR
-from seek.pipeline.fileutils import BidsRoot, BIDS_ROOT, SESSION
+from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT,
+                                     _get_seek_config,
+                                     _get_anat_bids_dir, _get_bids_basename)
 
-"""
-export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/
-
-A snakemake file for running reconstructions on the neuroimaging data.
-
-snakemake --dag | dot -Tpdf > dag_pipeline_reconstruction.pdf
-
-Runs tests to ensure data is all in the corresponding format: BIDS iEEG
-
-If this doesn't work off the bat, make sure you explicitly set SUBJECTS_DIR
-"""
-configfile: "/seek/pipeline/config/localconfig.yaml"
+configfile: _get_seek_config()
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(os.environ['bids_root']))
+bids_root = BidsRoot(BIDS_ROOT(config['bids_root']), center_id=config['center_id'])
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
 FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
-FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "mri")
-FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "CT")
-FSOUT_ELECS_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "elecs")
-FSOUT_ACPC_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "acpc")
-FSOUT_SURF_FOLDER = Path(FSPATIENT_SUBJECT_DIR / "surf")
+FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "mri"
+FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "CT"
+FSOUT_ELECS_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "elecs"
+FSOUT_ACPC_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "acpc"
+FSOUT_SURF_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "surf"
 
-
-def _get_bids_basename(subject, imgtype):
-    """Wildcard function to get bids_basename."""
-    bids_fname = make_bids_basename(subject,
-                                    session=SESSION,
-                                    suffix=f"{imgtype}.nii.gz")
-    return bids_fname
-
-def _get_subject_dir(bids_root, subject):
-    return os.path.join(bids_root, f"sub-{subject}")
-
-def _get_anat_bids_dir(bids_root, subject):
-    return os.path.join(_get_subject_dir(bids_root, subject), f'ses-{SESSION}', 'anat')
-
+BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
+premri_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                       space='RAS', imgtype='T1w', ext='nii')
+ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                   imgtype='CT', ext='nii')
 
 subworkflow prep_workflow:
     workdir:
-        "../01-prep/"
+           "../01-prep/"
     snakefile:
-        "../01-prep/Snakefile"
+             "../01-prep/Snakefile"
     configfile:
-        "/seek/pipeline/config/localconfig.yaml"
+              _get_seek_config()
 
 # First rule
 rule all:
     input:
-        outsuccess_file=expand(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt"),
-                               subject=config['patients']),
-        brainmask_nifti = expand(os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
-                               subject=config['patients']),
-        # lhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
-        #                         subject=config['patients']),
-        # rhpial = expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
-        #                         subject=config['patients']),
-        subcort_success_flag_file = expand(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_subcort_success.txt"),
+         outsuccess_file=expand(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt"),
                                 subject=config['patients']),
+         brainmask_nifti=expand(os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
+                                subject=config['patients']),
+         lhpial=expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
+                       subject=config['patients']),
+         rhpial=expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
+                       subject=config['patients']),
+         subcort_success_flag_file=expand(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_subcort_success.txt"),
+                                          subject=config['patients']),
     shell:
-        "echo 'done'"
-
+         "echo 'done'"
 
 """
 Rule for prepping fs_recon.
@@ -87,26 +87,18 @@ Rule for converting .dicom -> .niftiPUT_DIR,
 """
 rule prep_recon:
     input:
-        CT_NIFTI_IMG = prep_workflow(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-                                     _get_bids_basename(subject_wildcard, imgtype='CT'))),
-        MRI_NIFTI_IMG = prep_workflow(os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-                                    _get_bids_basename(subject_wildcard, imgtype='T1w_RAS'))),
+         MRI_NIFTI_IMG=prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)),
     params:
-        CTDIR = FSOUT_CT_FOLDER,
-        elecsdir = FSOUT_ELECS_FOLDER,
-        acpcdir = FSOUT_ACPC_FOLDER,
-        INPUT_FS_ORIG_DIR = os.path.join(FSOUT_MRI_FOLDER, "orig"),
+          elecsdir=str(FSOUT_ELECS_FOLDER),
+          acpcdir=str(FSOUT_ACPC_FOLDER),
+          INPUT_FS_ORIG_DIR=os.path.join(FSOUT_MRI_FOLDER, "orig"),
     output:
-        MRI_MGZ_IMG=os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
-        CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, "CT.nii"),
+          MRI_MGZ_IMG=os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
     shell:
-        "mkdir -p {params.CTDIR};"
-        "mkdir -p {params.elecsdir};"
-        "mkdir -p {params.acpcdir};"
-        "mkdir -p {params.INPUT_FS_ORIG_DIR};"
-        "mri_convert {input.CT_NIFTI_IMG} {output.CT_NIFTI_IMG};"
-        "mri_convert {input.MRI_NIFTI_IMG} {output.MRI_MGZ_IMG};"
-
+         "mkdir -p {params.elecsdir};"
+         "mkdir -p {params.acpcdir};"
+         "mkdir -p {params.INPUT_FS_ORIG_DIR};"
+         "mri_convert {input.MRI_NIFTI_IMG} {output.MRI_MGZ_IMG};"
 
 """
 Rule for reconstructions .nifti -> output files.
@@ -117,80 +109,64 @@ know that reconstruction was completed.
 """
 rule reconstruction:
     input:
-        MRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
+         MRI_MGZ_IMG=os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
     params:
-        patient=subject_wildcard,
-        SUBJECTS_DIR=FS_DIR,
+          patient=subject_wildcard,
+          SUBJECTS_DIR=FS_DIR,
     output:
-        outsuccess_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+          outsuccess_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
     shell:
-        "export SUBJECTS_DIR={params.SUBJECTS_DIR};" \
-        "SUBJECTS_DIR={params.SUBJECTS_DIR};"
-        "recon-all " \
-            "-cw256 " \
-            # "-i {input.MRI_MGZ_IMG} " \
-            "-subject {params.patient} " \
-            "-all "\
-            "-parallel -openmp $(nproc);"
-        "touch {output.outsuccess_file}"
+         "export SUBJECTS_DIR={params.SUBJECTS_DIR};" \
+         "SUBJECTS_DIR={params.SUBJECTS_DIR};"
+         "recon-all " \
+         "-cw256 " \
+             # "-i {input.MRI_MGZ_IMG} " \
+         "-subject {params.patient} " \
+         "-all " \
+         "-parallel -openmp $(nproc);"
+         "touch {output.outsuccess_file}"
 
 """
 Rule for converting the pial surfaces to ascii data, so that it is readable by python/matlab.
 """
-# rule convert_pial_surface_files_ascii:
-#     input:
-#         recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
-#     params:
-#         lhpial = os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
-#         rhpial = os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
-#     output:
-#         lhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
-#         rhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
-#     shell:
-#         "mris_convert {params.lhpial} {output.lhpial};"
-#         "mris_convert {params.rhpial} {output.rhpial};"
-
+rule convert_pial_surface_files_ascii:
+    input:
+         recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+    params:
+          lhpial=os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
+          rhpial=os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
+    output:
+          lhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
+          rhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
+    shell:
+         "mris_convert {params.lhpial} {output.lhpial};"
+         "mris_convert {params.rhpial} {output.rhpial};"
 
 """
 Rule for converting the pial surfaces to ascii data, so that it is readable by python/matlab.
 """
-# rule convert_freesurfer_T1_to_nifti:
-#     input:
-#         recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
-#     params:
-#         lhpial = os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
-#         rhpial = os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
-#     output:
-#         lhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
-#         rhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
-#     shell:
-#         "mris_convert {params.lhpial} {output.lhpial};"
-#         "mris_convert {params.rhpial} {output.rhpial};"
-
-
 rule convert_FS_T1_to_nifti:
     input:
-        recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+         recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
     params:
-        PREMRI_MGZ_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.mgz"),
+          PREMRI_MGZ_IMG=os.path.join(FSOUT_MRI_FOLDER, "T1.mgz"),
     output:
-        PREMRI_NIFTI_IMG = os.path.join(FSOUT_MRI_FOLDER, "T1.nii"),
+          PREMRI_NIFTI_IMG=os.path.join(FSOUT_MRI_FOLDER, "T1_fs_LIA.nii"),
     shell:
-        "mri_convert {params.PREMRI_MGZ_IMG} {output.PREMRI_NIFTI_IMG};"
-
+         "mri_convert {params.PREMRI_MGZ_IMG} {output.PREMRI_NIFTI_IMG};"
 
 """
 Rule for converting brainmask image volume from MGZ to Nifti.
 """
 rule convert_brainmask_to_nifti:
     input:
-        recon_success_file = os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+         recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
     params:
-        brainmask_mgz = os.path.join(FSOUT_MRI_FOLDER, "brainmask.mgz")
+          brainmask_mgz=os.path.join(FSOUT_MRI_FOLDER, "brainmask.mgz")
     output:
-        brainmask_nifti = os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")
+          brainmask_nifti=os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")
     shell:
-        "mri_convert {params.brainmask_mgz} {output.brainmask_nifti};"
+         "mri_convert {params.brainmask_mgz} {output.brainmask_nifti};"
 
 """
 Rule for extracting the subcortical regions
@@ -200,18 +176,31 @@ Rule for extracting the subcortical regions
 """
 rule create_subcortical_volume:
     input:
-        outsuccess_file = os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+         outsuccess_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
     params:
-        SUBJECTS_DIR = FS_DIR,
-        patient="{subject}",
-        scripts_dir=SCRIPTS_UTIL_DIR,
+          SUBJECTS_DIR=FS_DIR,
+          patient=subject_wildcard,
+          scripts_dir=SCRIPTS_UTIL_DIR,
     output:
-        subcort_success_flag_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_subcort_success.txt"),
+          subcort_success_flag_file=os.path.join(FSPATIENT_SUBJECT_DIR, subject_wildcard + "_subcort_success.txt"),
     shell:
-        # generate subcortical region volume bounding surfaces
-        "export SUBJECTS_DIR={params.SUBJECTS_DIR};"
-        "SUBJECTS_DIR={params.SUBJECTS_DIR};"
-        "{params.scripts_dir}/aseg2srf -s {params.patient};"
-        "touch {output.subcort_success_flag_file};"
+         # generate subcortical region volume bounding surfaces
+         "export SUBJECTS_DIR={params.SUBJECTS_DIR};"
+         "SUBJECTS_DIR={params.SUBJECTS_DIR};"
+         "{params.scripts_dir}/aseg2srf -s {params.patient};"
+         "touch {output.subcort_success_flag_file};"
 
-
+"""
+rule to convert 
+"""
+# rule convert_freesurfer_to_ras:
+#     input:
+#         talairach_xfm_fpath = os.path.join(FSOUT_MRI_FOLDER, 'transforms', 'talairach.xfm'),
+#         input_ = ,
+#     params:
+#         SUBJECTS_DIR = FS_DIR,
+#         subject=subject_wildcard,
+#     output:
+#         target_fpath = ,
+#     shell:
+# "python;"

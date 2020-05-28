@@ -31,12 +31,12 @@ with open(os.path.join('seek', '__init__.py'), 'r') as fid:
 if version is None:
     raise RuntimeError('Could not determine version')
 DESCRIPTION = "Neuroimaging Pipeline software for easily generating anatomical interpretations of iEEG data."
-URL = "https://github.com/adam2392/neuroimg_pipeline/"
+URL = "https://github.com/ncsl/seek/"
 MINIMUM_PYTHON_VERSION = 3, 6  # Minimum of Python 3.6
 REQUIRED_PACKAGES = [
     "numpy>=1.14.5",
     "scipy>=1.1.0",
-    "pandas>=1.0.0",
+    "pandas>=1.0.3",
     "pybids>=0.10",
     "pybv>=0.2.0",
     "joblib>=0.14",
@@ -84,15 +84,14 @@ setup(
     version=version,
     description=DESCRIPTION,
     author=AUTHORS,
-    long_description=open("README.md").read(),
-    long_description_content_type='text/markdown',
+    long_description=open("README.rst").read(),
     url=URL,
     license="GNU General Public License (GPL)",
     packages=find_packages(exclude=["tests"]),
     project_urls={
-        "Documentation": "https://github.com/adam2392/neuroimg_pipeline/docs/",
+        "Documentation": URL + "docs/",
         "Source": URL,
-        "Tracker": "https://github.com/adam2392/neuroimg_pipeline/issues",
+        "Tracker": URL + "issues",
     },
     include_dirs=[numpy.get_include()],
     install_requires=REQUIRED_PACKAGES,

@@ -54,7 +54,7 @@ install-tests:
 test: inplace check-manifest
 	rm -f .coverage
 	$(PYTESTS) ./
-	cd neuroimg/pipeline/01-prep/
+	cd seek/pipeline/01-prep/
 
 test-doc:
 	$(PYTESTS) --doctest-modules --doctest-ignore-import-errors
@@ -97,7 +97,7 @@ check-manifest:
 black:
 	@if command -v black > /dev/null; then \
 		echo "Running black"; \
-		black --check neuroimg; \
+		black --check seek; \
 	else \
 		echo "black not found, please install it!"; \
 		exit 1; \

@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from mne_bids import make_bids_basename
+
 # get the environment variable for freesurfer - for use in getting access to lut's
 FREESURFER_HOME = os.getenv("FREESURFER_HOME") or ""
 MRTRIX3_HOME = os.getenv("MRTRIX3_HOME") or ""
@@ -16,7 +18,46 @@ resamp_target = "fsaverage5"
 
 BIDS_ROOT = lambda bidsroot: os.getenv("BIDS_ROOT", bidsroot)
 
-SESSION = "presurgery"
+DEFAULT_SESSION = "presurgery"
+TEMPLATE_SUBJECT = "cvs_avg35_inMNI152"
+
+
+def _get_session_name(config):
+    return config.get("SESSION", DEFAULT_SESSION)
+
+
+def _get_seek_config():
+    """Get relative path to the config file."""
+    import seek
+
+    base_path = os.path.dirname(seek.__file__)
+    seekdir = os.getenv("SEEKHOME", base_path)
+    config_path = os.path.join(seekdir, "pipeline", "config", "localconfig.yaml")
+    return config_path
+
+
+def ensure_str(func):
+    def func_wrapper(*args, **kwargs):
+        output = func(*args, **kwargs)
+        return str(output)
+
+    return func_wrapper
+
+
+def _get_bids_basename(subject, session, imgtype, ext="nii.gz", **bids_kwargs):
+    """Wildcard function to get bids_basename."""
+    bids_fname = make_bids_basename(
+        subject, session=session, **bids_kwargs, suffix=f"{imgtype}.{ext}"
+    )
+    return bids_fname
+
+
+def _get_subject_dir(bids_root, subject):
+    return os.path.join(bids_root, f"sub-{subject}")
+
+
+def _get_anat_bids_dir(bids_root, subject, session):
+    return os.path.join(_get_subject_dir(bids_root, subject), f"ses-{session}", "anat")
 
 
 class BidsRoot:
@@ -37,11 +78,16 @@ class BidsRoot:
 
     """
 
-    def __init__(self, bids_root, derivatives_dir=None):
+    def __init__(self, bids_root, derivatives_dir=None, center_id=None):
         bids_root = Path(bids_root)
         if not bids_root.exists():
             raise RuntimeError(f"Bidsroot {bids_root} does not exist.")
         self.bids_root = bids_root
+        self.sourcedir = Path(self.bids_root / "sourcedata")
+
+        if center_id is None:
+            center_id = ""
+        self.center_id = center_id
 
         # derivatives directory is either custom, or derived from bids_root.
         if derivatives_dir is None:
@@ -52,33 +98,37 @@ class BidsRoot:
     def __repr__(self):
         return self.bids_root
 
+    # def _check_center_id(self, patient_wildcard):
+    #     source_children = [x for x in self.sourcedir.glob("*") if patient_wildcard
+
     @property
     def freesurfer_dir(self):
         return Path(self.derivatives_dir / "freesurfer")
 
+    @ensure_str
     def get_freesurfer_patient_dir(self, patient_wildcard="{subject}"):
-        return Path(self.derivatives_dir / "freesurfer" / patient_wildcard)
+        return Path(self.derivatives_dir / "freesurfer" / patient_wildcard).as_posix()
 
+    @ensure_str
     def get_premri_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / patient_wildcard / "premri"
+            self.sourcedir / self.center_id / patient_wildcard / "premri"
         ).as_posix()
 
+    @ensure_str
     def get_postmri_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root
-            / "sourcedata"
-            / "neuroimaging"
-            / patient_wildcard
-            / "postmri"
+            self.sourcedir / self.center_id / patient_wildcard / "postmri"
         ).as_posix()
 
+    @ensure_str
     def get_rawct_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / patient_wildcard / "postct"
+            self.sourcedir / self.center_id / patient_wildcard / "postct"
         ).as_posix()
 
+    @ensure_str
     def get_rawacpc_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.bids_root / "sourcedata" / patient_wildcard / "acpc"
+            self.sourcedir / self.center_id / patient_wildcard / "acpc"
         ).as_posix()
