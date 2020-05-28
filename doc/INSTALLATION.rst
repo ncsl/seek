@@ -65,15 +65,12 @@ Reconstruction Workflow
 
 Setup the sourcedata directory as follows:
 
- **sourcedata/**
-
 .. code-block::
 
-   /{subject}/
-       - premri/*.dcm
-       - posmri/*.dcm
-       - postct/*.dcm
-
+   sourcedata/{subject}/
+                       - premri/*.dcm
+                       - posmri/*.dcm
+                       - postct/*.dcm
 
 
 Edit the ``seek/pipeline/config/localconfig.yml`` file to include a list of 
