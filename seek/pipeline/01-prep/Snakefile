@@ -86,6 +86,7 @@ rule convert_dicom_to_nifti:
          "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
          "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
 
+
 """
 Rule for automatic ACPC alignment using acpcdetect software. 
 
