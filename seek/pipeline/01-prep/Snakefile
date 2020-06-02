@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.append("../../../")
 from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                     _get_anat_bids_dir, _get_bids_basename)
+                                     _get_anat_bids_dir, _get_ct_bids_dir, _get_bids_basename)
 
 configfile: _get_seek_config()
 
@@ -49,8 +49,12 @@ FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard)) /
 FSOUT_ACPC_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard)) / "acpc"
 
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
+BIDS_PRESURG_CT_DIR = _get_ct_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 premri_native_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                               imgtype='T1w', ext='nii')
+premri_robustfov_native_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                                        processing='robustfov',
+                                                        imgtype='T1w', ext='nii')
 premri_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                        space='RAS', imgtype='T1w', ext='nii')
 ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
@@ -59,7 +63,7 @@ ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
 # First rule
 rule all:
     input:
-         MRI_bids_fname_fscopy=expand(os.path.join(FSOUT_ACPC_FOLDER, premri_native_bids_fname),
+         MRI_bids_fname_fscopy=expand(os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname),
                                       subject=config['patients']),
          MRI_NIFTI_IMG=expand(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
                               subject=config['patients']),
@@ -80,11 +84,24 @@ rule convert_dicom_to_nifti:
           MRI_FOLDER=RAW_MRI_FOLDER,
           bids_root=bids_root.bids_root,
     output:
-          CT_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, ct_bids_fname),
+          CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_bids_fname),
           MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
     shell:
          "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
          "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
+
+
+rule compute_robust_fov:
+    input:
+         MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+    output:
+          MRI_bids_fname_gz=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname) + '.gz',
+          MRI_bids_fname=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname),
+    shell:
+         "echo 'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz}';"
+         'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz};'  # -m roi2full.mat
+         'mrconvert {output.MRI_bids_fname_gz} {output.MRI_bids_fname} --datatype uint16;'
+
 
 """
 Rule for automatic ACPC alignment using acpcdetect software. 
@@ -94,12 +111,12 @@ aligned.
 """
 rule automatic_acpc_alignment:
     input:
-         MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+         MRI_bids_fname=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname),
     params:
           anat_dir=str(BIDS_PRESURG_ANAT_DIR),
           acpc_fs_dir=str(FSOUT_ACPC_FOLDER),
     output:
-          MRI_bids_fname_fscopy=os.path.join(FSOUT_ACPC_FOLDER, premri_native_bids_fname),
+          MRI_bids_fname_fscopy=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname),
           MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
     shell:
          # create BIDS session directory and copy file there
