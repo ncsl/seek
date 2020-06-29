@@ -1,1 +1,13 @@
 data_examples/** filter=lfs diff=lfs merge=lfs -text
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# To recognize snakemake files
+*.smk linguist-language=Python
+Snakefile linguist-language=Python
+
+# Make sure that GitHub does not classify the programming language as Jupyter Notebook
+docs/* linguist-documentation
+notebooks/* linguist-documentation
+JOSS/* linguist-documentation

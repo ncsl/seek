@@ -17,7 +17,7 @@ session:
 patients:
   [
 #   'la01',
-    'la02',
+    'la02', 'la03',
 #    'la05',  'la08', 'la15', 'la23', # must run w/ robustfov
 #   'nl02', 'nl03', 'nl04', 'nl05', 'nl09',
 #   'la03', 'la04', 'la06', 'la07', 'la09', 'la10', 'la11', 'la12',

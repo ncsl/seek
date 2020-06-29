@@ -1,3 +1,20 @@
+*
+analysis
+analysis/*
+!analysis/README.md
+!config
+!config/*
+!resources
+!resources/*
+!workflow
+!workflow/**
+.gitignore
+!.gitattributes
+!.editorconfig
+!.travis.yml
+!.test
+!LICENSE
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

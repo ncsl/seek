@@ -28,6 +28,7 @@ import os
 import sys
 from pathlib import Path
 
+# hack to run from this file folder
 sys.path.append("../../../")
 from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
                                      _get_anat_bids_dir, _get_ct_bids_dir, _get_bids_basename)
@@ -91,12 +92,17 @@ rule convert_dicom_to_nifti:
          "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
 
 
+"""
+Add comment.
+"""
 rule compute_robust_fov:
     input:
-         MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
     output:
           MRI_bids_fname_gz=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname) + '.gz',
           MRI_bids_fname=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname),
+    container:
+         "docker://neuroseek/seek",
     shell:
          "echo 'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz}';"
          'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz};'  # -m roi2full.mat
