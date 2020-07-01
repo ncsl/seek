@@ -30,6 +30,10 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
    :target: https://app.netlify.com/sites/elated-almeida-a25d64/deploys
    :alt: Netlify Status
 
+.. image:: https://badges.gitter.im/ncsl/seek.svg
+   :target: https://gitter.im/ncsl/seek?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+   :alt: Gitter
+
 
 This repo describes Sarma/Crone lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry,
