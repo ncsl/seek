@@ -91,7 +91,7 @@ subworkflow reconstruction_workflow:
     workdir:
            "../02-reconstruction/"
     snakefile:
-             "../02-reconstruction/Snakefile"
+             "../02-reconstruction/reconstruction.smk"
     configfile:
               _get_seek_config()
 
@@ -99,7 +99,7 @@ subworkflow coregistration_workflow:
     workdir:
            "../03-coregistration/"
     snakefile:
-             "../03-coregistration/Snakefile"
+             "../03-coregistration/coregistration.smk"
     configfile:
               _get_seek_config()
 
@@ -201,7 +201,7 @@ rule find_electrodes_on_CT:
           ct_coordsystem_fname=os.path.join(FSOUT_ELECS_FOLDER, os.path.basename(ct_coordsystem_fname)),
     shell:
          "echo 'RUNNING CLUSTERING ALGORITHM';"
-         "python ./electrode_clustering.py " \
+         "python ./localize.py " \
          "{input.CT_NIFTI_IMG} " \
          "{input.brainmask_inct_file} " \
          "{input.electrode_initialization_file} " \

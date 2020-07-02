@@ -1,9 +1,7 @@
-import re
-
 import nibabel as nb
-from nibabel.affines import apply_affine
 import numpy as np
 import numpy.linalg as npl
+from nibabel.affines import apply_affine
 
 
 class MaskVolume:

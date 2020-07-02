@@ -134,17 +134,19 @@ rule automatic_acpc_alignment:
          "acpcdetect -i {output.MRI_bids_fname_fscopy} -center-AC -output-orient RAS;"
          "cp {output.MRI_bids_fname_fscopy} {output.MRI_bids_fname};"
 
-         # not needed unless defacing is used...
-         # rule nifti_to_bids:
-         #     params:
-         #         CT_FOLDER = RAW_CT_FOLDER,
-         #         MRI_FOLDER = RAW_POSTMRI_FOLDER,
-         #         bids_root = bids_root.bids_root,
-         #     output:
-         #         CT_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-         #                                      _get_bids_basename(subject_wildcard, imgtype='CT')),
-         #         MRI_bids_fname = os.path.join(_get_anat_bids_dir(bids_root.bids_root, subject_wildcard),
-         #                                      _get_bids_basename(subject_wildcard, imgtype='T1w'))
-         #     run:
-         #         bids_conversion._convert_dicom_to_nifti(params.CT_FOLDER, output.CT_bids_fname)
-         #         bids_conversion.convert_img_to_bids(params.MRI_FOLDER, params.bids_root, output.MRI_bids_fname)
+"""
+Use mne.coregistration
+"""
+# rule estimate_fiducials:
+#     input:
+#
+#     output:
+#
+#     params:
+#
+#     shell:
+
+"""
+Use pydeface.
+"""
+# rule deface:

@@ -1,6 +1,7 @@
+import collections
 import re
 from typing import Dict, List
-import collections
+
 import numpy as np
 import numpy.linalg as npl
 from nibabel.affines import apply_affine

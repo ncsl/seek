@@ -11,15 +11,15 @@ import numpy as np
 
 sys.path.append("../../../")
 
-from seek.base.utils.utils import _contact_numbers_on_electrode
-from seek.base.utils.io import (
+from seek.utils import _contact_numbers_on_electrode
+from seek.utils.io import (
     save_organized_elecdict_asmat,
     save_organized_elecdict_astsv,
     load_elecs_data,
 )
 
-from seek.localize_contacts.electrode_clustering.neuroimage import ClusteredBrainImage
-from seek.localize_contacts.electrode_clustering.electrode import Electrodes
+from seek.contacts.localize.neuroimage import ClusteredBrainImage
+from seek.contacts.localize.electrode import Electrodes
 
 
 def get_entry_exit_contacts(electrodes: Electrodes):
@@ -46,7 +46,6 @@ def get_entry_exit_contacts(electrodes: Electrodes):
 
 def visualize_electrodes(img, clusters, radius, threshold, output_fpath):
     import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.cm as cm
 
     # get limits based on the image shape in voxels

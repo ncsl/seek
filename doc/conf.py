@@ -121,7 +121,7 @@ html_theme_options = {
     'navbar_links': [
         ('Tutorials', 'auto_tutorials/index'),
         ("Pipeline Description", "pipeline_description"),
-        # ('Rules', 'rules'),
+        ('Python API', 'api'),
         ("What's new", "whats_new"),
         ("GitHub", "https://github.com/ncsl/seek", True),
     ]

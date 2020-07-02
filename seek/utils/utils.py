@@ -6,24 +6,21 @@ import json
 import logging
 import os
 import pickle
-from functools import reduce
-
-# data_examples structure manipulations and conversions
 import re
 import subprocess
 import tempfile
 from datetime import date, datetime
+from functools import reduce
 from typing import List, Optional
 
+import nibabel
 import nibabel as nb
 import numpy as np
-import scipy.io
 import pandas as pd
-from mne_bids.tsv_handler import _from_tsv
+import scipy.io
 
 from seek.base.objects.baseneuroimage import Hemisphere
 from seek.base.objects.baseneuroimage import RegionIndexMapping
-
 
 """
  -patient.apply_xfm

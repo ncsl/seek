@@ -8,8 +8,8 @@ from mne_bids.tsv_handler import _to_tsv, _from_tsv
 
 sys.path.append("../../../")
 
-from seek.base.utils.io import load_elecs_data
-from seek.format.bids.bids_conversion import _write_coordsystem_json
+from seek.utils.io import load_elecs_data
+from seek.format.bids_conversion import _write_coordsystem_json
 
 
 def transform(coords, src_img, dest_img, transform_mat, coordinate_type="mm"):

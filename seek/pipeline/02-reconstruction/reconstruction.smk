@@ -51,7 +51,7 @@ subworkflow prep_workflow:
     workdir:
            "../01-prep/"
     snakefile:
-             "../01-prep/Snakefile"
+             "../01-prep/prep.smk"
     configfile:
               _get_seek_config()
 

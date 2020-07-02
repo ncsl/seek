@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA
 
 sys.path.append("../../../")
 
-from seek.base.utils.utils import MatReader, group_contacts
+from seek.utils import MatReader, group_contacts
 
 
 def summary_PCA_plots(figurefilepath, final_xyz_centroids, validation_xyz_centroids):

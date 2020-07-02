@@ -3,11 +3,6 @@ PYTESTS ?= pytest
 CODESPELL_SKIPS ?= "doc/auto_*,*.fif,*.eve,*.gz,*.tgz,*.zip,*.mat,*.stc,*.label,*.w,*.bz2,*.annot,*.sulc,*.log,*.local-copy,*.orig_avg,*.inflated_avg,*.gii,*.pyc,*.doctree,*.pickle,*.inv,*.png,*.edf,*.touch,*.thickness,*.nofix,*.volume,*.defect_borders,*.mgh,lh.*,rh.*,COR-*,FreeSurferColorLUT.txt,*.examples,.xdebug_mris_calc,bad.segments,BadChannels,*.hist,empty_file,*.orig,*.js,*.map,*.ipynb,searchindex.dat,install_mne_c.rst,plot_*.rst,*.rst.txt,c_EULA.rst*,*.html,gdf_encodes.txt,*.svg"
 CODESPELL_DIRS ?= eztrack/ doc/ tutorials/ examples/ tests/
 
-LOCAL_RESULTSDIR=/home/adam2392/hdd/derivatives/
-EXTERNAL_RESULTSDIR=/media/adam2392/SEAGATE_HDD/derivatives/
-LOCALDIR=/home/adam2392/hdd2/data/
-EXTERNALDIR=/media/adam2392/SEAGATE_HDD/data/
-
 all: clean inplace test
 
 clean-pyc:
@@ -77,7 +72,6 @@ black:
 		echo "Running black"; \
 		black --check seek; \
 		black seek; \
-		black tests; \
 	else \
 		echo "black not found, please install it!"; \
 		exit 1; \

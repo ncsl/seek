@@ -6,11 +6,11 @@ from zipfile import ZipFile
 
 import numpy as np
 
-from seek.base.objects.neuroimaging.baseneuroimage import (
+from seek.base.objects.baseneuroimage import (
     Hemisphere,
     RegionIndexMapping,
 )
-from seek.base.utils.utils import (
+from seek.utils import (
     pial_to_verts_and_triangs,
     read_cortical_region_mapping,
 )

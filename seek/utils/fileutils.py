@@ -4,7 +4,7 @@ from pathlib import Path
 # get the environment variable for freesurfer - for use in getting access to lut's
 FREESURFER_HOME = os.getenv("FREESURFER_HOME") or ""
 MRTRIX3_HOME = os.getenv("MRTRIX3_HOME") or ""
-SCRIPTS_UTIL_DIR = "../../format"
+SCRIPTS_UTIL_DIR = "../format"
 ATLAS = ["dk", "destrieux"]
 
 # key-word parameters

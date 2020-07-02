@@ -39,8 +39,6 @@ Code Guidelines
 
 *Before starting new code*, we highly recommend opening an issue on `GitHub <https://github.com/ncsl/seek>`_ to discuss potential changes.
 
-* For `snakemake` rules, we use https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html
-
 * Please use standard `black <https://black.readthedocs.io/en/stable/>`_ Python style guidelines. To test that your code complies with those, you can run:
 
   .. code-block:: bash
@@ -61,3 +59,15 @@ Code Guidelines
   .. code-block:: bash
 
      $ pytest --doctest-modules
+
+Snakemake Rule Guidelines
+-------------------------
+
+*Before starting a new rule*, we highly recommend opening an issue on `GitHub <https://github.com/ncsl/seek>`_ to discuss potential changes.
+
+* For `snakemake` rules, we use https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html
+
+Snakemake utilizes a set of configuration files for the user to define their dataset. This is done by editing the `subjects.tsv` file
+in the `pipeline/config/` directory. Configuration files are checked against the designed schemas in `pipeline/schemas` directory.
+Each corresponding sub-workflow is documented in a `.smk` Snakemake file, which can define things like `Prep`, which prepares
+raw dicom files from scratch to run through the SEEK workflow.

@@ -85,7 +85,7 @@ subworkflow reconstruction_workflow:
     workdir:
            "../02-reconstruction/",
     snakefile:
-             "../02-reconstruction/Snakefile"
+             "../02-reconstruction/reconstruction.smk"
     configfile:
               _get_seek_config()
 
@@ -93,7 +93,7 @@ subworkflow contact_localization_workflow:
     workdir:
            "../04-contact_localization/"
     snakefile:
-             "../04-contact_localization/Snakefile"
+             "../04-contact_localization/contact_localization.smk"
     configfile:
               _get_seek_config()
 

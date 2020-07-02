@@ -1,6 +1,6 @@
+import collections
 import re
 from typing import Dict, List, Tuple
-import collections
 
 import nibabel as nb
 import numpy as np
@@ -11,7 +11,7 @@ from scipy.stats import norm
 from skimage import measure
 from sklearn.cluster import KMeans
 
-from seek.localize_contacts.electrode_clustering.electrode import Contact
+from seek.contacts.localize.electrode import Contact
 
 
 def _multidimdist(point1, point2):

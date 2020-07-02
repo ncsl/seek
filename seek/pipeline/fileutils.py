@@ -26,6 +26,12 @@ def _get_session_name(config):
     return config.get("SESSION", DEFAULT_SESSION)
 
 
+def _get_subject_samples(config):
+    import pandas as pd
+
+    samples = pd.read_table(config["subjects"]).set_index("samples", drop=False)
+
+
 def _get_seek_config():
     """Get relative path to the config file."""
     import seek
