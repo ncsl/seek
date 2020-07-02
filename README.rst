@@ -35,7 +35,7 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
    :alt: Gitter
 
 
-This repo describes Sarma/Crone lab effort to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
+This repo describes efforts to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry,
 regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
 Localizing SEEG electrodes requires at least two contacts on each electrode to initialize the algorithm.
