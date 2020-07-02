@@ -1,20 +1,3 @@
-# Lookup table file to accompany conversion file fs2lobes_cinginc_convert.txt
-# Following conversion of a label image to the targets as defined in the file fs2lobes_cinginc_convert.txt, this file provides the labels for the resulting image.
-
-
-0   Unknown
-
-1   L_Frontal_lobe
-2   L_Parietal_lobe
-3   L_Occipital_lobe
-4   L_Temporal_lobe
-5   L_Cerebellum
-6   L_Subcortical
-
-7   R_Subcortical
-8   R_Cerebellum
-9   R_Temporal_lobe
-10  R_Occipital_lobe
-11  R_Parietal_lobe
-12  R_Frontal_lobe
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:6ab4de75d9b989897c57f1fb0881d886aee80a4105f455ce3019910281f61817
+size 488
