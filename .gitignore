@@ -7,6 +7,7 @@ __pycache__/
 *Subject*.mat
 *.snakemake
 .idea*
+data
 
 .vscode/*
 
