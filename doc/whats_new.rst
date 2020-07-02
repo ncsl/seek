@@ -6,13 +6,13 @@
 What's new?
 ===========
 
-Here we list a changelog of Neuroimg Pipeline.
+Here we list a changelog of SEEK.
 
 .. contents:: Contents
    :local:
    :depth: 3
 
-.. currentmodule:: neuroimg_pipeline
+.. currentmodule:: seek
 
 .. _current:
 
@@ -49,3 +49,4 @@ People who contributed to this release (in alphabetical order):
 
 .. _Adam Li: https://github.com/adam2392
 .. _Chester Huynh: https://github.com/ChesterHuynh
+.. _Christopher Coogan: https://github.com/TheBrainChain

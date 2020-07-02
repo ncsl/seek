@@ -26,12 +26,29 @@ def _get_session_name(config):
     return config.get("SESSION", DEFAULT_SESSION)
 
 
+def _get_subject_samples(config):
+    import pandas as pd
+
+    samples = pd.read_table(config["subjects"]).set_index("samples", drop=False)
+
+
 def _get_seek_config():
     """Get relative path to the config file."""
     import seek
 
-    base_path = os.path.dirname(seek.__file__)
+    if seek.__file__ is None:
+        base_path = None
+    else:
+        base_path = os.path.dirname(seek.__file__)
     seekdir = os.getenv("SEEKHOME", base_path)
+
+    if seekdir is None:
+        raise RuntimeError(
+            "Either `seek.__file__` should not be None, "
+            "or the environment variable `SEEKHOME` "
+            "should be set. Neither is right now."
+        )
+
     config_path = os.path.join(seekdir, "pipeline", "config", "localconfig.yaml")
     return config_path
 
@@ -58,6 +75,10 @@ def _get_subject_dir(bids_root, subject):
 
 def _get_anat_bids_dir(bids_root, subject, session):
     return os.path.join(_get_subject_dir(bids_root, subject), f"ses-{session}", "anat")
+
+
+def _get_ct_bids_dir(bids_root, subject, session):
+    return os.path.join(_get_subject_dir(bids_root, subject), f"ses-{session}", "ct")
 
 
 class BidsRoot:

@@ -89,7 +89,7 @@ setup(
     license="GNU General Public License (GPL)",
     packages=find_packages(exclude=["tests"]),
     project_urls={
-        "Documentation": URL + "docs/",
+        "Documentation": URL + "doc/",
         "Source": URL,
         "Tracker": URL + "issues",
     },

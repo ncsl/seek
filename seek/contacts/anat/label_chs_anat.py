@@ -5,7 +5,177 @@ import nibabel as nb
 import numpy as np
 import scipy.io
 
-from seek.base.utils.fileutils import PatientBidsRoot
+from seek.utils import PatientBidsRoot
+
+
+def _get_indices_to_exclude(label, indices):
+    # These are the indices that won't be used for labeling
+    # dont_label = ['EOG','ECG','ROC','LOC','EEG','EKG','NaN','EMG','scalpEEG']
+    indices.extend(
+        [
+            i
+            for i, x in enumerate(label)
+            if (
+                "EOG" in x
+                or "ECG" in x
+                or "ROC" in x
+                or "LOC" in x
+                or "EEG" in x
+                or "EKG" in x
+                or "NaN" in x
+                or "EMG" in x
+                or x == np.nan
+                or "scalpEEG" in x
+            )
+        ]
+    )
+    return indices
+
+
+def _label_grid_and_strips(
+    elecmatrix, elec_labels, vert_label, cortex_verts, isnotdepth=None
+):
+    if isnotdepth is None:
+        isnotdepth = []
+
+    # Only use electrodes that are grid or strips
+    if len(isnotdepth) > 0:
+        elecmatrix_new = elecmatrix[isnotdepth, :]
+    else:
+        elecmatrix_new = elecmatrix
+
+    print("Finding nearest mesh vertex for each electrode")
+    vert_inds, nearest_verts = nearest_electrode_vert(cortex_verts, elecmatrix_new)
+
+    ## Now make a dictionary of the label for each electrode
+    elec_labels_notdepth = []
+    for v in range(len(vert_inds)):
+        if vert_inds[v] in vert_label:
+            elec_labels_notdepth.append(vert_label[vert_inds[v]].strip())
+        else:
+            elec_labels_notdepth.append("Unknown")
+
+    if isnotdepth:
+        elec_labels[isnotdepth, 3] = elec_labels_notdepth
+        elec_labels[
+            np.invert(isnotdepth), 3
+        ] = ""  # Set these to an empty string instead of None type
+    else:
+        elec_labels = np.array(elec_labels_notdepth, dtype=np.object)
+
+    return isnotdepth, elec_labels
+
+
+def _label_depth(elecmatrix, aparc_dat, LUT, coordinate_type="mm"):
+    if coordinate_type == "vox":
+        # Define the affine transform to go from surface coordinates to volume coordinates (as CRS, which is
+        # the slice *number* as x,y,z in the 3D volume. That is, if there are 256 x 256 x 256 voxels, the
+        # CRS coordinate will go from 0 to 255.)
+        affine = np.array(
+            [
+                [-1.0, 0.0, 0.0, 128.0],
+                [0.0, 0.0, 1.0, -128.0],
+                [0.0, -1.0, 0.0, 128.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]
+        )
+    else:
+        affine = np.eye(4)
+
+    # create 4D electrode coordinate array to apply affine transform
+    elecs_depths = elecmatrix
+    intercept = np.ones(len(elecs_depths))
+    elecs_ones = np.column_stack((elecs_depths, intercept))
+
+    # Find voxel CRS
+    VoxCRS = (
+        np.dot(np.linalg.inv(affine), elecs_ones.transpose()).transpose().astype(int)
+    )
+
+    # Make dictionary of labels
+    LUT = [row.split() for row in LUT]
+    lab = {}
+    for row in LUT:
+        if (
+            len(row) > 1 and row[0][0] is not "#" and row[0][0] is not "\\"
+        ):  # Get rid of the comments
+            lname = row[1]
+            lab[np.int(row[0])] = lname
+
+    # Label the electrodes according to the aseg volume
+    nchans = VoxCRS.shape[0]
+    anatomy_labels = np.empty((nchans,), dtype=np.object)
+    print("Labeling electrodes...")
+    print("Aparc data array has shape: ", aparc_dat.shape)
+    print(
+        "VoxCRS limits in 3D: ",
+        np.max(VoxCRS[:, 0]),
+        np.max(VoxCRS[:, 1]),
+        np.max(VoxCRS[:, 2]),
+    )
+
+    # label each channel
+    for elec in np.arange(nchans):
+        anatomy_labels[elec] = lab[
+            aparc_dat[VoxCRS[elec, 0], VoxCRS[elec, 1], VoxCRS[elec, 2]]
+        ]
+        print(
+            "E%d, Vox CRS: [%d, %d, %d], Label #%d = %s"
+            % (
+                elec,
+                VoxCRS[elec, 0],
+                VoxCRS[elec, 1],
+                VoxCRS[elec, 2],
+                aparc_dat[VoxCRS[elec, 0], VoxCRS[elec, 1], VoxCRS[elec, 2]],
+                anatomy_labels[elec],
+            )
+        )
+
+    return anatomy_labels
+
+
+def _split_surf_depth_electrodes(elecmatrix, elecmontage):
+    # Make the cell array into something more usable by python
+    short_label = []
+    long_label = []
+    grid_or_depth = []
+
+    for r in elecmontage:
+        short_label.append(r[0][0])  # This is the shortened electrode montage label
+        long_label.append(r[1][0])  # This is the long form electrode montage label
+        grid_or_depth.append(r[2][0])  # This is the label for grid, depth, or strip
+
+    # These are the indices that won't be used for labeling
+    # dont_label = ['EOG','ECG','ROC','LOC','EEG','EKG','NaN','EMG','scalpEEG']
+    indices = []
+    indices = _get_indices_to_exclude(long_label, indices)
+    indices = _get_indices_to_exclude(short_label, indices)
+    indices = _get_indices_to_exclude(grid_or_depth, indices)
+    indices.extend(np.where(np.isnan(elecmatrix))[0])
+    indices = list(set(indices))
+    indices_to_use = list(set(range(len(long_label))) - set(indices))
+
+    # Initialize the cell array that we'll store electrode labels in later
+    elec_labels_orig = np.empty((len(long_label), 4), dtype=np.object)
+    elec_labels_orig[:, 0] = short_label
+    elec_labels_orig[:, 1] = long_label
+    elec_labels_orig[:, 2] = grid_or_depth
+    elec_labels = np.empty((len(indices_to_use), 4), dtype=np.object)
+    elecmatrix = elecmatrix[indices_to_use, :]
+
+    # compute labels for short/long and grid/depth
+    short_label = [i for j, i in enumerate(short_label) if j not in indices]
+    long_label = [i for j, i in enumerate(long_label) if j not in indices]
+    grid_or_depth = [i for j, i in enumerate(grid_or_depth) if j not in indices]
+
+    # make eleclabels a Cx3 array
+    elec_labels[:, 0] = short_label
+    elec_labels[:, 1] = long_label
+    elec_labels[:, 2] = grid_or_depth
+
+    # Find the non depth electrodes
+    isnotdepth = np.array([r != "depth" for r in grid_or_depth])
+    return isnotdepth, elec_labels, elecmatrix
 
 
 def nearest_electrode_vert(cortex_verts, elecmatrix):
@@ -411,177 +581,7 @@ def label_elecs_ecog(
     return elec_labels
 
 
-def _get_indices_to_exclude(label, indices):
-    # These are the indices that won't be used for labeling
-    # dont_label = ['EOG','ECG','ROC','LOC','EEG','EKG','NaN','EMG','scalpEEG']
-    indices.extend(
-        [
-            i
-            for i, x in enumerate(label)
-            if (
-                "EOG" in x
-                or "ECG" in x
-                or "ROC" in x
-                or "LOC" in x
-                or "EEG" in x
-                or "EKG" in x
-                or "NaN" in x
-                or "EMG" in x
-                or x == np.nan
-                or "scalpEEG" in x
-            )
-        ]
-    )
-    return indices
-
-
-def _label_grid_and_strips(
-    elecmatrix, elec_labels, vert_label, cortex_verts, isnotdepth=None
-):
-    if isnotdepth is None:
-        isnotdepth = []
-
-    # Only use electrodes that are grid or strips
-    if len(isnotdepth) > 0:
-        elecmatrix_new = elecmatrix[isnotdepth, :]
-    else:
-        elecmatrix_new = elecmatrix
-
-    print("Finding nearest mesh vertex for each electrode")
-    vert_inds, nearest_verts = nearest_electrode_vert(cortex_verts, elecmatrix_new)
-
-    ## Now make a dictionary of the label for each electrode
-    elec_labels_notdepth = []
-    for v in range(len(vert_inds)):
-        if vert_inds[v] in vert_label:
-            elec_labels_notdepth.append(vert_label[vert_inds[v]].strip())
-        else:
-            elec_labels_notdepth.append("Unknown")
-
-    if isnotdepth:
-        elec_labels[isnotdepth, 3] = elec_labels_notdepth
-        elec_labels[
-            np.invert(isnotdepth), 3
-        ] = ""  # Set these to an empty string instead of None type
-    else:
-        elec_labels = np.array(elec_labels_notdepth, dtype=np.object)
-
-    return isnotdepth, elec_labels
-
-
-def _label_depth(elecmatrix, aparc_dat, LUT, coordinate_type="mm"):
-    if coordinate_type == "vox":
-        # Define the affine transform to go from surface coordinates to volume coordinates (as CRS, which is
-        # the slice *number* as x,y,z in the 3D volume. That is, if there are 256 x 256 x 256 voxels, the
-        # CRS coordinate will go from 0 to 255.)
-        affine = np.array(
-            [
-                [-1.0, 0.0, 0.0, 128.0],
-                [0.0, 0.0, 1.0, -128.0],
-                [0.0, -1.0, 0.0, 128.0],
-                [0.0, 0.0, 0.0, 1.0],
-            ]
-        )
-    else:
-        affine = np.eye(4)
-
-    # create 4D electrode coordinate array to apply affine transform
-    elecs_depths = elecmatrix
-    intercept = np.ones(len(elecs_depths))
-    elecs_ones = np.column_stack((elecs_depths, intercept))
-
-    # Find voxel CRS
-    VoxCRS = (
-        np.dot(np.linalg.inv(affine), elecs_ones.transpose()).transpose().astype(int)
-    )
-
-    # Make dictionary of labels
-    LUT = [row.split() for row in LUT]
-    lab = {}
-    for row in LUT:
-        if (
-            len(row) > 1 and row[0][0] is not "#" and row[0][0] is not "\\"
-        ):  # Get rid of the comments
-            lname = row[1]
-            lab[np.int(row[0])] = lname
-
-    # Label the electrodes according to the aseg volume
-    nchans = VoxCRS.shape[0]
-    anatomy_labels = np.empty((nchans,), dtype=np.object)
-    print("Labeling electrodes...")
-    print("Aparc data array has shape: ", aparc_dat.shape)
-    print(
-        "VoxCRS limits in 3D: ",
-        np.max(VoxCRS[:, 0]),
-        np.max(VoxCRS[:, 1]),
-        np.max(VoxCRS[:, 2]),
-    )
-
-    # label each channel
-    for elec in np.arange(nchans):
-        anatomy_labels[elec] = lab[
-            aparc_dat[VoxCRS[elec, 0], VoxCRS[elec, 1], VoxCRS[elec, 2]]
-        ]
-        print(
-            "E%d, Vox CRS: [%d, %d, %d], Label #%d = %s"
-            % (
-                elec,
-                VoxCRS[elec, 0],
-                VoxCRS[elec, 1],
-                VoxCRS[elec, 2],
-                aparc_dat[VoxCRS[elec, 0], VoxCRS[elec, 1], VoxCRS[elec, 2]],
-                anatomy_labels[elec],
-            )
-        )
-
-    return anatomy_labels
-
-
-def _split_surf_depth_electrodes(elecmatrix, elecmontage):
-    # Make the cell array into something more usable by python
-    short_label = []
-    long_label = []
-    grid_or_depth = []
-
-    for r in elecmontage:
-        short_label.append(r[0][0])  # This is the shortened electrode montage label
-        long_label.append(r[1][0])  # This is the long form electrode montage label
-        grid_or_depth.append(r[2][0])  # This is the label for grid, depth, or strip
-
-    # These are the indices that won't be used for labeling
-    # dont_label = ['EOG','ECG','ROC','LOC','EEG','EKG','NaN','EMG','scalpEEG']
-    indices = []
-    indices = _get_indices_to_exclude(long_label, indices)
-    indices = _get_indices_to_exclude(short_label, indices)
-    indices = _get_indices_to_exclude(grid_or_depth, indices)
-    indices.extend(np.where(np.isnan(elecmatrix))[0])
-    indices = list(set(indices))
-    indices_to_use = list(set(range(len(long_label))) - set(indices))
-
-    # Initialize the cell array that we'll store electrode labels in later
-    elec_labels_orig = np.empty((len(long_label), 4), dtype=np.object)
-    elec_labels_orig[:, 0] = short_label
-    elec_labels_orig[:, 1] = long_label
-    elec_labels_orig[:, 2] = grid_or_depth
-    elec_labels = np.empty((len(indices_to_use), 4), dtype=np.object)
-    elecmatrix = elecmatrix[indices_to_use, :]
-
-    # compute labels for short/long and grid/depth
-    short_label = [i for j, i in enumerate(short_label) if j not in indices]
-    long_label = [i for j, i in enumerate(long_label) if j not in indices]
-    grid_or_depth = [i for j, i in enumerate(grid_or_depth) if j not in indices]
-
-    # make eleclabels a Cx3 array
-    elec_labels[:, 0] = short_label
-    elec_labels[:, 1] = long_label
-    elec_labels[:, 2] = grid_or_depth
-
-    # Find the non depth electrodes
-    isnotdepth = np.array([r != "depth" for r in grid_or_depth])
-    return isnotdepth, elec_labels, elecmatrix
-
-
-def label_ewlecs(
+def label_elecs(
     bids_root,
     ch_names,
     elecmatrix,

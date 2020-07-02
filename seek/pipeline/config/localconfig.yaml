@@ -1,4 +1,3 @@
-############## define directories that we work with #############
 # home directory that every dataset sits in -> fileutils sets the BIDS structure
 bids_root:
 #  "/home/ksr/Desktop/contact_localization/efri/"
@@ -7,34 +6,9 @@ bids_root:
 #  "/home/adam2392/hdd2/Dropbox/efri/"
 #  '/Users/adam2392/Downloads/neuroimg/'
 
-center_id:
-  "umf"
+session: "presurgery"
 
-session:
-  "presurgery"
+############# define list of subjects to run this for #############
+subjects: subjects.tsv
 
-############# define list of files to run this for #############
-patients:
-  [
-#   'la01',
-#    'la02', 'la05', 'la08', 'la15', 'la23', 'nl02', 'nl03', 'nl04', 'nl05', 'nl09',
-#   'la03', 'la04', 'la06', 'la07', 'la09', 'la10', 'la11', 'la12',
-#   'la13',  'la17', 'la22', 'la24',
-#   'la16', 'la21',
-#   'la27', 'la28', 'la29', 'la31',
-
-#  'nl02',
-#   'nl06', 'nl11',
-  'nl01', 'nl07', 'nl08', 'nl10', 'nl12',
-   'nl13', 'nl14', 'nl15', 'nl16', 'nl17', 'nl18', 'nl19', 'nl20',
-#   'nl21', 'nl22', 'nl23', 'nl24',
-
-#   'tvb1', 'tvb2','tvb5', 'tvb7', 'tvb8', 'tvb11', 'tvb12', 'tvb14', 'tvb17',
-#   'tvb18', 'tvb19', 'tvb23', 'tvb27', 'tvb28', 'tvb29',
-
-#    'umf001', 'umf002', 'umf003', 'umf004', 'umf005',
-#   'efri02', 'efri06', 'efri07', 'efri09', 'efri10', 'efri12', 'efri13',
-#   'efri14', 'efri15', 'efri16', 'efri17', 'efri18', 'efri20',
-#   'efri21', 'efri25', 'efri26',
-
-]
+params:

@@ -19,7 +19,7 @@ from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                     _get_bids_basename, _get_anat_bids_dir)
+                                     _get_bids_basename, _get_ct_bids_dir, _get_anat_bids_dir)
 
 configfile: _get_seek_config()
 
@@ -36,6 +36,7 @@ FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "mri"
 FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "CT"
 
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
+BIDS_PRESURG_CT_DIR = _get_ct_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                    imgtype='CT', ext='nii')
 
@@ -52,7 +53,7 @@ subworkflow prep_workflow:
     workdir:
            "../01-prep/"
     snakefile:
-             "../01-prep/Snakefile"
+             "../01-prep/prep.smk"
     configfile:
               _get_seek_config()
 
@@ -60,7 +61,7 @@ subworkflow reconstruction_workflow:
     workdir:
            "../02-reconstruction/"
     snakefile:
-             "../02-reconstruction/Snakefile"
+             "../02-reconstruction/reconstruction.smk"
     configfile:
               _get_seek_config()
 
@@ -81,7 +82,7 @@ rule all:
 
 rule prep_ct_for_coregistration:
     input:
-         CT_NIFTI_IMG=prep_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, ct_bids_fname)),
+         CT_NIFTI_IMG=prep_workflow(os.path.join(BIDS_PRESURG_CT_DIR, ct_bids_fname)),
     params:
           CTDIR=str(FSOUT_CT_FOLDER),
     output:

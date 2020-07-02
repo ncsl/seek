@@ -1,8 +1,8 @@
 import numpy as np
 import scipy.io
 
-from seek.base.utils.utils import MatReader
-from seek.format.bids.bids_conversion import (
+from seek.utils import MatReader
+from seek.format.bids_conversion import (
     _write_electrodes_tsv,
     _write_coordsystem_json,
 )

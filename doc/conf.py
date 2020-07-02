@@ -50,6 +50,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx_gallery.gen_gallery',
+    'sphinx.ext.autosectionlabel',
     'numpydoc',
     "seek.sphinxext.snakemakerule",
 ]
@@ -118,10 +119,9 @@ html_theme_options = {
     'navbar_pagenav': False,  # no "Page" navigation in sidebar
     'bootstrap_version': "3",
     'navbar_links': [
-        ("Examples", "auto_examples/index"),
         ('Tutorials', 'auto_tutorials/index'),
-        ("Pipeline", "pipeline"),
-        # ('Rules', 'rules'),
+        ("Pipeline Description", "pipeline_description"),
+        ('Python API', 'api'),
         ("What's new", "whats_new"),
         ("GitHub", "https://github.com/ncsl/seek", True),
     ]

@@ -13,11 +13,11 @@ from nibabel.affines import apply_affine
 
 sys.path.append("../../../")
 
-from seek.localize_contacts.anat_labeling.label_chs_anat import (
+from seek.contacts.anat.label_chs_anat import (
     convert_fsmesh2mlab,
     label_elecs,
 )
-from seek.format.bids.bids_conversion import (
+from seek.format.bids_conversion import (
     _update_electrodes_json,
     _update_electrodes_tsv,
 )
