@@ -96,7 +96,7 @@ See `INSTALLATION GUIDE <INSTALLATION.md>`_. SEEK uses the `Snakemake <https://s
 workflow management system to create the different workflows. We chose this because
 it is easy to run individual workflows, as well as an entire workflow from the command line.
 
-DOCKER
+`DOCKER <https://hub.docker.com/orgs/neuroseek/repositories>`_
 ^^^^^^
 
 Setup: Note that the docker container names are:
