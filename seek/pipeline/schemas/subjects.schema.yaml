@@ -2,7 +2,7 @@ $schema: "http://json-schema.org/draft-06/schema#"
 
 description: An entry in the subject sheet
 properties:
-  subject:
+  id:
     type: string
     description: sample name/identifier
   center_id:
@@ -13,4 +13,4 @@ properties:
     description: to rename the subject ID provided
 
 required:
-  - subject
+  - id

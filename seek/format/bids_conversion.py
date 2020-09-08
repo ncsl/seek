@@ -237,3 +237,28 @@ def convert_img_to_bids(image_input, bids_root, bids_fname, verbose=True):
     # for point_idx, label in enumerate(("LPA", "NAS", "RPA")):
     #     plot_anat(Path(anat_dir, bids_fname), axes=axs[point_idx], title=label)
     # plt.show()
+
+
+def save_organized_elecdict_astsv(elecdict, output_fpath, size=None, img_fname=None):
+    """Save organized electrode dict coordinates as a tsv file."""
+    x, y, z, names = list(), list(), list(), list()
+    coords = []
+    for elec in elecdict.keys():
+        for ch, ch_coord in elecdict[elec].items():
+            x.append(ch_coord[0])
+            y.append(ch_coord[1])
+            z.append(ch_coord[2])
+            names.append(ch)
+            coords.append(ch_coord)
+        if size is None:
+            sizes = ["n/a"] * len(names)
+        else:
+            sizes = [size] * len(names)
+
+    # write the tsv file
+    _write_electrodes_tsv(output_fpath, names, coords, sizes)
+
+    outputjson_fpath = output_fpath.replace("electrodes.tsv", "coordsystem.json")
+    unit = "mm"
+    # write accompanying coordinate system json file
+    _write_coordsystem_json(outputjson_fpath, unit, img_fname)

@@ -10,9 +10,9 @@ properties:
   subjects:
     type: string
   session:
-    type: str
-  params:
-    type: object
+    type: string
+#  params:
+#    type: object
 #    properties:
 #      star:
 #        type: string

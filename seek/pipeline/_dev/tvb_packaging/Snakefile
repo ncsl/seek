@@ -1,8 +1,8 @@
 import os
 import sys
 sys.path.append("../../../")
-from seek.pipeline.fileutils import SCRIPTS_UTIL_DIR
-from seek.pipeline.fileutils import get_freesurfer_dir, get_rawct_dir, get_rawmri_dir
+from seek.pipeline.utils.fileutils import SCRIPTS_UTIL_DIR
+from seek.pipeline.utils.fileutils import get_freesurfer_dir, get_rawct_dir, get_rawmri_dir
 
 """
 export SUBJECTS_DIR=~/hdd/data/neuroimaging/freesurfer_output/

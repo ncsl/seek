@@ -2,13 +2,13 @@
 bids_root:
 #  "/home/ksr/Desktop/contact_localization/efri/"
 #  "/Users/adam2392/Dropbox/efri/"
-  "/home/adam2392/hdd2/epilepsy_bids/"
+  "/home/adam2392/hdd/epilepsy_bids/"
 #  "/home/adam2392/hdd2/Dropbox/efri/"
 #  '/Users/adam2392/Downloads/neuroimg/'
 
 session: "presurgery"
 
 ############# define list of subjects to run this for #############
-subjects: subjects.tsv
+subjects: 'subjects.tsv'
 
 params:

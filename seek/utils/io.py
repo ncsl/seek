@@ -1,36 +1,10 @@
+import bz2
+import contextlib
+import json
+import pickle
+
 import numpy as np
 import scipy.io
-
-from seek.utils import MatReader
-from seek.format.bids_conversion import (
-    _write_electrodes_tsv,
-    _write_coordsystem_json,
-)
-
-
-def save_organized_elecdict_astsv(elecdict, output_fpath, size=None, img_fname=None):
-    """Save organized electrode dict coordinates as a tsv file."""
-    x, y, z, names = list(), list(), list(), list()
-    coords = []
-    for elec in elecdict.keys():
-        for ch, ch_coord in elecdict[elec].items():
-            x.append(ch_coord[0])
-            y.append(ch_coord[1])
-            z.append(ch_coord[2])
-            names.append(ch)
-            coords.append(ch_coord)
-        if size is None:
-            sizes = ["n/a"] * len(names)
-        else:
-            sizes = [size] * len(names)
-
-    # write the tsv file
-    _write_electrodes_tsv(output_fpath, names, coords, sizes)
-
-    outputjson_fpath = output_fpath.replace("electrodes.tsv", "coordsystem.json")
-    unit = "mm"
-    # write accompanying coordinate system json file
-    _write_coordsystem_json(outputjson_fpath, unit, img_fname)
 
 
 def save_organized_elecdict_asmat(elecdict, outputfilepath):
@@ -101,3 +75,79 @@ def load_elecs_data(elecfile):
     # print(f"Electrode labels: {eleccoords_mm.keys()}")
 
     return eleccoords_mm
+
+
+class MatReader:
+    """
+    Object to read mat files into a nested dictionary if need be.
+    Helps keep strucutre from matlab similar to what is used in python.
+    """
+
+    def __init__(self, filename=None):
+        self.filename = filename
+
+    def loadmat(self, filename):
+        """
+        this function should be called instead of direct spio.loadmat
+        as it cures the problem of not properly recovering python dictionaries
+        from mat files. It calls the function check keys to cure all entries
+        which are still mat-objects
+        """
+        data = scipy.io.loadmat(filename, struct_as_record=False, squeeze_me=True)
+        return self._check_keys(data)
+
+    def _check_keys(self, dict):
+        """
+        checks if entries in dictionary are mat-objects. If yes
+        todict is called to change them to nested dictionaries
+        """
+        for key in dict:
+            if isinstance(dict[key], scipy.io.matlab.mio5_params.mat_struct):
+                dict[key] = self._todict(dict[key])
+        return dict
+
+    def _todict(self, matobj):
+        """
+        A recursive function which constructs from matobjects nested dictionaries
+        """
+        dict = {}
+        for strg in matobj._fieldnames:
+            elem = matobj.__dict__[strg]
+            if isinstance(elem, scipy.io.matlab.mio5_params.mat_struct):
+                dict[strg] = self._todict(elem)
+            elif isinstance(elem, np.ndarray):
+                dict[strg] = self._tolist(elem)
+            else:
+                dict[strg] = elem
+        return dict
+
+    def _tolist(self, ndarray):
+        """
+        A recursive function which constructs lists from cellarrays
+        (which are loaded as numpy ndarrays), recursing into the elements
+        if they contain matobjects.
+        """
+        elem_list = []
+        for sub_elem in ndarray:
+            if isinstance(sub_elem, scipy.io.matlab.mio5_params.mat_struct):
+                elem_list.append(self._todict(sub_elem))
+            elif isinstance(sub_elem, np.ndarray):
+                elem_list.append(self._tolist(sub_elem))
+            else:
+                elem_list.append(sub_elem)
+        return elem_list
+
+    def convertMatToJSON(self, matData, fileName):
+        jsonData = {}
+
+        for key in matData.keys():
+            if (type(matData[key])) is np.ndarray:
+                serializedData = pickle.dumps(
+                    matData[key], protocol=0
+                )  # protocol 0 is printable ASCII
+                jsonData[key] = serializedData
+            else:
+                jsonData[key] = matData[key]
+
+        with contextlib.closing(bz2.BZ2File(fileName, "wb")) as f:
+            json.dump(jsonData, f)

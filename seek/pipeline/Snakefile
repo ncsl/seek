@@ -1,29 +1,36 @@
+import sys
 import pandas as pd
+from pathlib import Path
 from snakemake.utils import validate, min_version
-from .fileutils import _get_seek_config
+
+sys.path.append('../../')
+from seek.pipeline.utils.fileutils import _get_seek_config
+
 ##### set minimum snakemake version #####
 min_version("5.1.2")
-
 
 ##### load config and sample sheets #####
 
 configfile: _get_seek_config()
 validate(config, schema="schemas/config.schema.yaml")
 
-subjects = pd.read_table(config["subjects"]).set_index("subject", drop=False)
-validate(subjects, schema="schemas/subjects.schema.yaml")
+configpath = Path(_get_seek_config()).parent
+subject_df = pd.read_table(configpath / config["subjects"]).set_index("id", drop=False)
 
+print(subject_df.to_dict(orient='index'))
+print(config)
+
+# validate the `subjects.tsv` file
+for subject, subject_row in subject_df.to_dict(orient='index').items():
+    validate(subject_row, schema="schemas/subjects.schema.yaml")
+# expose the variable subjects for usage in downstream rules
+subjects = subject_df['id']
 
 ##### target rules #####
 
 rule all:
     input:
-        expand(["results/diffexp/{contrast}.diffexp.tsv",
-                "results/diffexp/{contrast}.ma-plot.svg"],
-               contrast=config["diffexp"]["contrasts"]),
-        "results/pca.svg",
-        "qc/multiqc_report.html"
-
+         ['fig1.png', 'figpost.png']
 
 ##### setup singularity #####
 
@@ -31,18 +38,16 @@ rule all:
 # with --use-singularity
 singularity: "docker://neuroseek/seek"
 
-
 ##### setup report #####
 
 report: "report/workflow.rst"
 
-
 ##### load rules #####
 
 include: "01-prep/prep.smk"
-include: "02-reconstruction/reconstruction.smk"
-include: "03-coregistration/coregistration.smk"
-include: "04-contact_localization/contact_localization.smk"
-include: "05-visualization/visualization.smk"
+# include: "02-reconstruction/reconstruction.smk"
+# include: "03-coregistration/coregistration.smk"
+# include: "04-contact_localization/contact_localization.smk"
+# include: "05-visualization/visualization.smk"
 include: "06-postsurgery/postsurgery.smk"
-include: "07-group_analysis/groups.smk"
+# include: "07-group_analysis/groups.smk"

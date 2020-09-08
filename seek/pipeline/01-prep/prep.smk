@@ -27,19 +27,27 @@ from FreeSurfer6+, acpcdetect2.0. To create a DAG pipeline, run:
 import os
 import sys
 from pathlib import Path
+from mne_bids import make_bids_basename
 
 # hack to run from this file folder
 sys.path.append("../../../")
-from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                     _get_anat_bids_dir, _get_ct_bids_dir, _get_bids_basename)
+from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
+                                           _get_anat_bids_dir, _get_ct_bids_dir, _get_bids_basename)
 
 configfile: _get_seek_config()
 
+# get the actual file path to the config
+configpath = Path(_get_seek_config()).parent
+
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-                     center_id=config['center_id']
+                     center_id=config.get('center_id')
                      )
 subject_wildcard = "{subject}"
+
+# import pandas as pd
+
+# subjects = pd.read_table(configdir / config["subjects"]).set_index("subject", drop=False)
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
@@ -51,63 +59,142 @@ FSOUT_ACPC_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard))
 
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 BIDS_PRESURG_CT_DIR = _get_ct_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
-premri_native_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+
+# original native files
+ct_native_bids_fname = _get_bids_basename(subject_wildcard,
+                                          session='presurgery', space='orig',
+                                          imgtype='CT', ext='nii')
+premri_native_bids_fname = _get_bids_basename(subject_wildcard,
+                                              session='presurgery',
+                                              space='orig',
                                               imgtype='T1w', ext='nii')
-premri_robustfov_native_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+
+# robust fov file
+premri_robustfov_native_bids_fname = _get_bids_basename(subject_wildcard,
+                                                        session='presurgery',
+                                                        space='orig',
                                                         processing='robustfov',
                                                         imgtype='T1w', ext='nii')
-premri_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
-                                       space='RAS', imgtype='T1w', ext='nii')
-ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
-                                   imgtype='CT', ext='nii')
+# after ACPC
+premri_bids_fname = _get_bids_basename(subject_wildcard,
+                                       session='presurgery',
+                                       space='ACPC',
+                                       imgtype='T1w', ext='nii')
+
+# COregistration filenames
+ctint1_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                       space='T1w',
+                                       imgtype='CT', ext='nii')
+
+from_id = 'CT'  # post implant CT
+to_id = 'T1w'  # freesurfer's T1w
+kind = 'xfm'
+pre_to_post_transform_fname = make_bids_basename(subject=subject_wildcard,
+                                                 session='presurgery',
+                                                 space='T1w') + \
+                              f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
+
+# after ACPC
+ctint1_acpc_bids_fname = _get_bids_basename(subject_wildcard,
+                                            session='presurgery',
+                                            space='T1wACPC',
+                                            imgtype='CT', ext='nii')
+
+from_id = 'CT'  # post implant CT
+to_id = 'T1w'  # freesurfer's T1w
+kind = 'xfm'
+pre_to_post_acpc_transform_fname = make_bids_basename(subject=subject_wildcard,
+                                                      session='presurgery',
+                                                      space='T1wACPC') + \
+                                   f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
+
+# output files
+# raw T1/CT output
+ct_output = os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname)
+t1_output = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)
+
+# raw CT to T1 image and map
+ct_tot1_output = os.path.join(BIDS_PRESURG_CT_DIR, ctint1_bids_fname)
+ct_tot1_map = os.path.join(BIDS_PRESURG_CT_DIR, pre_to_post_transform_fname)
+
+# T1 acpc and CT to T1acpc image and map
+t1_acpc_output = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)
+ct_tot1_acpc_output = os.path.join(BIDS_PRESURG_CT_DIR, ctint1_acpc_bids_fname)
+ct_tot1_acpc_map = os.path.join(BIDS_PRESURG_CT_DIR, pre_to_post_acpc_transform_fname)
 
 # First rule
-rule all:
+# rule all:
+#     input:
+#          MRI_bids_fname_fscopy=expand(os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname),
+#                                       subject=subjects),
+#          MRI_NIFTI_IMG=expand(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
+#                               subject=subjects),
+#     params:
+#           bids_root=bids_root.bids_root,
+#     shell:
+#          "echo 'done';"
+#          "bids-validator {params.bids_root};"
+
+rule prep:
     input:
-         MRI_bids_fname_fscopy=expand(os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname),
-                                      subject=config['patients']),
-         MRI_NIFTI_IMG=expand(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
-                              subject=config['patients']),
+         MRI_NIFTI_IMG=expand(t1_output, subject=subjects),
+         CT_bids_fname=expand(ct_output, subject=subjects),
+         ct_tot1_output=expand(ct_tot1_output, subject=subjects),
+         ct_tot1_map=expand(ct_tot1_map, subject=subjects),
+         t1_acpc_output=expand(t1_acpc_output, subject=subjects),
+         ct_tot1_acpc_output=expand(ct_tot1_acpc_output, subject=subjects),
+         ct_tot1_acpc_map=expand(ct_tot1_acpc_map, subject=subjects),
     params:
           bids_root=bids_root.bids_root,
+    output:
+          report=report('fig1.png', caption='report/figprep.rst', category='Prep')
     shell:
          "echo 'done';"
          "bids-validator {params.bids_root};"
+         "touch fig1.png {output};"
+"""
+Rule for prepping fs_recon by converting dicoms -> NIFTI images.
+
+For more information, see BIDS specification.
+"""
+rule convert_dicom_to_nifti_mri:
+    params:
+          MRI_FOLDER=RAW_MRI_FOLDER,
+          bids_root=bids_root.bids_root,
+    output:
+          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+    shell:
+         "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
 
 """
 Rule for prepping fs_recon by converting dicoms -> NIFTI images.
 
 For more information, see BIDS specification.
 """
-rule convert_dicom_to_nifti:
+rule convert_dicom_to_nifti_ct:
     params:
           CT_FOLDER=RAW_CT_FOLDER,
-          MRI_FOLDER=RAW_MRI_FOLDER,
           bids_root=bids_root.bids_root,
     output:
-          CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_bids_fname),
-          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+          CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname),
     shell:
          "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
-         "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
-
 
 """
 Add comment.
 """
-rule compute_robust_fov:
+rule t1w_compute_robust_fov:
     input:
-          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
+         MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
     output:
           MRI_bids_fname_gz=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname) + '.gz',
-          MRI_bids_fname=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname),
+          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_robustfov_native_bids_fname),
     container:
-         "docker://neuroseek/seek",
+             "docker://neuroseek/seek",
     shell:
          "echo 'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz}';"
          'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz};'  # -m roi2full.mat
          'mrconvert {output.MRI_bids_fname_gz} {output.MRI_bids_fname} --datatype uint16;'
-
 
 """
 Rule for automatic ACPC alignment using acpcdetect software. 
@@ -115,9 +202,9 @@ Rule for automatic ACPC alignment using acpcdetect software.
 Please check the output images to quality assure that the ACPC was properly
 aligned.  
 """
-rule automatic_acpc_alignment:
+rule t1w_automatic_acpc_alignment:
     input:
-         MRI_bids_fname=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname),
+         MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_robustfov_native_bids_fname),
     params:
           anat_dir=str(BIDS_PRESURG_ANAT_DIR),
           acpc_fs_dir=str(FSOUT_ACPC_FOLDER),
@@ -133,6 +220,54 @@ rule automatic_acpc_alignment:
          # run acpc auto detection
          "acpcdetect -i {output.MRI_bids_fname_fscopy} -center-AC -output-orient RAS;"
          "cp {output.MRI_bids_fname_fscopy} {output.MRI_bids_fname};"
+
+"""
+Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
+
+E.g. useful for CT, and DTI images to be coregistered
+"""
+rule coregistert1_ct_to_t1w:
+    input:
+         MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
+         CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname),
+    output:
+          # mapped image from CT -> MRI
+          CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname + ".gz"),
+          CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_PRESURG_CT_DIR, ctint1_bids_fname),
+          # mapping matrix for post to pre in T1
+          MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
+          MAPPING_FILE_BIDS=os.path.join(BIDS_PRESURG_CT_DIR, pre_to_post_transform_fname),
+    shell:
+         "flirt -in {input.CT_bids_fname} \
+                             -ref {input.MRI_bids_fname} \
+                             -omat {output.MAPPING_FILE_ORIG} \
+                             -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
+         "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_BIDS};"
+         "cp {output.MAPPING_FILE_ORIG} {output.MAPPING_FILE_BIDS};"
+
+"""
+Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
+
+E.g. useful for CT, and DTI images to be coregistered
+"""
+rule coregistert1_ct_to_t1wacpc:
+    input:
+         MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
+         CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname),
+    output:
+          # mapped image from CT -> MRI
+          CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER, ctint1_acpc_bids_fname + ".gz"),
+          CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_PRESURG_CT_DIR, ctint1_acpc_bids_fname),
+          # mapping matrix for post to pre in T1
+          MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, pre_to_post_acpc_transform_fname),
+          MAPPING_FILE_BIDS=os.path.join(BIDS_PRESURG_CT_DIR, pre_to_post_acpc_transform_fname),
+    shell:
+         "flirt -in {input.CT_bids_fname} \
+                             -ref {input.MRI_bids_fname} \
+                             -omat {output.MAPPING_FILE_ORIG} \
+                             -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
+         "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_BIDS};"
+         "cp {output.MAPPING_FILE_ORIG} {output.MAPPING_FILE_BIDS};"
 
 """
 Use mne.coregistration

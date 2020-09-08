@@ -20,8 +20,8 @@ from pathlib import Path
 from mne_bids import make_bids_basename, make_bids_folders
 
 sys.path.append("../../../")
-from seek.pipeline.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                     TEMPLATE_SUBJECT, _get_session_name)
+from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
+                                           TEMPLATE_SUBJECT, _get_session_name)
 
 configfile: _get_seek_config()
 

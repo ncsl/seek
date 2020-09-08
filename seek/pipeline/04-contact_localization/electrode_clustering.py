@@ -14,9 +14,9 @@ sys.path.append("../../../")
 from seek.utils import _contact_numbers_on_electrode
 from seek.utils.io import (
     save_organized_elecdict_asmat,
-    save_organized_elecdict_astsv,
     load_elecs_data,
 )
+from seek.format.bids_conversion import save_organized_elecdict_astsv
 
 from seek.contacts.localize.neuroimage import ClusteredBrainImage
 from seek.contacts.localize.electrode import Electrodes
