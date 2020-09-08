@@ -15,13 +15,11 @@ addpath("/Users/adam2392/Dropbox/fieldtrip-20190129/");
 studyname = 'epilepsy'; % 'efri'
 center = 'cleveland';
 
-RESULTS_DIR = fullfile('/home/ksr/Desktop/contact_localization/freesurfer_output/', studyname);
 % RESULTS_DIR = '/home/adam2392/hdd/data/neuroimaging/freesurfer_output/";
 RESULTS_DIR = fullfile('/Users/adam2392/Dropbox/epilepsy_bids/derivatives/freesurfer/');
 
 % ------- CHANGE THIS ------
 % raw data EEG dir
-RECORD_DATADIR = '/home/ksr/Desktop/contact_localization/freesurfer_output/epilepsy/'; % '/home/ksr/Desktop/contact_localization/freesurfer_output/epilepsy/';
 RECORD_DATADIR = fullfile('/Users/adam2392/Dropbox/epilepsy_bids/sourcedata/', center);
 
 % run setup of global variables to make tool GUI work
@@ -29,7 +27,7 @@ ft_defaults
 
 % ------- CHANGE THIS ------
 % subj id to analyze
-subjID = 'la03';      % e.g. efri01, pt01, umf001, tvb1
+subjID = 'la02';      % e.g. efri01, pt01, umf001, tvb1
 your_initials = 'AL';
 
 % results directory

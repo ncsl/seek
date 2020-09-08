@@ -1,7 +1,3 @@
-{
-    "Name": " ",
-    "BIDSVersion": "1.2.0",
-    "Authors": [
-        "MNE-BIDS",""
-    ]
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:3c2662293bb11363dc925ceebf0ef0e65f8abb273b2d4001243ef7a96e0f9c2c
+size 94
