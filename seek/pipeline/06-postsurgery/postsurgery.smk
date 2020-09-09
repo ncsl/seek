@@ -154,6 +154,15 @@ subworkflow prep_workflow:
              "../01-prep/prep.smk"
     configfile:
               _get_seek_config()
+    
+subworkflow reconstruction_workflow:
+    workdir:
+           "../02-reconstruction/"
+    snakefile:
+             "../02-reconstruction/reconstruction.smk"
+    configfile:
+              _get_seek_config()
+
 
 # First rule
 rule postprep:
@@ -292,7 +301,7 @@ E.g. useful for CT, and DTI images to be coregistered
 """
 rule coregister_t1w_post_to_FSt1w:
     input:
-         pre_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_fs_bids_fname),
+         pre_bids_fname=reconstruction_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_fs_bids_fname)),
          post_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
     params:
           FSOUT_POSTMRI_FOLDER=str(FSOUT_POSTMRI_FOLDER),

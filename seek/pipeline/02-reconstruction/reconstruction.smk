@@ -31,7 +31,8 @@ from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT,
 configfile: _get_seek_config()
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(config['bids_root']), center_id=config['center_id'])
+bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
+                     center_id=config.get('center_id'))
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
@@ -55,19 +56,26 @@ subworkflow prep_workflow:
     configfile:
               _get_seek_config()
 
+# output files of this pipeline
+rhpial_asc_fpath = os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc")
+lhpial_asc_fpath = os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc")
+brainmask_nii_fpath = os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")
+
+premri_fs_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                          space='fs', imgtype='T1w', ext='nii')
+t1_fs_fpath = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_fs_bids_fname)
+
 # First rule
 rule all:
     input:
          outsuccess_file=expand(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt"),
-                                subject=config['patients']),
-         brainmask_nifti=expand(os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
-                                subject=config['patients']),
-         lhpial=expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
-                       subject=config['patients']),
-         rhpial=expand(os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
-                       subject=config['patients']),
+                                subject=subjects),
          subcort_success_flag_file=expand(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_subcort_success.txt"),
-                                          subject=config['patients']),
+                                          subject=subjects),
+         brainmask_nifti=expand(brainmask_nii_fpath, subject=subjects),
+         lhpial=expand(lhpial_asc_fpath, subject=subjects),
+         rhpial=expand(rhpial_asc_fpath, subject=subjects),
+         t1_fs=expand(t1_fs_fpath, subject=subjects)
     shell:
          "echo 'done'"
 
@@ -150,8 +158,10 @@ rule convert_FS_T1_to_nifti:
           PREMRI_MGZ_IMG=os.path.join(FSOUT_MRI_FOLDER, "T1.mgz"),
     output:
           PREMRI_NIFTI_IMG=os.path.join(FSOUT_MRI_FOLDER, "T1_fs_LIA.nii"),
+          t1_fs_fpath=t1_fs_fpath
     shell:
          "mri_convert {params.PREMRI_MGZ_IMG} {output.PREMRI_NIFTI_IMG};"
+         "mri_convert {params.PREMRI_MGZ_IMG} {output.t1_fs_fpath};"
 
 """
 Rule for converting brainmask image volume from MGZ to Nifti.
@@ -187,18 +197,3 @@ rule create_subcortical_volume:
          "SUBJECTS_DIR={params.SUBJECTS_DIR};"
          "{params.scripts_dir}/aseg2srf -s {params.patient};"
          "touch {output.subcort_success_flag_file};"
-
-"""
-rule to convert 
-"""
-# rule convert_freesurfer_to_ras:
-#     input:
-#         talairach_xfm_fpath = os.path.join(FSOUT_MRI_FOLDER, 'transforms', 'talairach.xfm'),
-#         input_ = ,
-#     params:
-#         SUBJECTS_DIR = FS_DIR,
-#         subject=subject_wildcard,
-#     output:
-#         target_fpath = ,
-#     shell:
-# "python;"
