@@ -19,13 +19,14 @@ from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                           _get_bids_basename, _get_ct_bids_dir, _get_anat_bids_dir)
+                                           _get_bids_basename, _get_ct_bids_dir,
+                                           _get_anat_bids_dir, _get_subject_center)
 
 configfile: _get_seek_config()
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-                     center_id=config['center_id']
+                     center_id=_get_subject_center(subjects, centers, subject)
                      )
 subject_wildcard = "{subject}"
 
@@ -38,7 +39,7 @@ FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "CT"
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 BIDS_PRESURG_CT_DIR = _get_ct_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
-                                   imgtype='CT', ext='nii')
+                                   imgtype='CT', space='orig', ext='nii')
 
 ctint1_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                        imgtype='CTinT1', ext='nii')
@@ -48,6 +49,27 @@ to_id = 'fsT1w'  # freesurfer's T1w
 kind = 'xfm'
 pre_to_post_transform_fname = make_bids_basename(subject=subject_wildcard) + \
                               f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
+
+# MRI that FS uses
+premri_fs_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
+                                          space='fs', imgtype='T1w', ext='nii')
+t1_fs_fpath = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_fs_bids_fname)
+
+# CT mapped to FS in BIDs folders
+ctint1_acpc_bids_fname = _get_bids_basename(subject_wildcard,
+                                            session='presurgery',
+                                            space='fs',
+                                            imgtype='CT', ext='nii')
+
+from_id = 'CT'  # post implant CT
+to_id = 'fs'  # freesurfer's T1w
+kind = 'xfm'
+pre_to_post_acpc_transform_fname = make_bids_basename(subject=subject_wildcard,
+                                                      session='presurgery',
+                                                      space='fs') + \
+                                   f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
+ct_tot1_fs_output = os.path.join(BIDS_PRESURG_CT_DIR, ctint1_acpc_bids_fname)
+ct_tot1_fs_map = os.path.join(BIDS_PRESURG_CT_DIR, pre_to_post_acpc_transform_fname)
 
 subworkflow prep_workflow:
     workdir:
@@ -66,19 +88,24 @@ subworkflow reconstruction_workflow:
               _get_seek_config()
 
 # First rule
-rule all:
+rule coregister_ct_and_T1w_images:
     input:
          # FLIRT FSL OUTPUT COREGISTRATION
          CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname),
-                                        subject=config['patients']),
+                                        subject=subjects),
          # mapping matrix for CT to T1
          MAPPING_FILE=expand(os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
-                             subject=config['patients']),
+                             subject=subjects),
          # MAPPED BRAIN MASK TO CT SPACE
          brainmask_inct_file=expand(os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
-                                    subject=config['patients']),
+                                    subject=subjects),
+         ct_in_fs_img=expand(ct_tot1_fs_output, subject=subjects),
+         ct_in_fs_map=expand(ct_tot1_fs_map, subject=subjects),
+    output:
+          report=report('figct.png', caption='report/figprep.rst', category='Coregistration')
     shell:
-         "echo 'done'"
+         "echo 'done';"
+         "touch figct.png {output};"
 
 rule prep_ct_for_coregistration:
     input:
@@ -95,9 +122,9 @@ Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
 
 E.g. useful for CT, and DTI images to be coregistered
 """
-rule coregistert1_ct_to_pre:
+rule coregister_ct_to_freesurfer:
     input:
-         PREMRI_NIFTI_IMG_MGZ=reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "T1_fs_LIA.nii")),
+         PREMRI_NIFTI_IMG_MGZ=reconstruction_workflow(t1_fs_fpath),
          CT_NIFTI_IMG_MGZ=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
     output:
           # mapped image from CT -> MRI
@@ -105,25 +132,17 @@ rule coregistert1_ct_to_pre:
           CT_IN_PRE_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname),
           # mapping matrix for post to pre in T1
           MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
+          ct_tot1_fs_output=ct_tot1_fs_output,
+          ct_tot1_fs_map=ct_tot1_fs_map,
     shell:
          "flirt -in {input.CT_NIFTI_IMG_MGZ} \
                              -ref {input.PREMRI_NIFTI_IMG_MGZ} \
                              -omat {output.MAPPING_FILE_ORIG} \
                              -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
          "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_IMG};"
+         "mv {output.CT_IN_PRE_NIFTI_IMG} {output.ct_tot1_fs_output};"
+         "mv {output.MAPPING_FILE_ORIG} {output.ct_tot1_fs_map};"
 
-"""
-Rule for converting brainmask image volume from MGZ to Nifti
-"""
-rule convert_brainmask_to_nifti:
-    input:
-         recon_success_file=reconstruction_workflow(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")),
-    params:
-          brainmask_mgz=os.path.join(FSOUT_MRI_FOLDER, "brainmask.mgz")
-    output:
-          brainmask_nifti=os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")
-    shell:
-         "mrconvert {params.brainmask_mgz} {output.brainmask_nifti};"
 
 """
 Rule to map the brain mask over to the CT space.
@@ -131,7 +150,7 @@ Rule to map the brain mask over to the CT space.
 rule map_brainmask_to_ct:
     input:
          brainmask_file=os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz"),
-         CT_NIFTI_IMG = os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
+         CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
          # mapping matrix for post to pre in T1
          MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
     output:

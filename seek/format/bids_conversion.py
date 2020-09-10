@@ -147,7 +147,13 @@ def _write_electrodes_tsv(
         sizes = ["n/a"] * len(ch_names)
 
     data = OrderedDict(
-        [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes),]
+        [
+            ("name", names),
+            ("x", x),
+            ("y", y),
+            ("z", z),
+            ("size", sizes),
+        ]
     )
 
     print(f"Writin data to {fname}: ")

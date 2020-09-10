@@ -32,7 +32,8 @@ from mne_bids import make_bids_basename
 # hack to run from this file folder
 sys.path.append("../../../")
 from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                           _get_anat_bids_dir, _get_ct_bids_dir, _get_bids_basename)
+                                           _get_anat_bids_dir, _get_ct_bids_dir,
+                                           _get_bids_basename, _get_subject_center)
 
 configfile: _get_seek_config()
 
@@ -41,7 +42,7 @@ configpath = Path(_get_seek_config()).parent
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-                     center_id=config.get('center_id')
+                     center_id=_get_subject_center(subjects, centers, subject)
                      )
 subject_wildcard = "{subject}"
 

@@ -2,11 +2,11 @@ import os
 from pathlib import Path
 
 from mne_bids import make_bids_basename
+from snakemake.logging import logger
 
 # get the environment variable for freesurfer - for use in getting access to lut's
 FREESURFER_HOME = os.getenv("FREESURFER_HOME") or ""
 MRTRIX3_HOME = os.getenv("MRTRIX3_HOME") or ""
-SCRIPTS_UTIL_DIR = "../../format"
 ATLAS = ["dk", "destrieux"]
 
 # key-word parameters
@@ -22,6 +22,11 @@ DEFAULT_SESSION = "presurgery"
 TEMPLATE_SUBJECT = "cvs_avg35_inMNI152"
 
 
+def _get_subject_center(subjects, centers, subject):
+    sub_idx = list(subjects).index(subject)
+    return centers[sub_idx]
+
+
 def _get_session_name(config):
     return config.get("SESSION", DEFAULT_SESSION)
 
@@ -32,7 +37,7 @@ def _get_subject_samples(config):
     samples = pd.read_table(config["subjects"]).set_index("samples", drop=False)
 
 
-def _get_seek_config():
+def _get_seek_path():
     """Get relative path to the config file."""
     import seek
 
@@ -48,8 +53,14 @@ def _get_seek_config():
             "or the environment variable `SEEKHOME` "
             "should be set. Neither is right now."
         )
+    logger.debug(f"This is our seek directory: {seekdir}")
+    return seekdir
 
-    config_path = os.path.join(seekdir, "pipeline", "config", "localconfig.yaml")
+
+def _get_seek_config():
+    config_path = os.path.join(
+        _get_seek_path(), "pipeline", "config", "localconfig.yaml"
+    )
     return config_path
 
 
@@ -133,13 +144,13 @@ class BidsRoot:
     @ensure_str
     def get_premri_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.sourcedir / self.center_id / patient_wildcard / "premri"
+            self.sourcedir / self.center_id / patient_wildcard / "premri/"
         ).as_posix()
 
     @ensure_str
     def get_postmri_dir(self, patient_wildcard="{subject}"):
         return Path(
-            self.sourcedir / self.center_id / patient_wildcard / "postmri"
+            self.sourcedir / self.center_id / patient_wildcard / "postmri/"
         ).as_posix()
 
     @ensure_str
@@ -153,3 +164,6 @@ class BidsRoot:
         return Path(
             self.sourcedir / self.center_id / patient_wildcard / "acpc"
         ).as_posix()
+
+
+SCRIPTS_UTIL_DIR = Path(_get_seek_path()) / "scripts"

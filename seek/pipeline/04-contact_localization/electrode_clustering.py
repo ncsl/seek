@@ -281,7 +281,9 @@ def mainv2(
             exit_ch.transform_coords(brain.get_masked_img(), coord_type="vox")
         # assign sequential labels
         this_elec_voxels = brain.assign_sequential_labels(
-            this_elec_voxels, entry_ch.name, entry_ch.coord,
+            this_elec_voxels,
+            entry_ch.name,
+            entry_ch.coord,
         )
 
         # reset electrode clusters to that specific electrode

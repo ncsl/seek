@@ -19,13 +19,14 @@ from mne_bids import make_bids_basename
 
 sys.path.append("../../../")
 from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                           _get_anat_bids_dir, _get_bids_basename)
+                                           _get_anat_bids_dir, _get_bids_basename,
+                                           _get_subject_center)
 
 configfile: _get_seek_config()
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-                     center_id=config.get('center_id'))
+                     center_id=_get_subject_center(subjects, centers, subject))
 subject_wildcard = "{subject}"
 
 SESSION = 'postsurgery'
@@ -159,13 +160,13 @@ subworkflow reconstruction_workflow:
     workdir:
            "../02-reconstruction/"
     snakefile:
-             "../02-reconstruction/reconstruction.smk"
+             "02-reconstruction/reconstruction.smk"
     configfile:
               _get_seek_config()
 
 
 # First rule
-rule postprep:
+rule postsurg:
     input:
          MRI_NIFTI_IMG=expand(t1_output, subject=subjects),
          post_acpc_output=expand(t1_acpc_output, subject=subjects),
@@ -173,8 +174,8 @@ rule postprep:
          post_tot1_map=expand(post_tot1_map, subject=subjects),
          post_tot1_acpc_output=expand(post_tot1_acpc_output, subject=subjects),
          post_tot1_acpc_map=expand(post_tot1_acpc_map, subject=subjects),
-         # post_tot1_fs_output=expand(post_tot1_fs_output, subject=subjects),
-         # post_tot1_fs_map=expand(post_tot1_fs_map, subject=subjects),
+         post_tot1_fs_output=expand(post_tot1_fs_output, subject=subjects),
+         post_tot1_fs_map=expand(post_tot1_fs_map, subject=subjects),
     params:
           bids_root=bids_root.bids_root,
     output:
@@ -182,7 +183,7 @@ rule postprep:
     shell:
          "echo 'done';"
          "bids-validator {params.bids_root};"
-         "touch fig1.png {output};"
+         "touch figpost.png {output};"
 
 """
 Rule for prepping fs_recon by converting dicoms -> NIFTI images.

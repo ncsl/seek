@@ -528,7 +528,10 @@ class ClusteredBrainImage(BrainImage):
         return centroids
 
     def _unfuse_clusters_on_entry_and_exit(
-        self, voxel_clusters: Dict, merged_cluster_ids: List[int], contact_nums,
+        self,
+        voxel_clusters: Dict,
+        merged_cluster_ids: List[int],
+        contact_nums,
     ):
         """
         Unfuse merged clustered_voxels.

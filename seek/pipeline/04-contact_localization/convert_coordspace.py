@@ -86,7 +86,13 @@ if __name__ == "__main__":
             z.append(coord[2])
         sizes = ["n/a"] * len(z)
         electrodes_tsv = OrderedDict(
-            [("name", names), ("x", x), ("y", y), ("z", z), ("size", sizes),]
+            [
+                ("name", names),
+                ("x", x),
+                ("y", y),
+                ("z", z),
+                ("size", sizes),
+            ]
         )
     else:
         raise RuntimeError("CT Coords filepath needs to be txt or tsv.")

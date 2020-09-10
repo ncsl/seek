@@ -84,7 +84,7 @@ class PostProcessor:
     def _pare_clusters_on_electrode(self, electrode_clusters, skull_cluster_ids, qtile):
         """
         Pare down skull clustered_voxels.
-        
+
         Only considering points close to the
         centroid of the oversized cluster.
 
@@ -151,7 +151,7 @@ class PostProcessor:
     ):
         """
         Unfuse merged clustered_voxels.
-        
+
         By using KMeans clustering to split the large
         cluster into two.
 
@@ -202,7 +202,7 @@ class PostProcessor:
     ):
         """
         Truncate the clustered_voxels closest to the skull.
-        
+
         Which tend to be oversized, and separates clustered_voxels that
         appear to have grouped two
         contacts together. The cluster is filtered with 90% quantile filtering,
@@ -259,7 +259,7 @@ class PostProcessor:
     def _compute_centroids(self, chanxyzvoxels):
         """
         Return the centroids of each channel label.
-        
+
         Given a list of voxels per channel label.
 
         Parameters
@@ -282,7 +282,7 @@ class PostProcessor:
     def _order_clusters(self, clusters, first_contact):
         """
         Order a dictionary of clustered_voxels.
-        
+
         Based on distance of the centroid of
         the cluster from the contact labeled with the number 1 given from user
         input.
@@ -320,7 +320,7 @@ class PostProcessor:
     def _fill(self, centroids, num_to_fill, dists, max_cluster_id):
         """
         Insert new points between contacts.
-        
+
         That are far apart for a given
         electrode and specified number of points to fill.
 
@@ -371,7 +371,7 @@ class PostProcessor:
     def _interpolate_points(self, clusters, num_to_fill):
         """
         Interpolate specified number of points.
-        
+
         To fill between each cluster
         for a given electrode.
 
@@ -540,7 +540,7 @@ class PostProcessor:
     def bruteforce_correction(self, labeled_clusters, sparse_labeled_contacts):
         """
         Check for egregiously poor output by the algorithm.
-        
+
         If it is large,
         use the brute force approach - use the provided contacts and
         interpolate specified number of evenly spaced poitns between the

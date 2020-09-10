@@ -12,7 +12,8 @@ from .fileutils import (
 )
 from .io import (
     save_organized_elecdict_asmat,
-    load_elecs_data, MatReader,
+    load_elecs_data,
+    MatReader,
 )
 from .utils import (
     apply_xfm_to_elecs,

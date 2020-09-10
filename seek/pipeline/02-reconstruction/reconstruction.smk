@@ -26,13 +26,14 @@ sys.path.append("../../../")
 from seek.pipeline.utils.fileutils import SCRIPTS_UTIL_DIR
 from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT,
                                            _get_seek_config,
-                                           _get_anat_bids_dir, _get_bids_basename)
+                                           _get_anat_bids_dir, _get_bids_basename,
+                                           _get_subject_center)
 
 configfile: _get_seek_config()
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-                     center_id=config.get('center_id'))
+                     center_id=_get_subject_center(subjects, centers, subject))
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
@@ -46,7 +47,7 @@ FSOUT_SURF_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "surf"
 
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 premri_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
-                                       space='RAS', imgtype='T1w', ext='nii')
+                                       space='ACPC', imgtype='T1w', ext='nii')
 
 subworkflow prep_workflow:
     workdir:
@@ -66,7 +67,7 @@ premri_fs_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery'
 t1_fs_fpath = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_fs_bids_fname)
 
 # First rule
-rule all:
+rule recon_all_output:
     input:
          outsuccess_file=expand(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt"),
                                 subject=subjects),
@@ -76,8 +77,11 @@ rule all:
          lhpial=expand(lhpial_asc_fpath, subject=subjects),
          rhpial=expand(rhpial_asc_fpath, subject=subjects),
          t1_fs=expand(t1_fs_fpath, subject=subjects)
+    output:
+          report=report('figreconstruct.png', caption='report/figpost.rst', category='FreeSurfer')
     shell:
-         "echo 'done'"
+         "echo 'done';"
+         "touch figreconstruct.png {output};"
 
 """
 Rule for prepping fs_recon.
@@ -124,12 +128,12 @@ rule reconstruction:
     shell:
          "export SUBJECTS_DIR={params.SUBJECTS_DIR};" \
          "SUBJECTS_DIR={params.SUBJECTS_DIR};"
-         "recon-all " \
-         "-cw256 " \
-             # "-i {input.MRI_MGZ_IMG} " \
-         "-subject {params.patient} " \
-         "-all " \
-         "-parallel -openmp $(nproc) --bids-out;"
+         # "recon-all " \
+         # "-cw256 " \
+         #     # "-i {input.MRI_MGZ_IMG} " \
+         # "-subject {params.patient} " \
+         # "-all " \
+         # "-parallel -openmp $(nproc) --bids-out;"
          "touch {output.outsuccess_file}"
 
 """
