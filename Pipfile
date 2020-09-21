@@ -16,6 +16,8 @@ natsort = "*"
 pybv = "*"
 nilearn = "*"
 scikit-image = "*"
+snakemake = "*"
+dicom2nifti = "*"
 
 [requires]
 python_version = "3.8"

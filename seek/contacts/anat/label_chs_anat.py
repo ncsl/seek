@@ -97,7 +97,7 @@ def _label_depth(elecmatrix, aparc_dat, LUT, coordinate_type="mm"):
     lab = {}
     for row in LUT:
         if (
-            len(row) > 1 and row[0][0] is not "#" and row[0][0] is not "\\"
+            len(row) > 1 and row[0][0] != "#" and row[0][0] != "\\"
         ):  # Get rid of the comments
             lname = row[1]
             lab[np.int(row[0])] = lname
@@ -536,7 +536,7 @@ def label_elecs_ecog(
         lab = {}
         for row in LUT:
             if (
-                len(row) > 1 and row[0][0] is not "#" and row[0][0] is not "\\"
+                len(row) > 1 and row[0][0] != "#" and row[0][0] != "\\"
             ):  # Get rid of the comments
                 lname = row[1]
                 lab[np.int(row[0])] = lname

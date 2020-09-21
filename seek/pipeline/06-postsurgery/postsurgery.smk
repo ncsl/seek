@@ -77,9 +77,9 @@ postmri_bids_fname = _get_bids_basename(subject_wildcard,
 
 # after FreeSurfer
 premri_fs_bids_fname = _get_bids_basename(subject_wildcard,
-                                        session='presurgery',
-                                        space='fs',
-                                        imgtype='T1w', ext='nii')
+                                          session='presurgery',
+                                          space='fs',
+                                          imgtype='T1w', ext='nii')
 
 ###########################
 # COREGISTERED IMAGES
@@ -155,7 +155,7 @@ subworkflow prep_workflow:
              "../01-prep/prep.smk"
     configfile:
               _get_seek_config()
-    
+
 subworkflow reconstruction_workflow:
     workdir:
            "../02-reconstruction/"
@@ -163,7 +163,6 @@ subworkflow reconstruction_workflow:
              "02-reconstruction/reconstruction.smk"
     configfile:
               _get_seek_config()
-
 
 # First rule
 rule postsurg:
@@ -300,10 +299,10 @@ Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
 
 E.g. useful for CT, and DTI images to be coregistered
 """
-rule coregister_t1w_post_to_FSt1w:
+rule coregister_t1w_postacpc_to_FSt1w:
     input:
          pre_bids_fname=reconstruction_workflow(os.path.join(BIDS_PRESURG_ANAT_DIR, premri_fs_bids_fname)),
-         post_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
+         post_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_bids_fname),
     params:
           FSOUT_POSTMRI_FOLDER=str(FSOUT_POSTMRI_FOLDER),
     output:

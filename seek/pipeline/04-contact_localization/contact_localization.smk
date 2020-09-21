@@ -22,7 +22,7 @@ configfile: _get_seek_config()
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-                     center_id=config['center_id']
+                     center_id=config.get('center_id')
                      )
 subject_wildcard = "{subject}"
 
