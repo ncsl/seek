@@ -10,7 +10,7 @@ codespell = "*"
 
 [packages]
 mne = "*"
-mne-bids = "*"
+mne-bids = {file = "https://api.github.com/repos/mne-tools/mne-bids/zipball/master"}
 pandas = "*"
 natsort = "*"
 pybv = "*"

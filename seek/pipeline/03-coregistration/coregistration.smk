@@ -26,11 +26,7 @@ configfile: _get_seek_config()
 
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-<<<<<<< Updated upstream
-                     center_id=_get_subject_center(subjects, centers, subject)
-=======
                      center_id=config.get('center_id')
->>>>>>> Stashed changes
                      )
 subject_wildcard = "{subject}"
 
@@ -95,8 +91,7 @@ subworkflow reconstruction_workflow:
 rule coregister_ct_and_T1w_images:
     input:
          # FLIRT FSL OUTPUT COREGISTRATION
-         CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname),
-                                        subject=subjects),
+         CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname), subject=subjects),
          # mapping matrix for CT to T1
          MAPPING_FILE=expand(os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
                              subject=subjects),
@@ -126,11 +121,7 @@ Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
 
 E.g. useful for CT, and DTI images to be coregistered
 """
-<<<<<<< Updated upstream
-rule coregister_ct_to_freesurfer:
-=======
 rule coregister_ct_to_t1wfs:
->>>>>>> Stashed changes
     input:
          PREMRI_NIFTI_IMG_MGZ=reconstruction_workflow(t1_fs_fpath),
          CT_NIFTI_IMG_MGZ=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
@@ -151,8 +142,6 @@ rule coregister_ct_to_t1wfs:
          "mv {output.CT_IN_PRE_NIFTI_IMG} {output.ct_tot1_fs_output};"
          "mv {output.MAPPING_FILE_ORIG} {output.ct_tot1_fs_map};"
 
-<<<<<<< Updated upstream
-=======
 
 """
 Rule for converting brainmask image volume from MGZ to Nifti
@@ -166,7 +155,6 @@ rule convert_brainmask_to_nifti:
           brainmask_nifti=os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")
     shell:
          "mrconvert {params.brainmask_mgz} {output.brainmask_nifti};"
->>>>>>> Stashed changes
 
 """
 Rule to map the brain mask over to the CT space.

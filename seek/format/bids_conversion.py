@@ -15,11 +15,11 @@ from mne.utils import run_subprocess
 from mne_bids import write_anat
 from mne_bids.tsv_handler import _from_tsv, _to_tsv
 from mne_bids.utils import (
-    _parse_bids_filename,
     _write_json,
     _write_tsv,
     _update_sidecar,
 )
+from mne_bids.path import get_entities_from_fname
 
 
 def bids_validate(bids_root):
@@ -210,7 +210,7 @@ def convert_img_to_bids(image_input, bids_root, bids_fname, verbose=True):
 
         print(image_input)
         # determine the BIDS identifiers
-        params = _parse_bids_filename(bids_fname, verbose=True)
+        params = get_entities_from_fname(bids_fname)
         subject = params["sub"]
         session = params["ses"]
 

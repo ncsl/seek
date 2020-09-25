@@ -63,7 +63,14 @@ ENV PATH $ARTHOME/bin:$PATH
 
 # Neuroimgpipe dependencies
 RUN pip3 install --upgrade pip
-RUN pip3 install snakemake mne-bids numpy scipy mne dicom2nifti
+RUN pip3 install pipenv
+COPY Pipfile* /tmp
+RUN cd /tmp && pipenv lock --requirements > requirements.txt
+RUN pip3 install -r /tmp/requirements.txt
+COPY . /tmp/myapp
+RUN pip3 install /tmp/myapp
+# outdated mnaul install
+#RUN pip3 install snakemake mne-bids numpy scipy mne dicom2nifti
 
 # Node & bids-validator
 RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - && \

@@ -88,6 +88,10 @@ def _get_anat_bids_dir(bids_root, subject, session):
     return os.path.join(_get_subject_dir(bids_root, subject), f"ses-{session}", "anat")
 
 
+def _get_ieeg_bids_dir(bids_root, subject, session):
+    return os.path.join(_get_subject_dir(bids_root, subject), f"ses-{session}", "ieeg")
+
+
 def _get_ct_bids_dir(bids_root, subject, session):
     return os.path.join(_get_subject_dir(bids_root, subject), f"ses-{session}", "ct")
 

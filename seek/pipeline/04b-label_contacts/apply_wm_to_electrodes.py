@@ -82,88 +82,6 @@ def apply_wm_and_brainmask(final_centroids_xyz, atlasfilepath, wmpath, bmpath):
     return anatomy
 
 
-def apply_atlas(bids_root, electrodes_tsv_fpath, inv_affine, fspatdir, fs_lut_fpath):
-    """
-    Map centroids to an atlas (e.g. Desikan-Killiany, Destriuex) and apply
-    white matter and brain masks to label centroids as white matter or out of
-    the brain.
-
-    Parameters
-    –---------
-        fspatdir: str
-            Path to freesurfer directory.
-
-        fs_lut_fpath: str
-            Path to fs_lut file.
-
-    Returns
-    -------
-        elec_labels_destriuex: dict(str: ndarray)
-            array of contacts labeled with Destriuex atlas.
-
-        elec_labels_DKT: dict(str: ndarray)
-            array of contacts labeled with Desikan-Killiany atlas.
-    """
-    patid = os.path.basename(os.path.normpath(fspatdir))
-
-    # Apply Atlases, white matter mask, and brainmask
-    convert_fsmesh2mlab(subj_dir=os.path.abspath(os.path.dirname(fspatdir)), subj=patid)
-
-    # load electrodes tsv
-    electrodes_tsv = _from_tsv(electrodes_tsv_fpath)
-    ch_names = electrodes_tsv["name"]
-    elecmatrix = []
-    for i in range(len(ch_names)):
-        elecmatrix.append([electrodes_tsv[x][i] for x in ["x", "y", "z"]])
-    elecmatrix = np.array(elecmatrix, dtype=float)
-
-    # apply affine transform to put into Voxel space
-    elecmatrix = apply_affine(inv_affine, elecmatrix)
-
-    # anatomically label
-    elec_labels_anat_destriuex = label_elecs(
-        bids_root,
-        ch_names,
-        elecmatrix,
-        subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
-        subj=patid,
-        hem="lh",
-        fs_lut_fpath=fs_lut_fpath,
-        atlas_depth="destriuex",
-    )
-
-    elec_labels_anat_dk = label_elecs(
-        bids_root,
-        ch_names,
-        elecmatrix,
-        subj_dir=os.path.abspath(os.path.dirname(fspatdir)),
-        subj=patid,
-        hem="lh",
-        fs_lut_fpath=fs_lut_fpath,
-        atlas_depth="desikan-killiany",
-    )
-
-    # add atlas labeling to electrodes tsv data
-    atlas_depth = "destriuex"
-    electrodes_tsv = _update_electrodes_tsv(
-        electrodes_tsv_fpath, elec_labels_anat_destriuex, atlas_depth
-    )
-    atlas_depth = "desikan-killiany"
-    electrodes_tsv = _update_electrodes_tsv(
-        electrodes_tsv_fpath, elec_labels_anat_dk, atlas_depth
-    )
-
-    # create sidecar electrodes json file
-    electrodes_json_fpath = str(electrodes_tsv_fpath).replace(".tsv", ".json")
-    json_dict = {
-        "destriuex": "Electrode annotation using Destriuex atlas with 196 brain regions.",
-        "desikan-killiany": "Electrode annotation using DK atlas with 86 brain regions.",
-    }
-    electrodes_json = _update_electrodes_json(electrodes_json_fpath, **json_dict)
-
-    return electrodes_tsv, electrodes_json
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -176,7 +94,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("fs_patient_dir", help="The freesurfer output diretroy.")
     parser.add_argument("fs_lut_fpath", help="The Freesurfer LUT.")
-    parser.add_argument("mri_img_fpath", default=None)
+    parser.add_argument("wm_img_fpath", default=None)
     args = parser.parse_args()
 
     # Extract arguments from parser

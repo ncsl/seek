@@ -4,7 +4,7 @@ import numpy as np
 import nibabel as nb
 
 
-from mne_bids import make_bids_basename, make_bids_folders
+from mne_bids import BIDSPath
 from mne_bids.tsv_handler import _from_tsv
 from nibabel.affines import apply_affine
 from nibabel.orientations import aff2axcodes
@@ -81,19 +81,19 @@ if __name__ == "__main__":
     # print(nb.io_orientation(t1w_img.affine))
 
     # read in electrodes
-    subj_dir = make_bids_folders(
-        bids_root=bids_root.as_posix(), subject=subject, session="veeg", make_dir=False
-    )
-    # get electrodes
-    electrodes_fpath = make_bids_basename(
-        subject=subject,
-        session="veeg",
-        processing="manual",
-        acquisition="seeg",
-        prefix=subj_dir,
-        suffix="electrodes.tsv",
-    )
-    electrodes_tsv = _from_tsv(electrodes_fpath)
+    # subj_dir = make_bids_folders(
+    #     bids_root=bids_root.as_posix(), subject=subject, session="veeg", make_dir=False
+    # )
+    # # get electrodes
+    # electrodes_fpath = BIDSPath(
+    #     subject=subject,
+    #     session="veeg",
+    #     processing="manual",
+    #     acquisition="seeg",
+    #     prefix=subj_dir,
+    #     suffix="electrodes.tsv",
+    # )
+    # electrodes_tsv = _from_tsv(electrodes_fpath)
 
     ch_names = electrodes_tsv["name"]
     ch_coords = np.vstack(

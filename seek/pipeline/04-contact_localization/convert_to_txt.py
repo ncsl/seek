@@ -45,10 +45,6 @@ def read_label_coords(elecfilemat):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("elecs_dir")
-    # parser.add_argument(
-    #     "clustered_points_file",
-    #     help="The output datafile with all the electrode points clustered.",
-    # )
     parser.add_argument(
         "outputcoordsfile",
         help="The output datafile for electrodes mapped to correct coords.",
