@@ -14,7 +14,7 @@ import os.path as op
 import sys
 from pathlib import Path
 
-from mne_bids import make_bids_basename, make_bids_folders
+from mne_bids import BIDSPath, make_bids_folders
 
 sys.path.append("../../../")
 from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT,
@@ -49,15 +49,14 @@ FIGDIR = os.path.join(FSOUT_ELECS_FOLDER, "figs")
 
 def _get_bids_basename(subject, acquisition):
     """Wildcard function to get bids_basename."""
-    bids_fname = make_bids_basename(subject, acquisition=acquisition,
-                                    suffix=f"electrodes.tsv")
+    bids_fname = BIDSPath(subject, acquisition=acquisition,
+                          suffix="electrodes", extension=".tsv")
     return bids_fname
 
 
 def get_channels_tsv_fpath(bids_root, subject_id):
-    data_path = make_bids_folders(subject=subject_id, bids_root=bids_root,
-                                  make_dir=False, overwrite=False, verbose=False)
-    channels_tsv_fpath = make_bids_basename(subject=subject_id, suffix="channels.tsv", prefix=data_path)
+    channels_tsv_fpath = BIDSPath(root=bids_root, subject=subject_id,
+                                  suffix="channels", extension=".tsv").fpath
     return channels_tsv_fpath
 
 # input files
@@ -72,33 +71,33 @@ data_path = make_bids_folders(subject=subject_wildcard, session=SESSION,
 # the output electrode/coordsystem file(s)
 #################### Centroid coordinates ####################
 # manually labeled
-manual_coordsystem_fname = make_bids_basename(
+manual_coordsystem_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='manual',
-    suffix='coordsystem.json')
-manual_electrodes_fname = make_bids_basename(
+    suffix='coordsystem', extension='.json').basename
+manual_electrodes_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='manual',
-    suffix='electrodes.tsv')
+    suffix='electrodes', extension='.tsv').basename
 manual_electrodes_json = manual_electrodes_fname.replace('.tsv', '.json')
 
 # output of SEEK estimation algorithm
-seek_coordsystem_fname = make_bids_basename(
+seek_coordsystem_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='seek',
-    suffix='coordsystem.json')
-seek_electrodes_fname = make_bids_basename(
+    suffix='coordsystem', extension='.json').basename
+seek_electrodes_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='seek',
-    suffix='electrodes.tsv')
+    suffix='electrodes', extension='.tsv').basename
 seek_electrodes_json = seek_electrodes_fname.replace('.tsv', '.json')
 
 #################### Voxel coordinates ####################
 # manually labeled
-voxel_manual_electrodes_fname = make_bids_basename(
+voxel_manual_electrodes_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='manual',
-    suffix='electrodes.tsv')
+    suffix='electrodes', extension='.tsv').basename
 
 # output of SEEK estimation algorithm
-voxel_electrodes_fname = make_bids_basename(
+voxel_electrodes_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='seek',
-    suffix='electrodes.tsv')
+    suffix='electrodes', extension='.tsv').basename
 
 #################### Sub workflows ####################
 subworkflow reconstruction_workflow:

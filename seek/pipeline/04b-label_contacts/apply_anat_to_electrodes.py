@@ -25,27 +25,27 @@ from seek.format.bids_conversion import (
 
 
 def loadmat(filename):
-    '''
+    """
     this function should be called instead of direct spio.loadmat
     as it cures the problem of not properly recovering python dictionaries
     from mat files. It calls the function check keys to cure all entries
     which are still mat-objects
-    '''
+    """
 
     def _check_keys(d):
-        '''
+        """
         checks if entries in dictionary are mat-objects. If yes
         todict is called to change them to nested dictionaries
-        '''
+        """
         for key in d:
             if isinstance(d[key], scipy.io.matlab.mio5_params.mat_struct):
                 d[key] = _todict(d[key])
         return d
 
     def _todict(matobj):
-        '''
+        """
         A recursive function which constructs from matobjects nested dictionaries
-        '''
+        """
         d = {}
         for strg in matobj._fieldnames:
             elem = matobj.__dict__[strg]
@@ -58,11 +58,11 @@ def loadmat(filename):
         return d
 
     def _tolist(ndarray):
-        '''
+        """
         A recursive function which constructs lists from cellarrays
         (which are loaded as numpy ndarrays), recursing into the elements
         if they contain matobjects.
-        '''
+        """
         elem_list = []
         for sub_elem in ndarray:
             if isinstance(sub_elem, scipy.io.matlab.mio5_params.mat_struct):
@@ -84,8 +84,8 @@ def read_label_coords(elecfilemat):
     elecxyz = elecmat["elec_acpc_f"]
     electxt = {}
 
-    labels = elecxyz['label']
-    positions = elecxyz['elecpos']
+    labels = elecxyz["label"]
+    positions = elecxyz["elecpos"]
     for label, pos in zip(labels, positions):
         electxt[str(label)] = list(map(float, pos))
 
@@ -175,46 +175,66 @@ def apply_atlas(bids_root, electrodes_tsv_fpath, inv_affine, fspatdir, fs_lut_fp
 
 
 if __name__ == "__main__":
-    root = Path('/Users/adam2392/OneDrive - Johns Hopkins/epilepsy_bids/')
-    sourcepath = root / 'sourcedata'
-    subject = 'la02'
-    space = 'fs'
-    acquisition = 'seeg'
-    session = 'presurgery'
+    root = Path("/Users/adam2392/OneDrive - Johns Hopkins/epilepsy_bids/")
+    sourcepath = root / "sourcedata"
+    subject = "la02"
+    space = "fs"
+    acquisition = "seeg"
+    session = "presurgery"
 
     # default output electrodes tsv file path
-    electrodes_tsv_fpath = BIDSPath(subject=subject, session=session,
-                                    space=space, acquisition=acquisition, datatype='ieeg',
-                                    root=root, suffix='electrodes', extension='.tsv')
+    electrodes_tsv_fpath = BIDSPath(
+        subject=subject,
+        session=session,
+        space=space,
+        acquisition=acquisition,
+        datatype="ieeg",
+        root=root,
+        suffix="electrodes",
+        extension=".tsv",
+    )
     # FreeSurfer file items
-    fs_subj_dir = root / 'derivatives' / 'freesurfer' / subject
-    fs_lut_fpath = sourcepath / 'electrodes localized' / 'FreeSurferColorLUT.txt'
-    mri_img_fpath = BIDSPath(subject=subject, session=session, datatype='anat',
-                             space=space, suffix='T1w', extension='.nii',
-                             root=root)
+    fs_subj_dir = root / "derivatives" / "freesurfer" / subject
+    fs_lut_fpath = sourcepath / "electrodes localized" / "FreeSurferColorLUT.txt"
+    mri_img_fpath = BIDSPath(
+        subject=subject,
+        session=session,
+        datatype="anat",
+        space=space,
+        suffix="T1w",
+        extension=".nii",
+        root=root,
+    )
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-mri_xyzcoords_fpath",
         required=False,
         help="The output datafile with all the electrode points clustered.",
-        default=sourcepath / 'electrodes localized' / 'stolk' / f'{subject}_elec_acpc_f.mat'
+        default=sourcepath
+        / "electrodes localized"
+        / "stolk"
+        / f"{subject}_elec_acpc_f.mat",
     )
     parser.add_argument(
         "-output_bids_electrodes_file",
         help="The output BIDS datafile for electrodes in tsv format.",
         required=False,
-        default=electrodes_tsv_fpath.fpath
+        default=electrodes_tsv_fpath.fpath,
     )
-    parser.add_argument("-fs_patient_dir", help="The freesurfer output directory.",
-                        required=False,
-                        default=fs_subj_dir)
-    parser.add_argument("-fs_lut_fpath", help="The Freesurfer LUT.",
-                        required=False,
-                        default=fs_lut_fpath)
-    parser.add_argument("-mri_img_fpath",
-                        required=False,
-                        default=mri_img_fpath.fpath)
+    parser.add_argument(
+        "-fs_patient_dir",
+        help="The freesurfer output directory.",
+        required=False,
+        default=fs_subj_dir,
+    )
+    parser.add_argument(
+        "-fs_lut_fpath",
+        help="The Freesurfer LUT.",
+        required=False,
+        default=fs_lut_fpath,
+    )
+    parser.add_argument("-mri_img_fpath", required=False, default=mri_img_fpath.fpath)
     args = parser.parse_args()
 
     # Extract arguments from parser
@@ -231,7 +251,7 @@ if __name__ == "__main__":
     )  # Obtain inverse affine matrix to transform from xyz to CT voxel
 
     # load in the electrode coordinates
-    if str(mri_xyzcoords_fpath).endswith('.tsv'):
+    if str(mri_xyzcoords_fpath).endswith(".tsv"):
         electrodes_tsv = _from_tsv(mri_xyzcoords_fpath)
     else:
         # read in mat file
@@ -249,12 +269,17 @@ if __name__ == "__main__":
 
     # save it to electrodes output tsv
     # write the output to a txt file
-    with open(output_electrodes_tsv_fpath, "w", encoding='utf-8') as f:
+    with open(output_electrodes_tsv_fpath, "w", encoding="utf-8") as f:
         f.write("name\tx\ty\tz\n")
         for i, name in enumerate(electrodes_tsv.keys()):
             f.write(
                 "%s\t%.6f\t%.6f\t%.6f\n"
-                % (name, electrodes_tsv[name][0], electrodes_tsv[name][1], electrodes_tsv[name][2])
+                % (
+                    name,
+                    electrodes_tsv[name][0],
+                    electrodes_tsv[name][1],
+                    electrodes_tsv[name][2],
+                )
             )
 
     # Output labeled .mat files with atlas, white matter, and brainmask information
@@ -270,5 +295,9 @@ if __name__ == "__main__":
         json.dump(electrodes_json, fout, indent=4)
 
     # create a coordsystem JSON file
-    output_coordsyste_fpath = str(output_electrodes_tsv_fpath).replace('electrodes.tsv', 'coordsystem.json')
-    _write_coordsystem_json(fname=output_coordsyste_fpath, unit='mm', img_fname=mri_img_fpath)
+    output_coordsyste_fpath = str(output_electrodes_tsv_fpath).replace(
+        "electrodes.tsv", "coordsystem.json"
+    )
+    _write_coordsystem_json(
+        fname=output_coordsyste_fpath, unit="mm", img_fname=mri_img_fpath
+    )
