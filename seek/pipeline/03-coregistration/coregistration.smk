@@ -139,8 +139,8 @@ rule coregister_ct_to_t1wfs:
                              -omat {output.MAPPING_FILE_ORIG} \
                              -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
          "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_IMG};"
-         "mv {output.CT_IN_PRE_NIFTI_IMG} {output.ct_tot1_fs_output};"
-         "mv {output.MAPPING_FILE_ORIG} {output.ct_tot1_fs_map};"
+         "cp {output.CT_IN_PRE_NIFTI_IMG} {output.ct_tot1_fs_output};"
+         "cp {output.MAPPING_FILE_ORIG} {output.ct_tot1_fs_map};"
 
 
 """
