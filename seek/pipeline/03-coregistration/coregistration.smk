@@ -41,12 +41,6 @@ BIDS_PRESURG_CT_DIR = _get_ct_bids_dir(bids_root.bids_root, subject_wildcard, se
 ct_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                    imgtype='CT', space='orig', ext='nii')
 
-from_id = 'CT'  # post implant CT
-to_id = 'fsT1w'  # freesurfer's T1w
-kind = 'xfm'
-pre_to_post_transform_fname = BIDSPath(subject=subject_wildcard).basename + \
-                              f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
-
 # MRI that FS uses
 premri_fs_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                           space='fs', imgtype='T1w', ext='nii')
@@ -90,7 +84,7 @@ rule coregister_ct_and_T1w_images:
          # FLIRT FSL OUTPUT COREGISTRATION
          CT_IN_T1_NIFTI_IMG_ORIG=expand(os.path.join(FSOUT_CT_FOLDER, ctint1_fs_bids_fname), subject=subjects),
          # mapping matrix for CT to T1
-         MAPPING_FILE=expand(os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
+         MAPPING_FILE=expand(os.path.join(FSOUT_CT_FOLDER, ct_to_t1wfs_transform_fname),
                              subject=subjects),
          # MAPPED BRAIN MASK TO CT SPACE
          brainmask_inct_file=expand(os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
@@ -127,10 +121,14 @@ rule coregister_ct_to_t1wfs:
           CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER, ctint1_fs_bids_fname + ".gz"),
           CT_IN_PRE_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ctint1_fs_bids_fname),
           # mapping matrix for post to pre in T1
-          MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
+          MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, ct_to_t1wfs_transform_fname),
           ct_tot1_fs_output=ct_tot1_fs_output,
           ct_tot1_fs_map=ct_tot1_fs_map,
     shell:
+         flirt -in /home/adam2392/hdd/epilepsy_bids/derivatives/freesurfer/tvb11/CT/sub-tvb11_ses-presurgery_space-orig_CT.nii \
+             -ref /home/adam2392/hdd/epilepsy_bids/sub-tvb11/ses-presurgery/anat/sub-tvb11_ses-presurgery_space-fs_T1w.nii \
+             -omat /home/adam2392/hdd/epilepsy_bids/derivatives/freesurfer/tvb11/CT/sub-tvb11_ses-presurgery_space-fs_from-CT_to-fs_mode-image_xfm.mat \
+             -out /home/adam2392/hdd/epilepsy_bids/derivatives/freesurfer/tvb11/CT/sub-tvb11_ses-presurgery_space-fs_CT.nii.gz
          "flirt -in {input.CT_NIFTI_IMG_MGZ} \
                              -ref {input.PREMRI_NIFTI_IMG_MGZ} \
                              -omat {output.MAPPING_FILE_ORIG} \
@@ -147,7 +145,7 @@ rule map_brainmask_to_ct:
          brainmask_file=reconstruction_workflow(os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")),
          CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
          # mapping matrix for post to pre in T1
-         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, pre_to_post_transform_fname),
+         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, ct_to_t1wfs_transform_fname),
     output:
           # mapping matrix for post to pre in T1
           brainmask_inct_file=os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
