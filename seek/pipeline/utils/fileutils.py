@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from mne_bids import make_bids_basename
+from mne_bids import BIDSPath
 from snakemake.logging import logger
 
 # get the environment variable for freesurfer - for use in getting access to lut's
@@ -24,6 +24,7 @@ TEMPLATE_SUBJECT = "cvs_avg35_inMNI152"
 
 def _get_subject_center(subjects, centers, subject):
     sub_idx = list(subjects).index(subject)
+    print(f"Found {centers[sub_idx]} for {subject}")
     return centers[sub_idx]
 
 
@@ -74,9 +75,14 @@ def ensure_str(func):
 
 def _get_bids_basename(subject, session, imgtype, ext="nii.gz", **bids_kwargs):
     """Wildcard function to get bids_basename."""
-    bids_fname = make_bids_basename(
-        subject, session=session, **bids_kwargs, suffix=f"{imgtype}.{ext}"
-    )
+    bids_fname = BIDSPath(
+        subject,
+        session=session,
+        **bids_kwargs,
+        suffix=imgtype,
+        extension=ext,
+        check=False,
+    ).basename
     return bids_fname
 
 

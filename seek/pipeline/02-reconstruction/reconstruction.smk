@@ -133,7 +133,8 @@ rule reconstruction:
          #     # "-i {input.MRI_MGZ_IMG} " \
          # "-subject {params.patient} " \
          # "-all " \
-         # "-parallel -openmp $(nproc) --bids-out;"
+         # "-parallel -openmp $(nproc); " \
+         # "--bids-out;"
          "touch {output.outsuccess_file}"
 
 """

@@ -15,7 +15,7 @@ import os
 import sys
 from pathlib import Path
 
-from mne_bids import make_bids_basename
+from mne_bids import BIDSPath
 
 sys.path.append("../../../")
 from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
@@ -92,9 +92,9 @@ postinpre_bids_fname = _get_bids_basename(subject_wildcard,
 from_id = 'postT1w'  # post implant CT
 to_id = 'preT1w'  # freesurfer's T1w
 kind = 'xfm'
-pre_to_post_transform_fname = make_bids_basename(subject=subject_wildcard,
-                                                 session=SESSION,
-                                                 space='T1w') + \
+pre_to_post_transform_fname = BIDSPath(subject=subject_wildcard,
+                                       session=SESSION,
+                                       space='T1w').basename + \
                               f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # after ACPC
@@ -106,9 +106,9 @@ postinpre_acpc_bids_fname = _get_bids_basename(subject_wildcard,
 from_id = 'postT1w'  # post implant CT
 to_id = 'preT1w'  # freesurfer's T1w
 kind = 'xfm'
-pre_to_post_acpc_transform_fname = make_bids_basename(subject=subject_wildcard,
-                                                      session=SESSION,
-                                                      space='T1wACPC') + \
+pre_to_post_acpc_transform_fname = BIDSPath(subject=subject_wildcard,
+                                            session=SESSION,
+                                            space='T1wACPC').basename + \
                                    f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # after FreeSurfer
@@ -120,9 +120,9 @@ postinpre_fs_bids_fname = _get_bids_basename(subject_wildcard,
 from_id = 'postT1w'  # post implant CT
 to_id = 'fs'  # freesurfer's T1w
 kind = 'xfm'
-pre_to_post_fs_transform_fname = make_bids_basename(subject=subject_wildcard,
-                                                    session=SESSION,
-                                                    space='fs') + \
+pre_to_post_fs_transform_fname = BIDSPath(subject=subject_wildcard,
+                                          session=SESSION,
+                                          space='fs').basename + \
                                  f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # output files

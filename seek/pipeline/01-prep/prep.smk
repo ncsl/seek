@@ -27,7 +27,7 @@ from FreeSurfer6+, acpcdetect2.0. To create a DAG pipeline, run:
 import os
 import sys
 from pathlib import Path
-from mne_bids import make_bids_basename
+from mne_bids import BIDSPath
 
 # hack to run from this file folder
 sys.path.append("../../../")
@@ -90,9 +90,9 @@ ctint1_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
 from_id = 'CT'  # post implant CT
 to_id = 'T1w'  # freesurfer's T1w
 kind = 'xfm'
-pre_to_post_transform_fname = make_bids_basename(subject=subject_wildcard,
+pre_to_post_transform_fname = BIDSPath(subject=subject_wildcard,
                                                  session='presurgery',
-                                                 space='T1w') + \
+                                                 space='T1w').basename + \
                               f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # after ACPC
@@ -104,9 +104,9 @@ ctint1_acpc_bids_fname = _get_bids_basename(subject_wildcard,
 from_id = 'CT'  # post implant CT
 to_id = 'T1w'  # freesurfer's T1w
 kind = 'xfm'
-pre_to_post_acpc_transform_fname = make_bids_basename(subject=subject_wildcard,
+pre_to_post_acpc_transform_fname = BIDSPath(subject=subject_wildcard,
                                                       session='presurgery',
-                                                      space='T1wACPC') + \
+                                                      space='T1wACPC').basename + \
                                    f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # output files

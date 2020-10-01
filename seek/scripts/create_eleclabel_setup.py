@@ -14,35 +14,34 @@ def create_elec_labels_subject(bids_path, output_fpath):
     ch_names = raw.ch_names
 
     # save this to a output file
-    elec_dict = {
-        'elec_name': np.array(ch_names).astype(np.object)
-    }
+    elec_dict = {"elec_name": np.array(ch_names).astype(np.object)}
     Path(output_fpath).parent.mkdir(exist_ok=True, parents=True)
     savemat(output_fpath, elec_dict)
 
 
-if __name__ == '__main__':
-    root = Path('/Users/adam2392/Dropbox/epilepsy_bids/')
+if __name__ == "__main__":
+    root = Path("/Users/adam2392/Dropbox/epilepsy_bids/")
     # get the runs for this subject
-    subjects = get_entity_vals(root, 'subject')
-    session = 'presurgery'
-    extension = '.vhdr'
+    subjects = get_entity_vals(root, "subject")
+    session = "presurgery"
+    extension = ".vhdr"
 
-    output_path = root / 'sourcedata' / 'electrodes localized' / 'setup'
+    output_path = root / "sourcedata" / "electrodes localized" / "setup"
 
     for subject in subjects:
-        if not any([x in subject for x in ['la', 'nl', 'tvb']]):
+        if not any([x in subject for x in ["la", "nl", "tvb"]]):
             continue
-        if subject in ['la00']:
+        if subject in ["la00"]:
             continue
 
         # create the BIDS path
-        bids_path = BIDSPath(subject=subject, session=session,
-                             root=root, extension=extension)
+        bids_path = BIDSPath(
+            subject=subject, session=session, root=root, extension=extension
+        )
 
         # get matches
         data_paths = bids_path.match()
-        output_fpath = output_path / f'sub-{subject}_setup.mat'
+        output_fpath = output_path / f"sub-{subject}_setup.mat"
         print(data_paths)
         create_elec_labels_subject(bids_path=data_paths[0], output_fpath=output_fpath)
         # break
