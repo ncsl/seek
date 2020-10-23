@@ -66,17 +66,17 @@ print('In coregistration workflow.')
 
 subworkflow prep_workflow:
     workdir:
-           "./01-prep/"
+           "../01-prep/"
     snakefile:
-             "./01-prep/prep.smk"
+             "../01-prep/prep.smk"
     configfile:
               _get_seek_config()
 
 subworkflow reconstruction_workflow:
     workdir:
-           "./02-reconstruction/"
+           "../02-reconstruction/"
     snakefile:
-             "./02-reconstruction/reconstruction.smk"
+             "../02-reconstruction/reconstruction.smk"
     configfile:
               _get_seek_config()
 
