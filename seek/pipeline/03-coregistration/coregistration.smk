@@ -62,6 +62,8 @@ ct_to_t1wfs_transform_fname = BIDSPath(subject=subject_wildcard,
 ct_tot1_fs_output = os.path.join(BIDS_PRESURG_CT_DIR, ctint1_fs_bids_fname)
 ct_tot1_fs_map = os.path.join(BIDS_PRESURG_CT_DIR, ct_to_t1wfs_transform_fname)
 
+print('In coregistration workflow.')
+
 subworkflow prep_workflow:
     workdir:
            "../01-prep/"
