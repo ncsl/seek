@@ -63,9 +63,9 @@ report: "report/workflow.rst"
 
 ##### load rules #####
 
-include: "./01-prep/prep.smk"
-include: "./02-reconstruction/reconstruction.smk"
-include: "./03-coregistration/coregistration.smk"
+include: "01-prep/prep.smk"
+include: "02-reconstruction/reconstruction.smk"
+include: "03-coregistration/coregistration.smk"
        # include: "04-contact_localization/contact_localization.smk"
        # include: "05-visualization/visualization.smk"
        # include: "06-postsurgery/postsurgery.smk"
