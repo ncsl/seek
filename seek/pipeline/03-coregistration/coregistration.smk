@@ -64,13 +64,13 @@ ct_tot1_fs_map = os.path.join(BIDS_PRESURG_CT_DIR, ct_to_t1wfs_transform_fname)
 
 print('In coregistration workflow.')
 
-subworkflow prep_workflow:
-    workdir:
-           "../01-prep/"
-    snakefile:
-             "../01-prep/prep.smk"
-    configfile:
-              _get_seek_config()
+# subworkflow prep_workflow:
+#     workdir:
+#            "../01-prep/"
+#     snakefile:
+#              "../01-prep/prep.smk"
+#     configfile:
+#               _get_seek_config()
 
 subworkflow reconstruction_workflow:
     workdir:
@@ -101,7 +101,7 @@ rule coregister_ct_and_T1w_images:
 
 rule prep_ct_for_coregistration:
     input:
-         CT_NIFTI_IMG=prep_workflow(os.path.join(BIDS_PRESURG_CT_DIR, ct_bids_fname)),
+         CT_NIFTI_IMG=os.path.join(BIDS_PRESURG_CT_DIR, ct_bids_fname),
     params:
           CTDIR=str(FSOUT_CT_FOLDER),
     output:
