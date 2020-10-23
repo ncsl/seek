@@ -125,10 +125,6 @@ rule coregister_ct_to_t1wfs:
           ct_tot1_fs_output=ct_tot1_fs_output,
           ct_tot1_fs_map=ct_tot1_fs_map,
     shell:
-         flirt -in /home/adam2392/hdd/epilepsy_bids/derivatives/freesurfer/tvb11/CT/sub-tvb11_ses-presurgery_space-orig_CT.nii \
-             -ref /home/adam2392/hdd/epilepsy_bids/sub-tvb11/ses-presurgery/anat/sub-tvb11_ses-presurgery_space-fs_T1w.nii \
-             -omat /home/adam2392/hdd/epilepsy_bids/derivatives/freesurfer/tvb11/CT/sub-tvb11_ses-presurgery_space-fs_from-CT_to-fs_mode-image_xfm.mat \
-             -out /home/adam2392/hdd/epilepsy_bids/derivatives/freesurfer/tvb11/CT/sub-tvb11_ses-presurgery_space-fs_CT.nii.gz
          "flirt -in {input.CT_NIFTI_IMG_MGZ} \
                              -ref {input.PREMRI_NIFTI_IMG_MGZ} \
                              -omat {output.MAPPING_FILE_ORIG} \

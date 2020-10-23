@@ -44,7 +44,8 @@ snakemake --rulegraph | dot -Tpdf > dag.pdf
 """
 rule all:
     input:
-         ['fig1.png', 'figpost.png', 'figct.png', 'figreconstruct.png']
+         ['fig1.png', 'figreconstruct.png']
+#figpost.png', 'figct.png',
 
 ##### setup singularity #####
 
@@ -61,7 +62,7 @@ report: "report/workflow.rst"
 include: "01-prep/prep.smk"
 include: "02-reconstruction/reconstruction.smk"
 include: "03-coregistration/coregistration.smk"
-# include: "04-contact_localization/contact_localization.smk"
-# include: "05-visualization/visualization.smk"
-include: "06-postsurgery/postsurgery.smk"
+       # include: "04-contact_localization/contact_localization.smk"
+       # include: "05-visualization/visualization.smk"
+       # include: "06-postsurgery/postsurgery.smk"
        # include: "07-group_analysis/groups.smk"

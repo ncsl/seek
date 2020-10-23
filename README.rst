@@ -116,7 +116,8 @@ directory serves as the BIDS root of the workflows.
 Data Organization
 -----------------
 
-We use BIDS. 
+We use BIDS.
+
 See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
 
 Before data is converted to BIDS in ``seek/pipeline/01-prep`` pipeline, 

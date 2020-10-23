@@ -60,7 +60,7 @@ def _get_seek_path():
 
 def _get_seek_config():
     config_path = os.path.join(
-        _get_seek_path(), "pipeline", "config", "localconfig.yaml"
+        _get_seek_path(), 'seek', "pipeline", "config", "localconfig.yaml"
     )
     return config_path
 
@@ -176,4 +176,4 @@ class BidsRoot:
         ).as_posix()
 
 
-SCRIPTS_UTIL_DIR = Path(_get_seek_path()) / "scripts"
+SCRIPTS_UTIL_DIR = Path(_get_seek_path()) / 'seek' / "scripts"

@@ -64,6 +64,10 @@ pycodestyle:
 	@echo "Running pycodestyle"
 	@pycodestyle
 
+init:
+    export SEEKHOME=$(pwd)
+#    @echo "HI";
+
 check-manifest:
 	check-manifest --ignore .circleci*,docs,.DS_Store,annonymize
 
