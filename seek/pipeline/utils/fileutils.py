@@ -59,9 +59,11 @@ def _get_seek_path():
 
 
 def _get_seek_config():
-    config_path = os.path.join(
-        _get_seek_path(), 'seek', "pipeline", "config", "localconfig.yaml"
-    )
+    config_path = Path(_get_seek_path()).rglob('config/localconfig.yaml')
+    config_path = config_path[0]
+    # config_path = os.path.join(
+    #     _get_seek_path(), 'seek', "pipeline", "config", "localconfig.yaml"
+    # )
     return config_path
 
 
