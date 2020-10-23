@@ -44,7 +44,11 @@ snakemake --rulegraph | dot -Tpdf > dag.pdf
 """
 rule all:
     input:
-         ['fig1.png', 'figct.png', 'figreconstruct.png']
+         [
+          'fig1.png',
+          'figct.png',
+          # 'figreconstruct.png',
+          ]
 #figpost.png', 'figct.png',
 
 ##### setup singularity #####
