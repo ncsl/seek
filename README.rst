@@ -36,22 +36,21 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
 
 
 This repo describes efforts to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
-and iEEG data (ECoG, or SEEG). At a high level, this pipeline is taking neuroimaging data of a patient to produce usable data about the brain's geometry,
-regional parcellation into atlas regions, connectivity between brain regions measured by white matter tracts, and channel localization in MRI space.
-Localizing SEEG electrodes requires at least two contacts on each electrode to initialize the algorithm.
-These can be say the deepest 2 contacts, or the entry point and target point (e.g. first and last contact on the electrode).
+and iEEG data (ECoG, or SEEG).
 
 For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
 be easily interpolated. See `Fieltrip Toolbox`_.
 
 For incorporation of DTI data, see `ndmeg <https://github.com/neurodata/ndmg>`_.
 
+To start using the workflows with your data, see [workflow documentation](./workflow/documentation.md) file.
+
 Documentation
 -------------
 
 * Link to documentation <>
 * For a detailed description of the SEEK workflow of contact localization, specifically localizing the 2 points per electrode, see :doc:`localization guide <./localization_guide>`
-* For a detailed description of the overall SEEK workflow, see :ref:`PIPELINEDESCRIPTION`.
+* For a detailed description of the overall SEEK workflow, see ``./workflow/documentation.md``.
 
 
 Setup and Installation

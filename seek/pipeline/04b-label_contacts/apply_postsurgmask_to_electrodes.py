@@ -32,6 +32,7 @@ def apply_mask_on_electrodes(electrodes_tsv, mask_img):
     resected_contacts = dict()
 
     mask_indx = np.argwhere(mask_img.get_fdata())
+
     # print(np.where(mask_img.get_fdata() != 0))
     for ch_name, vox_coords in zip(ch_names, electrodes_vox):
         vox_coords = np.array(list(map(int, vox_coords)))
@@ -40,11 +41,22 @@ def apply_mask_on_electrodes(electrodes_tsv, mask_img):
         # print(mask_img.get_fdata()[vox_coords])
         # if mask_img.get_fdata()[vox_coords[0], vox_coords[1], vox_coords[2]] != 0:
         #     resected_contacts.append(ch_name)
+        # if ch_name in ["L'2", "L'3", "L'4"]:
+        #     # compute pairwise distance
+        #     import scipy.spatial
+        #     print(mask_indx.shape)
+        #     dists_to_mask = scipy.spatial.distance.cdist(vox_coords[np.newaxis, :], mask_indx)
+        #     print(dists_to_mask.shape)
+        #     # dists_norm = np.linalg.norm(dists_to_mask)
+        #     # print(dists_norm.shape)
+        #     print(np.argmin(dists_to_mask))
+        #     print('Closest distance in voxels to: ', np.min(dists_to_mask))
+        #     print(ch_name, vox_coords)
 
         for i in range(len(mask_indx)):
-            if (np.abs(vox_coords[0] - mask_indx[i][0]) <= 3) & \
-                    (np.abs(vox_coords[1] - mask_indx[i][1]) <= 5.0) & \
-                    (np.abs(vox_coords[2] - mask_indx[i][2]) <= 3.1):
+            if (np.abs(vox_coords[0] - mask_indx[i][0]) <= 3.5) & \
+                    (np.abs(vox_coords[1] - mask_indx[i][1]) <= 3.5) & \
+                    (np.abs(vox_coords[2] - mask_indx[i][2]) <= 2):
                 resected_contacts[ch_name] = 1
     print(resected_contacts.keys())
 
@@ -77,10 +89,11 @@ if __name__ == "__main__":
         subject=subject,
         session='postsurgery',
         datatype="anat",
-        processing='slicer',
+        # processing='slicer',
+        processing='slicerfillaxial',
         space=space,
         suffix="mask",
-        extension=".nii",
+        extension=".nii.gz",
         root=root,
         check=False
     )

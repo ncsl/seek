@@ -1,0 +1,32 @@
+$schema: "http://json-schema.org/draft-06/schema#"
+
+description: snakemake configuration file
+
+type: object
+
+properties:
+  bids_root:
+    type: string
+  subjects:
+    type: string
+  session:
+    type: string
+#  params:
+#    type: object
+#    properties:
+#      star:
+#        type: string
+#      cutadapt-se:
+#        type: string
+#      cutadapt-pe:
+#        type: string
+#    required:
+#      - star
+#      - cutadapt-se
+#      - cutadapt-pe
+
+required:
+  - bids_root
+  - subjects
+  - session
+  - params

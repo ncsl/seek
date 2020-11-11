@@ -1,0 +1,63 @@
+import sys
+import pandas as pd
+from pathlib import Path
+import os
+from snakemake.utils import validate, min_version
+from snakemake.logging import logger
+
+sys.path.append(os.getenv('SEEKHOME'))
+
+print(os.getcwd())
+
+from seek.pipeline.utils.fileutils import _get_seek_config
+
+##### set minimum snakemake version #####
+min_version("5.1.2")
+
+##### load config and sample sheets #####
+
+configfile: _get_seek_config()
+validate(config, schema="schemas/config.schema.yaml")
+
+configpath = Path(_get_seek_config()).parent
+subject_df = pd.read_table(configpath / config["subjects"]).set_index("id", drop=False)
+
+logger.info(subject_df.to_dict(orient='index'))
+logger.info(config)
+
+# validate the `subjects.tsv` file
+for subject, subject_row in subject_df.to_dict(orient='index').items():
+    validate(subject_row, schema="schemas/subjects.schema.yaml")
+# expose the variable subjects for usage in downstream rules
+subjects = subject_df['id']
+centers = subject_df['center_id'].tolist()
+
+##### target rules #####
+
+"""
+snakemake --rulegraph | dot -Tpdf > dag.pdf
+"""
+rule all:
+    input:
+         ['figct.png']
+#figpost.png', 'figct.png',
+
+##### setup singularity #####
+
+# this container defines the underlying OS for each job when using the workflow
+# with --use-singularity
+singularity: "docker://neuroseek/seek"
+
+##### setup report #####
+
+report: "report/workflow.rst"
+
+##### load rules #####
+
+include: "01-prep/prep.smk"
+include: "02-reconstruction/reconstruction.smk"
+include: "03-coregistration/coregistration.smk"
+       # include: "04-contact_localization/contact_localization.smk"
+       # include: "05-visualization/visualization.smk"
+       # include: "06-postsurgery/postsurgery.smk"
+       # include: "07-group_analysis/groups.smk"

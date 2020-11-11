@@ -18,6 +18,8 @@ nilearn = "*"
 scikit-image = "*"
 snakemake = "*"
 dicom2nifti = "*"
+black = "*"
+codespell = "*"
 
 [requires]
 python_version = "3.8"

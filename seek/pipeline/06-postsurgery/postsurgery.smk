@@ -160,7 +160,7 @@ subworkflow reconstruction_workflow:
     workdir:
            "../02-reconstruction/"
     snakefile:
-             "02-reconstruction/reconstruction.smk"
+             "../02-reconstruction/reconstruction.smk"
     configfile:
               _get_seek_config()
 
@@ -245,7 +245,7 @@ Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
 
 E.g. useful for CT, and DTI images to be coregistered
 """
-rule coregister_t1w_post_to_pre:
+rule coregister_t1w_postacpc_to_pre:
     input:
          pre_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
          post_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
@@ -272,7 +272,7 @@ Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
 
 E.g. useful for CT, and DTI images to be coregistered
 """
-rule coregister_t1w_post_to_preacpc:
+rule coregister_t1w_postacpc_to_preacpc:
     input:
          pre_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
          post_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
