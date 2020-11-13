@@ -22,7 +22,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source-directory: "doc/build/build"
+          source-directory: "doc/build"
           output-directory: "docs/seek"
           destination-github-username: "cronelab"
           destination-repository-name: "ReconstructionVisualizer"
