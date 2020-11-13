@@ -16,6 +16,7 @@ is used to determine the regions that were surgically resected/ablated in a proc
 to each other.
 2. Is thalamic/hippocampus/brainstem segmentation before/after aseg2srf.sh call which generates ?
 3. Run a full example through each.
+4. Link documentation to https://github.com/cronelab/ReconstructionVisualizer
 
 
 ## Data Organization
