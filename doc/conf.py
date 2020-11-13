@@ -1,3 +1,4 @@
+
 import os
 import sys
 from datetime import date
@@ -52,7 +53,7 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.autosectionlabel',
     'numpydoc',
-    "seek.sphinxext.snakemakerule",
+    # "seek.sphinxext.snakemakerule",
 ]
 
 # generate autosummary even if no references
@@ -152,7 +153,7 @@ else:
     filepath_prefix = 'v{}'.format(version)
 
 sphinx_gallery_conf = {
-    'examples_dirs': ['../examples', '../tutorials'],
+    'examples_dirs': ['../data_examples', '../tutorials'],
     'within_subsection_order': ExampleTitleSortKey,
     'gallery_dirs': ['auto_examples', 'auto_tutorials'],
     'filename_pattern': '^((?!sgskip).)*$',
