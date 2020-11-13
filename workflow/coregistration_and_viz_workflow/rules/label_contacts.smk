@@ -14,12 +14,12 @@ import os.path as op
 import sys
 from pathlib import Path
 
-from mne_bids import make_bids_basename, make_bids_folders
+from mne_bids import BIDSPath
 
 sys.path.append("../../../")
 from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT,
                                            _get_seek_config, _get_ieeg_bids_dir,
-                                           _get_anat_bids_dir)
+                                           _get_anat_bids_dir, _get_bids_basename, )
 
 configfile: _get_seek_config()
 
@@ -42,51 +42,30 @@ FIGDIR = os.path.join(FSOUT_ELECS_FOLDER, "figs")
 
 # directory paths to output Raw BIDS related files
 BIDS_PRESURG_IEEG_DIR = _get_ieeg_bids_dir(bids_root.bids_root, subject_wildcard, session=SESSION)
-
-
-def _get_bids_basename(subject, acquisition):
-    """Wildcard function to get bids_basename."""
-    bids_fname = make_bids_basename(subject, acquisition=acquisition,
-                                    suffix=f"electrodes.tsv")
-    return bids_fname
-
-
-def get_channels_tsv_fpath(bids_root, subject_id):
-    data_path = make_bids_folders(subject=subject_id, bids_root=bids_root,
-                                  make_dir=False, overwrite=False, verbose=False)
-    channels_tsv_fpath = make_bids_basename(subject=subject_id, suffix="channels.tsv", prefix=data_path)
-    return channels_tsv_fpath
-
-
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 premri_fs_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                           space='fs', imgtype='T1w', ext='nii')
 
 t1_fs_fpath = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_fs_bids_fname)
 
-# the path to the subject/session
-data_path = make_bids_folders(subject=subject_wildcard, session=SESSION,
-                              bids_root=str(bids_root.bids_root), make_dir=False,
-                              overwrite=False, verbose=False)
-
 # the output electrode/coordsystem file(s)
 #################### Centroid coordinates ####################
 # manually labeled
-manual_coordsystem_fname = make_bids_basename(
+manual_coordsystem_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='manual',
-    suffix='coordsystem.json')
-manual_electrodes_fname = make_bids_basename(
+    suffix='coordsystem', extension='.json').basename
+manual_electrodes_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='manual',
-    suffix='electrodes.tsv')
+    suffix='electrodes', extension='.tsv').basename
 manual_electrodes_json = manual_electrodes_fname.replace('.tsv', '.json')
 
 # output of SEEK estimation algorithm
-seek_coordsystem_fname = make_bids_basename(
+seek_coordsystem_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='seek',
-    suffix='coordsystem.json')
-seek_electrodes_fname = make_bids_basename(
+    suffix='coordsystem', extension='.json').basename
+seek_electrodes_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='seek',
-    suffix='electrodes.tsv')
+    suffix='electrodes', extension='.tsv').basename
 seek_electrodes_json = seek_electrodes_fname.replace('.tsv', '.json')
 
 #################### Sub workflows ####################
@@ -113,7 +92,8 @@ rule label_electrode_anatomy:
          # bids_electrodes_json_file=expand(op.join(BIDS_PRESURG_IEEG_DIR, seek_electrodes_json), subject=subjects),
          manual_coordsystem_file=expand(op.join(BIDS_PRESURG_IEEG_DIR, manual_coordsystem_fname), subject=subjects),
          manual_bids_electrodes_file=expand(op.join(BIDS_PRESURG_IEEG_DIR, manual_electrodes_fname), subject=subjects),
-         manual_bids_electrodes_json_file=expand(op.join(BIDS_PRESURG_IEEG_DIR, manual_electrodes_json), subject=subjects),
+         manual_bids_electrodes_json_file=expand(op.join(BIDS_PRESURG_IEEG_DIR, manual_electrodes_json),
+                                                 subject=subjects),
     params:
           bids_root=bids_root.bids_root,
     output:
@@ -167,20 +147,20 @@ rule apply_anatomicalatlas_to_electrodes:
          clustered_center_points_file=contact_localization_workflow(op.join(FSOUT_ELECS_FOLDER, seek_electrodes_fname)),
          T1_NIFTI_IMG=reconstruction_workflow(t1_fs_fpath),
          mri_coordsystem_fpath=contact_localization_workflow(op.join(FSOUT_ELECS_FOLDER, seek_coordsystem_fname)),
-    params:
-          FSPATIENT_DIR=str(FSPATIENT_SUBJECT_DIR),
-    output:
-          bids_electrodes_tsv_file=op.join(BIDS_PRESURG_IEEG_DIR, seek_electrodes_fname),
-          bids_electrodes_json_file=op.join(BIDS_PRESURG_IEEG_DIR, seek_electrodes_json),
-          mri_coordsystem_fpath=op.join(BIDS_PRESURG_IEEG_DIR, seek_coordsystem_fname),
-    shell:
+         params:
+         FSPATIENT_DIR=str(FSPATIENT_SUBJECT_DIR),
+         output:
+         bids_electrodes_tsv_file=op.join(BIDS_PRESURG_IEEG_DIR, seek_electrodes_fname),
+         bids_electrodes_json_file=op.join(BIDS_PRESURG_IEEG_DIR, seek_electrodes_json),
+         mri_coordsystem_fpath=op.join(BIDS_PRESURG_IEEG_DIR, seek_coordsystem_fname),
+         shell:
          "echo 'Applying anatomical atlas to electrode points...';"
          "python ./apply_anat_to_electrodes.py " \
-         "{input.clustered_center_points_file} " \
-         "{output.bids_electrodes_tsv_file} " \
-         "{params.FSPATIENT_DIR} " \
-         "{input.fs_lut_fpath} " \
-         "{input.T1_NIFTI_IMG};"
+             "{input.clustered_center_points_file} " \
+             "{output.bids_electrodes_tsv_file} " \
+             "{params.FSPATIENT_DIR} " \
+             "{input.fs_lut_fpath} " \
+             "{input.T1_NIFTI_IMG};"
          "cp {input.mri_coordsystem_fpath} {output.mri_coordsystem_fpath};"
 
 rule apply_anatomicalatlas_to_manual_electrodes:
@@ -206,18 +186,18 @@ rule apply_anatomicalatlas_to_manual_electrodes:
          "{input.T1_NIFTI_IMG};"
          "cp {input.mri_coordsystem_fpath} {output.mri_coordsystem_fpath};"
 
- # rule apply_whitematteratlas_to_electrodes:
- #     input:
- #         WM_IMG_FPATH =  ,
- #     params:
- #         FSPATIENT_DIR = FSPATIENT_SUBJECT_DIR,
- #     output:
- #         bids_electrodes_file = os.path.join(electrodes_fname),
- #     shell:
- #         "echo 'Applying anatomical atlas to electrode points...';"
- #         "python ./apply_anat_to_electrodes.py " \
- #         "{input.clustered_center_points_file} " \
- #         "{input.clustered_center_voxels_file} " \
- #         "{output.bids_electrodes_file} " \
- #         "{params.FSPATIENT_DIR} " \
- #         "{input.WM_IMG_FPATH};"
+         # rule apply_whitematteratlas_to_electrodes:
+         #     input:
+         #         WM_IMG_FPATH =  ,
+         #     params:
+         #         FSPATIENT_DIR = FSPATIENT_SUBJECT_DIR,
+         #     output:
+         #         bids_electrodes_file = os.path.join(electrodes_fname),
+         #     shell:
+         #         "echo 'Applying anatomical atlas to electrode points...';"
+         #         "python ./apply_anat_to_electrodes.py " \
+         #         "{input.clustered_center_points_file} " \
+         #         "{input.clustered_center_voxels_file} " \
+         #         "{output.bids_electrodes_file} " \
+         #         "{params.FSPATIENT_DIR} " \
+         #         "{input.WM_IMG_FPATH};"

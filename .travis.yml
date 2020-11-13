@@ -4,7 +4,7 @@ services:
 language: python
 
 python:
-  - "3.6"
+  - "3.8"
 
 addons:
   apt:
@@ -34,23 +34,13 @@ before_install:
 install:
   # commands to get Miniconda3 setup
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda create -q -n test-env
-  - conda init bash
-  - source activate test-env
-  - conda config --add channels bioconda
-  - conda config --add channels conda-forge
-  - conda install numpy scipy matplotlib pytest scikit-learn pandas seaborn nibabel mne mne-bids snakemake ipykernel scikit-image flask
-  # run conda /pip installation of packages
-  - conda install -c anaconda natsort pytest black flake8 check-manifest pytest-cov pydocstyle
-  - pip install codespell
+  - pip install --upgrade pip
+  - pip install pipenv
+  - pipenv install --dev --skip-lock
 
 # command to run tests
 script:
-  - pytest ./tests
-  - make check
+  - pipenv run pytest
+  - pipenv run make check
   - docker build --tag neuroseek .
   - docker run neuroseek

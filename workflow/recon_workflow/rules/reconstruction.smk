@@ -52,6 +52,8 @@ premri_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
 print('In reconstruction workflow.')
 
 subworkflow prep_workflow:
+    workdir:
+           "../"
     snakefile:
              "./rules/prep.smk"
     configfile:
@@ -189,7 +191,9 @@ Rule for extracting the subcortical regions
 """
 rule create_subcortical_volume:
     input:
-         outsuccess_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+         outsuccess_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt"),
+         subcort_fs7_segmentation_success_flag_file=os.path.join(FSPATIENT_SUBJECT_DIR,
+                                                                 f'{subject_wildcard}_fs7_subcort_segmentation_success.txt'),
     params:
           SUBJECTS_DIR=FS_DIR,
           patient=subject_wildcard,
@@ -202,3 +206,33 @@ rule create_subcortical_volume:
          "SUBJECTS_DIR={params.SUBJECTS_DIR};"
          "{params.scripts_dir}/aseg2srf -s {params.patient};"
          "touch {output.subcort_success_flag_file};"
+
+"""
+Rule for FreeSurfer 7+, where one can segment the brainstem, hippocampus and thalamus further.
+
+References:
+- http://freesurfer.net/fswiki/ThalamicNuclei
+- http://freesurfer.net/fswiki/HippocampalSubfieldsAndNucleiOfAmygdala
+- http://freesurfer.net/fswiki/BrainstemSubstructures
+"""
+rule create_subcortical_segmentations:
+    input:
+         outsuccess_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
+    params:
+          SUBJECTS_DIR=FS_DIR,
+          subject=subject_wildcard,
+          scripts_dir=SCRIPTS_UTIL_DIR,
+    output:
+#           output_files=os.path.join(FSPATIENT_SUBJECT_DIR, 'mri', 'ThalamicNuclei.v12.T1.volumes.txt'),
+#             ThalamicNuclei.v12.T1.mgz: stores the discrete segmentation volumes at subvoxel resolution (0.5 mm).
+# ThalamicNuclei.v12.T1.FSvoxelSpace.mgz:
+          subcort_fs7_segmentation_success_flag_file=os.path.join(FSPATIENT_SUBJECT_DIR,
+                                                                  f'{subject_wildcard}_fs7_subcort_segmentation_success.txt'),
+    shell:
+         "export SUBJECTS_DIR={params.SUBJECTS_DIR};"
+         "SUBJECTS_DIR={params.SUBJECTS_DIR};"
+         # Run these only after recon-all
+         "segmentThalamicNuclei.sh {params.subject};"
+         "segmentHA_T1.sh {params.subject};"
+         "segmentBS.sh {params.subject};"
+         "touch {output.subcort_fs7_segmentation_success_flag_file};"

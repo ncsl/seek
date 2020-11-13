@@ -12,7 +12,7 @@ print(os.getcwd())
 from seek.pipeline.utils.fileutils import _get_seek_config
 
 ##### set minimum snakemake version #####
-min_version("5.1.2")
+min_version("5.27.4")
 
 ##### load config and sample sheets #####
 

@@ -15,20 +15,21 @@ import os
 import sys
 from pathlib import Path
 
-from mne_bids import make_bids_basename, make_bids_folders
+from mne_bids import BIDSPath
 
 sys.path.append("../../../")
 
 from seek.pipeline.utils.fileutils import BidsRoot, BIDS_ROOT, _get_session_name, _get_seek_config
 
 configfile: _get_seek_config()
+
 BLENDER_PATH = config["blender_path"]
-BLENDER_PATH = "blender"
-# BLENDER_PATH = os.environ.get("blender")
-# print(BLENDER_PATH)
+print(BLENDER_PATH)
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(config['bids_root']))
+bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
+                     center_id=config.get('center_id')
+                     )
 subject_wildcard = "{subject}"
 
 # initialize directories that we access in this snakemake
@@ -81,13 +82,6 @@ electrodes_fname = make_bids_basename(
     acquisition='seeg',
     suffix='electrodes.tsv', prefix=data_path)
 
-# subworkflow reconstruction_workflow:
-#     workdir:
-#            "../02-reconstruction/",
-#     snakefile:
-#              "../02-reconstruction/reconstruction.smk"
-#     configfile:
-#               _get_seek_config()
 
 subworkflow contact_localization_workflow:
     workdir:

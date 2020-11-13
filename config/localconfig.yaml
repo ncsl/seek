@@ -3,7 +3,8 @@ bids_root:
 #  "/home/ksr/Desktop/contact_localization/efri/"
 #  "/Users/adam2392/Dropbox/efri/"
 #  "/home/adam2392/hdd/epilepsy_bids/"
-  '/Users/adam2392/Dropbox/epilepsy_bids/'
+#  '/Users/adam2392/Dropbox/epilepsy_bids/'
+  '/Users/adam2392/Documents/seek/data_examples/'
 
 # session name to give all datasets; corresponds to the ``ses-`` BIDS entity
 session: "presurgery"
@@ -13,4 +14,7 @@ subjects: 'subjects.tsv'
 #nl02	cleveland	''
 #nl06	cleveland	''
 #nl11	cleveland	''
+
+blender_path: 'blender'
+
 params:

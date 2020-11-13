@@ -14,10 +14,6 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
    :target: https://github.com/ambv/black
    :alt: Code style: black
 
-.. image:: https://codeclimate.com/github/ncsl/seek/maintainability
-   :target: https://api.codeclimate.com/v1/badges/2c7d5910e89350b967c8/maintainability
-   :alt: Code Climate
-
 .. image:: https://img.shields.io/github/repo-size/ncsl/seek
    :target: https://img.shields.io/github/repo-size/ncsl/seek
    :alt: GitHub repo size
@@ -25,6 +21,10 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
 .. image:: https://zenodo.org/badge/160566959.svg
    :target: https://zenodo.org/badge/latestdoi/160566959
    :alt: DOI
+
+.. image:: https://img.shields.io/badge/snakemake-≥5.6.0-brightgreen.svg?style=flat
+   :target: https://snakemake.readthedocs.io
+   :alt: Snakemake
 
 .. image:: https://api.netlify.com/api/v1/badges/d36d01d2-319a-4e0d-b84f-1d5b4133d5f8/deploy-status
    :target: https://app.netlify.com/sites/elated-almeida-a25d64/deploys
@@ -50,7 +50,7 @@ Documentation
 
 * Link to documentation <>
 * For a detailed description of the SEEK workflow of contact localization, specifically localizing the 2 points per electrode, see :doc:`localization guide <./localization_guide>`
-* For a detailed description of the overall SEEK workflow, see ``./workflow/documentation.md``.
+* For a detailed description of the overall SEEK workflow, see `workflow documentation <workflow/documentation.md>`_.
 
 
 Setup and Installation

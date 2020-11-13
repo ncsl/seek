@@ -10,6 +10,14 @@ The pre-surgical T1 MRI are used to reconstruct a structural parcellation of the
 The post-implant CT are used to localize implanted electrode coordinates. The post-surgical T1 MRI 
 is used to determine the regions that were surgically resected/ablated in a procedure.
 
+## TODO
+
+1. Host documentation pages for seek, visualization engine on netlifly or something. Have them link
+to each other.
+2. Is thalamic/hippocampus/brainstem segmentation before/after aseg2srf.sh call which generates ?
+3. Run a full example through each.
+
+
 ## Data Organization
 We attempt to adhere to the BIDS specification. Original raw source data is stored in 
 ``sourcedata/<subject_id>``. Transformations (``.xfm`` files), image files (``.nii``) are
@@ -35,6 +43,16 @@ First before proceeding you must set your environment variable ``SEEKHOME`` to b
 directory path that ``seek`` repository lives. For example:
 
     export SEEKHOME=/Users/adam2392/Documents/seek
+
+In addition, SEEK will use `blender` in the visualization prep workflow. Please 
+download blender and set the environment variable to its runtime path.
+
+
+
+FreeSurfer uses multiple processors to run. One can set this using the environment variable.
+
+    # Use max processing power on machine
+    export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$(nproc)
 
 ## Setting configuration
 Inside the root of the repository directory, you can set configuration variables to match your dataset. 
@@ -135,6 +153,23 @@ good enough, then you can proceed to localizing the electrode coordinates in the
 The output of this will be xyz millimeter coordinates of each electrode in the anatomical MRI space.
 
 *Reference:* For more information on Fieldtrip Toolbox and the GUI, see: https://www.fieldtriptoolbox.org/tutorial/human_ecog/#anatomical-workflow
+
+### 2b. Advanced Usage - Semi-automated Electrode Localization
+
+TODO. IN TESTING PHASE.
+
+SEEK will provide an algorithm that attempts to localize all contacts 
+on sEEG electrodes. In order to do so, one must localize at least 2 contacts 
+per sEEG electrode in the above step. Then save the output, and run 
+the corresponding algorithm script.
+
+One can then open up the matlab script again to check the work of all the 
+electrode locations.
+
+Reference:
+- Huynh C., Li A., et al., “Towards Automatic Localization and Anatomical 
+Labeling of Intracranial Depth Electrodes in Brain Images”. 
+IEEE Engineering in Medicine and Biology Conference, Montreal, Canada (2020).
 
 ## 3. ``coregistration_and_viz_workflow``
 The input of this workflow is the coregistered CT image and electrode coordinates (in ``*_electrodes.tsv`` file 

@@ -4,22 +4,31 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-black = "*"
+black = ">=0.20.8b1"
 pydocstyle = "*"
 codespell = "*"
+jinja2 = "*"
+sphinx = "*"
+sphinx-gallery = "*"
+sphinx-bootstrap-theme = "*"
+numpydoc = "*"
+sphinxcontrib-restbuilder = "*"
+pytest = "*"
 
 [packages]
-mne = "*"
-mne-bids = {file = "https://api.github.com/repos/mne-tools/mne-bids/zipball/master"}
+mne = ">=0.21"
+mne-bids = ">=0.5"
 pandas = "*"
 natsort = "*"
-pybv = "*"
+pybv = ">=0.4"
 nilearn = "*"
 scikit-image = "*"
-snakemake = "*"
+snakemake = ">=5.27.4"
 dicom2nifti = "*"
-black = "*"
-codespell = "*"
+xlrd = "*"
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true

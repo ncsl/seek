@@ -54,9 +54,11 @@ def apply_mask_on_electrodes(electrodes_tsv, mask_img):
         #     print(ch_name, vox_coords)
 
         for i in range(len(mask_indx)):
-            if (np.abs(vox_coords[0] - mask_indx[i][0]) <= 3.5) & \
-                    (np.abs(vox_coords[1] - mask_indx[i][1]) <= 3.5) & \
-                    (np.abs(vox_coords[2] - mask_indx[i][2]) <= 2):
+            if (
+                (np.abs(vox_coords[0] - mask_indx[i][0]) <= 3.5)
+                & (np.abs(vox_coords[1] - mask_indx[i][1]) <= 3.5)
+                & (np.abs(vox_coords[2] - mask_indx[i][2]) <= 2)
+            ):
                 resected_contacts[ch_name] = 1
     print(resected_contacts.keys())
 
@@ -87,15 +89,15 @@ if __name__ == "__main__":
 
     mask_img_fpath = BIDSPath(
         subject=subject,
-        session='postsurgery',
+        session="postsurgery",
         datatype="anat",
         # processing='slicer',
-        processing='slicerfillaxial',
+        processing="slicerfillaxial",
         space=space,
         suffix="mask",
         extension=".nii.gz",
         root=root,
-        check=False
+        check=False,
     )
 
     parser = argparse.ArgumentParser()
@@ -104,9 +106,9 @@ if __name__ == "__main__":
         required=False,
         help="The output datafile with all the electrode points clustered.",
         default=sourcepath
-                / "electrodes localized"
-                / "stolk"
-                / f"{subject}_elec_acpc_f.mat",
+        / "electrodes localized"
+        / "stolk"
+        / f"{subject}_elec_acpc_f.mat",
     )
     parser.add_argument(
         "-output_bids_electrodes_file",
@@ -137,11 +139,11 @@ if __name__ == "__main__":
     mask_img_fpath = args.mask_img_fpath
 
     # load in the T1 MRI image and its affine
-    print(f'Loading in mask file {mask_img_fpath}')
+    print(f"Loading in mask file {mask_img_fpath}")
     t1_img = nb.load(mask_img_fpath)
 
     # load in the electrode coordinates
-    print(f'Loading file {output_electrodes_tsv_fpath}')
+    print(f"Loading file {output_electrodes_tsv_fpath}")
     electrodes_tsv = _from_tsv(output_electrodes_tsv_fpath)
 
     # extract subject id from bids sidecar electrodes fname

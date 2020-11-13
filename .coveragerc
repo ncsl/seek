@@ -1,5 +1,5 @@
 [run]
-omit=neuroimg/pipeline/*,*__init__.py
+omit=workflow/*,*__init__.py
 
 [report]
 exclude_lines =
