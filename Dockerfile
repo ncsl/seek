@@ -86,7 +86,7 @@ RUN pip install --upgrade pip
 RUN pip install pipenv
 
 # copy over Pipfiles
-COPY Pipfile* /tmp
+COPY Pipfile* /tmp/
 
 # Copy locking -> requirements.txt and install using pip
 #RUN cd /tmp && pipenv lock --requirements > requirements.txt
