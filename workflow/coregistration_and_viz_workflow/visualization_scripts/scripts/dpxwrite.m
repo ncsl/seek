@@ -22,7 +22,7 @@ fname = varargin{1};
 dpx = varargin{2}(:);
 nX  = numel(dpx);
 
-% Check if all are integers and use appropriate formating
+% Check if all are integers and use appropriate formatting
 if all(mod(dpx,1)==0),
     fstr = '%d';
 else

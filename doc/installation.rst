@@ -38,7 +38,7 @@ Manual Installation (Not Recommended; See Docker)
 
 For purposes of documentation and transparency to users, we outline here the manual installation process SEEK can take.
 To install the SEEK pipeline manually, one must install the necessary python runtimes, as well as the necessary 3rd party
-softwares. 
+software.
 
 Python Installations
 ^^^^^^^^^^^^^^^^^^^^

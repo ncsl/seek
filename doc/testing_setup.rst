@@ -11,7 +11,7 @@ Testing Data
 We utilize a testing dataset at https://github.com/adam2392/seek-testing-data to
 perform unit and integration tests.
 
-Testing Scipts
+Testing Script
 --------------
 First off, we follow the `black` coding format. In addition, we utilize `pydocstyle`, and `codespell`
 checks.

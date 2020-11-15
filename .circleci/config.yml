@@ -27,12 +27,12 @@ jobs:
           name: Run unit and integration tests
           command: |
             pipenv run make check
-            cd workflow/prep_localization_workflow/
-            pipenv run snakemake --lint
-            cd workflow/coregistration_and_viz_workflow/
-            pipenv run snakemake --lint
-            cd workflow/recon_workflow/
-            pipenv run snakemake --lint
+#            cd workflow/prep_localization_workflow/
+#            pipenv run snakemake --lint
+#            cd workflow/coregistration_and_viz_workflow/
+#            pipenv run snakemake --lint
+#            cd workflow/recon_workflow/
+#            pipenv run snakemake --lint
 #            pipenv run pytest
 
       - save_cache:

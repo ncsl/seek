@@ -328,7 +328,7 @@ class GetSurface:
         """
         Compute and format the subcortical Surface.
 
-        :param subcort_surf_direc: The direcotry for the subcortical surface.
+        :param subcort_surf_direc: The directory for the subcortical surface.
         :param region_index_mapping: (RegionIndexMapping) The region index mapping for subcortical structs
         :return: Surface
         """

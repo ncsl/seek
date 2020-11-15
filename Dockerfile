@@ -107,12 +107,9 @@ WORKDIR /seek
 ENV SEEKHOME /seek
 
 # copy over data files
-COPY data_examples /data
-COPY ./seek/pipeline/01-prep /seek/pipeline/01-prep
-COPY ./seek/pipeline/02-reconstruction /seek/pipeline/02-reconstruction
-COPY ./seek/pipeline/03-coregistration /seek/pipeline/03-coregistration
+COPY data /data
 
-# copy over files and functions
-COPY ./seek/pipeline/fileutils.py /seek/pipeline/fileutils.py
-COPY ./seek/format /seek/format
-COPY ./seek/pipeline/config/localconfig.yaml /seek/pipeline/config/localconfig.yaml
+# copy over code and workflows
+COPY ./seek/ /seek/
+COPY ./workflow/ /workflow/
+COPY ./config/ /config/

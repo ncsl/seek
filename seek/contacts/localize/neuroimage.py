@@ -31,12 +31,14 @@ def _compute_vector(point1, point2, unitSphere=False):
     """Compute (unit)-vector between two N-dimensional points."""
     finalVector = [0 for coord in point1]
     for dimension, coord in enumerate(point1):
-        # finding total difference for that co-ordinate(x,y,z...)
+        # finding total difference for that coordinate(x,y,z...)
         deltaCoOrd = point2[dimension] - coord
         # adding total difference
         finalVector[dimension] = deltaCoOrd
 
-    # setting unitSphere to True will make the vector scaled down to a sphere with a radius one, instead of it's orginal length
+    # setting unitSphere to True will make the vector
+    # scaled down to a sphere with a radius one,
+    # instead of it's original length
     if unitSphere:
         totalDist = _multidimdist(point1, point2)
         unitVector = []
@@ -998,13 +1000,13 @@ class ClusteredBrainImage(BrainImage):
 
         Parameters
         ----------
-            centroids_vox: dict(str: dict(str: ndarray))
-                Properly labeled dictioanry of centroids in CT voxel
-                coordinates.
+        centroids_vox: dict(str: dict(str: ndarray))
+            Properly labeled dictionary of centroids in CT voxel
+            coordinates.
 
-            affine: ndarray
-                Transformation matrix for applying affine transformation to
-                coordinates to convert CT voxel coordinates to xyz coordinates.
+        affine: ndarray
+            Transformation matrix for applying affine transformation to
+            coordinates to convert CT voxel coordinates to xyz coordinates.
 
         Returns
         -------

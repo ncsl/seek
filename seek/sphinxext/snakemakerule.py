@@ -4,7 +4,7 @@ Defines a docutils directive for inserting simple docstring extracting from
 a snakemake rule (from sequana project).
 ::
     .. snakemakerule: dag
-The name must be a valid sequana rule in the rules directory accesible via the
+The name must be a valid sequana rule in the rules directory accessible via the
 :class:`sequana.snaketools.Module` class
 """
 import re

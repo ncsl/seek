@@ -1,9 +1,14 @@
 PYTHON ?= python
 PYTESTS ?= pytest
-CODESPELL_SKIPS ?= "doc/auto_*,*.fif,*.eve,*.gz,*.tgz,*.zip,*.mat,*.stc,*.label,*.w,*.bz2,*.annot,*.sulc,*.log,*.local-copy,*.orig_avg,*.inflated_avg,*.gii,*.pyc,*.doctree,*.pickle,*.inv,*.png,*.edf,*.touch,*.thickness,*.nofix,*.volume,*.defect_borders,*.mgh,lh.*,rh.*,COR-*,FreeSurferColorLUT.txt,*.examples,.xdebug_mris_calc,bad.segments,BadChannels,*.hist,empty_file,*.orig,*.js,*.map,*.ipynb,searchindex.dat,install_mne_c.rst,plot_*.rst,*.rst.txt,c_EULA.rst*,*.html,gdf_encodes.txt,*.svg"
+CODESPELL_SKIPS ?= "seek/pipeline/*,*_old/*,doc/auto_*,*.fif,*.eve,*.gz,*.tgz,*.zip,*.mat,*.stc,*.label,*.w,*.bz2,*.annot,*.sulc,*.log,*.local-copy,*.orig_avg,*.inflated_avg,*.gii,*.pyc,*.doctree,*.pickle,*.inv,*.png,*.edf,*.touch,*.thickness,*.nofix,*.volume,*.defect_borders,*.mgh,lh.*,rh.*,COR-*,FreeSurferColorLUT.txt,*.examples,.xdebug_mris_calc,bad.segments,BadChannels,*.hist,empty_file,*.orig,*.js,*.map,*.ipynb,searchindex.dat,install_mne_c.rst,plot_*.rst,*.rst.txt,c_EULA.rst*,*.html,gdf_encodes.txt,*.svg"
 CODESPELL_DIRS ?= seek/ workflow/ doc/ tutorials/
 
 all: clean inplace test
+
+# variables
+name := seek
+version := 1.0.0
+dockerhub := neuroseek
 
 ############################## DOCKER #########################
 build:
@@ -15,6 +20,10 @@ run:
 stop:
 	docker stop seek
 	docker rm seek
+
+push:
+	echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+	docker push $(dockerhub)/$(name):$(version)
 
 ############################## UTILITY FOR PYTHON #########################
 clean-pyc:
@@ -86,8 +95,10 @@ check-manifest:
 black:
 	@if command -v black > /dev/null; then \
 		echo "Running black"; \
-		black --check seek; \
-		black seek; \
+		black --check seek/; \
+		black seek/; \
+		black --check workflow/; \
+		black workflow/; \
 	else \
 		echo "black not found, please install it!"; \
 		exit 1; \
@@ -95,5 +106,5 @@ black:
 	@echo "black passed"
 
 check:
-	@$(MAKE) -k black pydocstyle codespell-error
+	@$(MAKE) -k black pydocstyle pycodestyle codespell-error
 

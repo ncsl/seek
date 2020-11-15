@@ -14,6 +14,7 @@ sphinx-bootstrap-theme = "*"
 numpydoc = "*"
 sphinxcontrib-restbuilder = "*"
 pytest = "*"
+pycodestyle = "*"
 
 [packages]
 mne = ">=0.21"

@@ -56,7 +56,7 @@ class StructuralDataset:
         ----------
         filename :
         """
-        # create a temporary direcotry
+        # create a temporary directory
         tmpdir = tempfile.TemporaryDirectory()
 
         file_areas = os.path.join(tmpdir.name, "areas.txt")
