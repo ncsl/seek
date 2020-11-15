@@ -45,5 +45,3 @@ deploy:
   script: make build
   on:
     branch: master
-
-

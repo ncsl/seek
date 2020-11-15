@@ -43,8 +43,7 @@ jobs:
       - run:
           name: Build the documentation
           command: |
-            source activate testenv
-            make build-doc
+            pipenv run make build-doc
 
       - persist_to_workspace:
           root: doc/_build
