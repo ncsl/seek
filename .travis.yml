@@ -13,7 +13,6 @@ addons:
 
 before_install:
   # make local input and output directories to attach to container
-  - cd ..
   - mkdir -m 777 input output
 
   # useful log checks
@@ -28,7 +27,7 @@ before_install:
   - docker pull neuroseek/seek:latest
   - docker images
 #  - docker run -t -d --name travis -e MPLCONFIGDIR=/tmp/matplotlib -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY -v $(pwd):/m2g -v $(readlink -f ../output):/output --entrypoint /bin/bash neurodata/m2g_travis:latest
-  - docker ps
+#  - docker ps
 
 # command to install dependencies
 install:
@@ -40,8 +39,6 @@ install:
 # command to run tests
 script:
   - pipenv run make check
-  - docker build --tag neuroseek .
-  - docker run neuroseek
 
 deploy:
   provider: script
