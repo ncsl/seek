@@ -152,7 +152,7 @@ else:
     filepath_prefix = 'v{}'.format(version)
 
 sphinx_gallery_conf = {
-    'examples_dirs': ['../examples', '../tutorials'],
+    'examples_dirs': ['../tutorials'],
     'within_subsection_order': ExampleTitleSortKey,
     'gallery_dirs': ['auto_examples', 'auto_tutorials'],
     'filename_pattern': '^((?!sgskip).)*$',

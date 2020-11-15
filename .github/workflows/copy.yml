@@ -1,0 +1,29 @@
+name: Node.js CI
+
+on: [push, pull_request, repository_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: install python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install sphinx sphinx_bootstrap_theme sphinx_gallery nibabel scipy pandas mne_bids mne natsort scikit-image scikit-learn dicom2nifti numpydoc
+          sphinx-build -b html doc doc/build
+      - name: Pushes to another repository
+        uses: thebrainchain/copy-folder-action@master
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: "doc/build"
+          output-directory: "docs/seek"
+          destination-github-username: "cronelab"
+          destination-repository-name: "ReconstructionVisualizer"
+          user-email: c.coogan2201@gmail.com
