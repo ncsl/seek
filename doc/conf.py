@@ -52,7 +52,7 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.autosectionlabel',
     'numpydoc',
-    "seek.sphinxext.snakemakerule",
+    # "seek.sphinxext.snakemakerule",
 ]
 
 # generate autosummary even if no references
