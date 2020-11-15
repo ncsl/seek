@@ -7,6 +7,7 @@ from scipy.io import savemat
 
 
 def create_elec_labels_subject(bids_path, output_fpath):
+    """Help create a mat file for fieldtrip toolbox with electrode names."""
     # read in the actual file
     raw = read_raw_bids(bids_path)
 

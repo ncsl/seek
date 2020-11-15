@@ -106,5 +106,5 @@ black:
 	@echo "black passed"
 
 check:
-	@$(MAKE) -k black pydocstyle pycodestyle codespell-error
+	@$(MAKE) -k black pydocstyle codespell-error
 
