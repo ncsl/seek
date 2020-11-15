@@ -119,7 +119,7 @@ folders.
     snakemake -n  # dry run
     snakemake --cores 1  # run the workflow
     
-## 2. Manual step: Contact localization on CT image using FieldTrip Toolbox
+## 2. Contact localization on CT image using FieldTrip Toolbox (Manual) 
 In this step, the preimplantation CT dicoms/nifti image is required and also some metadata. 
 Users will be required to know the electrode labels of all the channels that are implanted, and 
 **also be able to determine** left/right hemisphere on the CT image. One can do so by taking 
@@ -184,20 +184,36 @@ scheme in the corresponding folders (``<subject_id>/ct/<fname>``).
 @CHRISTOPHER TO FILL IN DETAILS OF WHAT THIS IS DOING...
 In addition, this workflow will generate Blender objects of the 
 
+
+## (Optional) Run entire workflow at once
+Note that if the manual step in [contact localization](#2-contact-localization-on-ct-image-using-fieldtrip-toolbox-manual)
+could be automated, then this entire workflow could run from beginning to end as a DAG using
+just the input dicoms/nifti files and the corresponding configuration.
+
+However, the manual step prevents that from being automated. If you are going to 
+receive your CT imaging data along with your T1 MRI data at the same time, you 
+can run manual contact localization first, then you can run everything at once using
+the [Snakefile](./Snakefile) at the root of the ``workflow/`` directory.
+
+WIP
+
 # Visualization Engine
 Now that you have successfully ran through the SEEK workflow for your data, you will have 
 created surface meshes that are anatomically labeled of the patient's brain, and also have
 corresponding xyz (mm) locations and anatomical labels for each electrode in the same MRI space.
 You can run a web-server now to visualize your data.
 
-#### INSERT SCREENSHOT OF END
+![Example output](https://github.com/cronelab/ReconstructionVisualizer/blob/master/Picture.jpg)
 
 #### INSERT LINK TO A VERY SHORT VIDEO PERHAPS THAT CAN BE STORED ON GITHUB? CHRISTOPHER HAS ONE 
 
-To run the visualization engine using Docker:
-### INSERT MAKE COMMAND FOR RUNNING THE FINAL VISUALIZATION ENGINE 
+### INSERT MAKE COMMAND FOR RUNNING THE FINAL VISUALIZATION ENGINE
+To run the visualization engine using Docker: 
     
-    make 
+    docker pull nueroseek/recon_visualizer
+    docker run -p 5000:5000 neuroseek/recon_visualizer
+
+For more information on the web-based visualization engine, refer to: https://github.com/cronelab/ReconstructionVisualizer.
 
 # FAQ:
 1. What if I want to map electrode coordinates to MNI space (e.g. and compare multiple subjects 

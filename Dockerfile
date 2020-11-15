@@ -70,7 +70,7 @@ RUN wget -O- https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/dev/freesurf
 ENV PATH=/usr/local/freesurfer/bin:/usr/local/freesurfer/mni/bin:$PATH
 ENV FREESURFER_HOME /usr/local/freesurfer
 RUN $FREESURFER_HOME/SetUpFreeSurfer.sh
-COPY data_examples/scripts/freesurferlicense.txt /usr/local/freesurfer/.license
+COPY ./freesurferlicense.txt /usr/local/freesurfer/.license
 ENV SUBJECTS_DIR=/data/derivatives/freesurfer
 
 # FSL builder
@@ -81,6 +81,7 @@ RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - && \
     npm i -g bids-validator
 
 # Seek dependencies as a python virtual environment
+FROM python:3.8
 RUN pip install --upgrade pip
 RUN pip install pipenv
 

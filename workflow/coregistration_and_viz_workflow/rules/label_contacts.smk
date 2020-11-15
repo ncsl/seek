@@ -48,6 +48,10 @@ premri_fs_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery'
 
 t1_fs_fpath = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_fs_bids_fname)
 
+# path to the FreeSurfer Lookuptable: assumed to be in sourcedata/
+fs_lut_fpath = os.path.join(bids_root.bids_root, 'sourcedata', "FreeSurferColorLUT.txt")
+
+
 # the output electrode/coordsystem file(s)
 #################### Centroid coordinates ####################
 # manually labeled
@@ -67,23 +71,6 @@ seek_electrodes_fname = BIDSPath(
     subject=subject_wildcard, session=SESSION, processing='seek',
     suffix='electrodes', extension='.tsv').basename
 seek_electrodes_json = seek_electrodes_fname.replace('.tsv', '.json')
-
-#################### Sub workflows ####################
-subworkflow reconstruction_workflow:
-    workdir:
-           "../02-reconstruction/"
-    snakefile:
-             "../02-reconstruction/reconstruction.smk"
-    configfile:
-              _get_seek_config()
-
-subworkflow contact_localization_workflow:
-    workdir:
-           "../04-contact_localization/"
-    snakefile:
-             "../04-contact_localization/contact_localization.smk"
-    configfile:
-              _get_seek_config()
 
 rule label_electrode_anatomy:
     input:
@@ -112,7 +99,7 @@ It can also create a border overlay.
 """
 rule convert_gyri_annotations_to_labels:
     input:
-         recon_success_file=reconstruction_workflow(os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")),
+         recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt"),
     params:
           subject_id=subject_wildcard,
           hemisphere='lh',
@@ -143,33 +130,33 @@ rule convert_gyri_annotations_to_labels:
 
 rule apply_anatomicalatlas_to_electrodes:
     input:
-         fs_lut_fpath=os.path.join('./', '"FreeSurferColorLUT.txt"),
-         clustered_center_points_file=contact_localization_workflow(op.join(FSOUT_ELECS_FOLDER, seek_electrodes_fname)),
-         T1_NIFTI_IMG=reconstruction_workflow(t1_fs_fpath),
-         mri_coordsystem_fpath=contact_localization_workflow(op.join(FSOUT_ELECS_FOLDER, seek_coordsystem_fname)),
-         params:
-         FSPATIENT_DIR=str(FSPATIENT_SUBJECT_DIR),
-         output:
-         bids_electrodes_tsv_file=op.join(BIDS_PRESURG_IEEG_DIR, seek_electrodes_fname),
-         bids_electrodes_json_file=op.join(BIDS_PRESURG_IEEG_DIR, seek_electrodes_json),
-         mri_coordsystem_fpath=op.join(BIDS_PRESURG_IEEG_DIR, seek_coordsystem_fname),
-         shell:
+         fs_lut_fpath=fs_lut_fpath,
+         clustered_center_points_file=op.join(FSOUT_ELECS_FOLDER, seek_electrodes_fname),
+         T1_NIFTI_IMG=t1_fs_fpath,
+         mri_coordsystem_fpath=op.join(FSOUT_ELECS_FOLDER, seek_coordsystem_fname),
+    params:
+          FSPATIENT_DIR=str(FSPATIENT_SUBJECT_DIR),
+    output:
+          bids_electrodes_tsv_file=op.join(BIDS_PRESURG_IEEG_DIR, seek_electrodes_fname),
+          bids_electrodes_json_file=op.join(BIDS_PRESURG_IEEG_DIR, seek_electrodes_json),
+          mri_coordsystem_fpath=op.join(BIDS_PRESURG_IEEG_DIR, seek_coordsystem_fname),
+    shell:
          "echo 'Applying anatomical atlas to electrode points...';"
          "python ./apply_anat_to_electrodes.py " \
-             "{input.clustered_center_points_file} " \
-             "{output.bids_electrodes_tsv_file} " \
-             "{params.FSPATIENT_DIR} " \
-             "{input.fs_lut_fpath} " \
-             "{input.T1_NIFTI_IMG};"
+         "{input.clustered_center_points_file} " \
+         "{output.bids_electrodes_tsv_file} " \
+         "{params.FSPATIENT_DIR} " \
+         "{input.fs_lut_fpath} " \
+         "{input.T1_NIFTI_IMG};"
          "cp {input.mri_coordsystem_fpath} {output.mri_coordsystem_fpath};"
 
 rule apply_anatomicalatlas_to_manual_electrodes:
     input:
-         fs_lut_fpath=os.path.join('./', "FreeSurferColorLUT.txt"),
-         mri_bids_electrodes_tsv_file=contact_localization_workflow(
+         fs_lut_fpath=fs_lut_fpath,
+         mri_bids_electrodes_tsv_file=(
              op.join(FSOUT_ELECS_FOLDER, manual_electrodes_fname)),
-         T1_NIFTI_IMG=reconstruction_workflow(t1_fs_fpath),
-         mri_coordsystem_fpath=contact_localization_workflow(op.join(FSOUT_ELECS_FOLDER, manual_coordsystem_fname)),
+         T1_NIFTI_IMG=t1_fs_fpath,
+         mri_coordsystem_fpath=op.join(FSOUT_ELECS_FOLDER, manual_coordsystem_fname),
     params:
           FSPATIENT_DIR=str(FSPATIENT_SUBJECT_DIR),
     output:

@@ -61,43 +61,38 @@ surface_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER, "blender_objects", 
 surface_fbx_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER, "blender_objects", "reconstruction.fbx")
 
 # coordinate system and electrodes as tsv files
-data_path = make_bids_folders(subject=subject_wildcard, session=_get_session_name(config),
-                              bids_root=str(bids_root.bids_root), make_dir=False,
-                              overwrite=False, verbose=False)
-manual_coordsystem_fname = make_bids_basename(
-    subject=subject_wildcard, session=_get_session_name(config), processing='manual',
-    acquisition='seeg',
-    suffix='coordsystem.json', prefix=data_path)
-manual_electrodes_fname = make_bids_basename(
-    subject=subject_wildcard, session=_get_session_name(config), processing='manual',
-    acquisition='seeg',
-    suffix='electrodes.tsv', prefix=data_path)
+manual_coordsystem_fname = BIDSPath(
+    subject=subject_wildcard, session=_get_session_name(config),
+    # processing='manual',
+    acquisition='seeg', space='fs',
+    suffix='coordsystem', extension='.json', root=bids_root.bids_root)
+manual_electrodes_fname = BIDSPath(
+    subject=subject_wildcard, session=_get_session_name(config),
+    # processing='manual',
+    acquisition='seeg', space='fs',
+    suffix='electrodes', extension='.tsv', root=bids_root.bids_root)
 
-coordsystem_fname = make_bids_basename(
-    subject=subject_wildcard, session=_get_session_name(config), processing='seek',
-    acquisition='seeg',
-    suffix='coordsystem.json', prefix=data_path)
-electrodes_fname = make_bids_basename(
-    subject=subject_wildcard, session=_get_session_name(config), processing='seek',
-    acquisition='seeg',
-    suffix='electrodes.tsv', prefix=data_path)
+coordsystem_fname = manual_coordsystem_fname #.update(processing='seek')
+electrodes_fname = manual_electrodes_fname #.update(processing='seek')
 
-
-subworkflow contact_localization_workflow:
+subworkflow contact_labeling_workflow:
     workdir:
            "./rules/"
     snakefile:
-             "./rules/contact_localization.smk"
+             "./rules/label_contacts.smk"
     configfile:
               _get_seek_config()
 
-rule all:
+rule generate_visualization_blender_meshes:
     input:
-         surface_scene_file=expand(surface_scene_fpath, subject=config["patients"]),
+         surface_scene_file=expand(surface_scene_fpath, subject=subjects),
          # surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
          # surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
+    output:
+          report=report('figviz.png', caption='report/figviz.rst', category='Visualization Prep')
     shell:
          "echo 'Done!;'"
+         "touch figviz.png {output};"
 
 """Convert Ascii pial files to surface files."""
 rule convert_asc_to_srf:
@@ -114,8 +109,7 @@ rule convert_asc_to_srf:
 """Convert Subcortical surface files to Blender object files."""
 rule convert_subcort_to_obj:
     input:
-         subcort_success_flag_file=
-             os.path.join(FSPATIENT_SUBJECT_FOLDER, "{subject}_subcort_success.txt"),
+         subcort_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER, "{subject}_subcort_success.txt"),
     params:
           subject=subject_wildcard,
           fsdir=FS_DIR,
@@ -161,7 +155,7 @@ rule split_surfaces:
 rule create_surface_objects:
     input:
          roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER, "surfaces_roi_flag_success.txt"),
-         electrode_fpath=contact_localization_workflow(electrodes_fname),
+         electrode_fpath=contact_labeling_workflow(electrodes_fname),
          obj_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER, "{subject}_subcortobjects_success.txt"),
     params:
           LH_PIAL_ROI=LH_PIAL_ROI,
@@ -173,19 +167,17 @@ rule create_surface_objects:
     output:
           surface_scene_file=surface_scene_fpath,
           surface_fbx_file=surface_fbx_fpath,
-          # copied_surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
-          # copied_surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
     shell:
          "echo 'Creating surface objects for rendering!';"
          "export SUBJECTS_DIR={params.fsdir};"
          "./scripts/surfaceToObject.sh {params.subject};"
          "{params.BLENDER_PATH} --background --python ./scripts/sceneCreator.py -- " \
-         "{params.fsdir} " \
-         "{params.subject} " \
-         "{input.electrode_fpath} " \
-         "True False " \
-         "{output.surface_fbx_file} " \
-         "{output.surface_scene_file} " \
-         "{params.materialcolors_file};"
+                             "{params.fsdir} " \
+                             "{params.subject} " \
+                             "{input.electrode_fpath} " \
+                             "True False " \
+                             "{output.surface_fbx_file} " \
+                             "{output.surface_scene_file} " \
+                             "{params.materialcolors_file};"
          # "cp {output.surface_scene_file} {output.copied_surface_scene_file};"
          # "cp {output.surface_fbx_file} {output.copied_surface_fbx_file};"

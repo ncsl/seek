@@ -4,7 +4,7 @@ bids_root:
 #  "/Users/adam2392/Dropbox/efri/"
 #  "/home/adam2392/hdd/epilepsy_bids/"
 #  '/Users/adam2392/Dropbox/epilepsy_bids/'
-  '/Users/adam2392/Documents/seek/data_examples/'
+  '/Users/adam2392/Documents/seek-testing-data/'
 
 # session name to give all datasets; corresponds to the ``ses-`` BIDS entity
 session: "presurgery"
