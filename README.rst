@@ -22,7 +22,7 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
    :target: https://zenodo.org/badge/latestdoi/160566959
    :alt: DOI
 
-.. image:: https://img.shields.io/badge/snakemake-≥5.6.0-brightgreen.svg?style=flat
+.. image:: https://img.shields.io/badge/snakemake-≥5.27.4-brightgreen.svg?style=flat
    :target: https://snakemake.readthedocs.io
    :alt: Snakemake
 
