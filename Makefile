@@ -5,6 +5,18 @@ CODESPELL_DIRS ?= seek/ workflow/ doc/ tutorials/
 
 all: clean inplace test
 
+############################## DOCKER #########################
+build:
+	@docker-compose build;
+
+run:
+	docker run --name seek seek
+
+stop:
+	docker stop seek
+	docker rm seek
+
+############################## UTILITY FOR PYTHON #########################
 clean-pyc:
 	find . -name "*.pyc" | xargs rm -f
 	find . -name "*.DS_Store" | xargs rm -f

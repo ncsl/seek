@@ -1,22 +1,15 @@
 version: '3'
 services:
-  reconstruction:
+  seek_workflows:
     build: 
       context: . 
       dockerfile: Dockerfile
     volumes:
       - ./data_examples:/data
     environment:
-      BIDS_ROOT: /data
-      DERIVATIVES_OUTPUT_DIR: /data/derivatives
+      - BIDS_ROOT=/data
+      - SUBJECT=fsaverage
+      - SUBJECTS_DIR=/data/
+      - DERIVATIVES_OUTPUT_DIR=/data/derivatives
     tty: true  # keep container running
     container_name: 'seek'
-
-  localization:
-    image: thebrainchain/bioimagesuite35:latest
-    environment: 
-      DISPLAY: 192.168.1.138:0.0
-    volumes:
-      - ./data_examples:/data
-    depends_on:
-      - "reconstruction"

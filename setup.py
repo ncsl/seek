@@ -22,7 +22,7 @@ To test on test pypi:
     twine upload dist/* 
 """
 
-PACKAGE_NAME = "neuroimgpipe"
+PACKAGE_NAME = "seek"
 with open(os.path.join('seek', '__init__.py'), 'r') as fid:
     for line in (line.strip() for line in fid):
         if line.startswith('__version__'):
@@ -37,19 +37,16 @@ REQUIRED_PACKAGES = [
     "numpy>=1.14.5",
     "scipy>=1.1.0",
     "pandas>=1.0.3",
-    "pybids>=0.10",
-    "pybv>=0.2.0",
-    "joblib>=0.14",
-    "natsort",
-    "tqdm",
     "xlrd",
+    "natsort",
     "nibabel",
+    "nilearn",
     "dicom2nifti",
-    "snakemake",
-    "matplotlib>=3.2.1",
-    "seaborn",
-    "mne>=0.20.0",
-    "mne-bids>=0.4",
+    "snakemake>=5.27.4",
+    "mne>=0.21.0",
+    "mne-bids>=0.5",
+    "pybv>=0.4.0",
+    "pybids>=0.10",
 ]
 CLASSIFICATION_OF_PACKAGE = [
     # How mature is this project? Common values are

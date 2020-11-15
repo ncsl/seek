@@ -36,14 +36,10 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
 
 
 This repo describes efforts to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
-and iEEG data (ECoG, or SEEG).
-
-For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
+and iEEG data (ECoG, or SEEG). For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
 be easily interpolated. See `Fieltrip Toolbox`_.
 
-For incorporation of DTI data, see `ndmeg <https://github.com/neurodata/ndmg>`_.
-
-To start using the workflows with your data, see [workflow documentation](./workflow/documentation.md) file.
+To start using the workflows with your data, see [workflow documentation](workflow/documentation.md) file.
 
 Documentation
 -------------
@@ -116,9 +112,7 @@ directory serves as the BIDS root of the workflows.
 Data Organization
 -----------------
 
-We use BIDS.
-
-See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
+We use BIDS. See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
 
 Before data is converted to BIDS in ``seek/pipeline/01-prep`` pipeline, 
 then ``sourcedata/`` should contain a semi-structured format of the neuroimaging data that will
@@ -141,7 +135,7 @@ Seek was created and is maintained by `Adam Li <https://adam2392.github.io>`_. I
 Christopher Coogan and other researchers in the NCSL and Crone lab. Contributions are more than welcome so feel free to contact me, open an issue or submit a pull request! See the
 :doc:`contribution guide <./doc/contributing>`.
 
-To see the code or report a bug, please visit the `GitHub repository <https://github.com/ncsl/seek>`_.
+To report a bug, please visit the `GitHub repository <https://github.com/ncsl/seek/issues/>`_.
 
 Note that this program is provided with NO WARRANTY OF ANY KIND. If you can, always double check the results with a human researcher, or clinician.
 
@@ -170,3 +164,7 @@ Several functions of Seek essentially make use of existing software packages for
 .. _Docker Hub: https://hub.docker.com/
 .. _FieldTrip Toolbox: http://www.fieldtriptoolbox.org/tutorial/human_ecog/
 .. _Snakemake: https://snakemake.readthedocs.io/en/stable/
+
+FAQ
+===
+1. For incorporation of DTI data, see `ndmeg <https://github.com/neurodata/ndmg>`_.
