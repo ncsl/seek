@@ -21,9 +21,6 @@ seek Core API (:py:mod:`seek`)
 .. autosummary::
    :toctree: generated/
 
-    write_eztrack_bids
-    label_electrode_contacts
-    identify_electrode_clusters
     bids_validate
     convert_img_to_bids
     PatientBidsRoot

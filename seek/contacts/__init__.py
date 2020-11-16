@@ -11,5 +11,3 @@ from .anat.label_chs_surgical import (
 )
 from .localize.electrode import Contact, Electrode, Electrodes, ElectrodeIterator
 from .localize.neuroimage import BrainImage, ClusteredBrainImage
-
-from .localize_contacts import identify_electrode_clusters, label_electrode_contacts

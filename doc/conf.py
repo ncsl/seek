@@ -119,7 +119,7 @@ html_theme_options = {
     'navbar_pagenav': False,  # no "Page" navigation in sidebar
     'bootstrap_version': "3",
     'navbar_links': [
-        ('Tutorials', 'auto_tutorials/index'),
+        ('Tutorials', 'auto_examples/index'),
         ("Pipeline Description", "pipeline_description"),
         ('Python API', 'api'),
         ("What's new", "whats_new"),

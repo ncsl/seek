@@ -44,8 +44,7 @@ To start using the workflows with your data, see [workflow documentation](workfl
 Documentation
 -------------
 
-* Link to documentation <>
-* For a detailed description of the overall SEEK workflow, see `workflow documentation <workflow/documentation.md>`_.
+* For a detailed description of the overall SEEK workflow, see `workflow documentation <https://github.com/ncsl/seek/blob/master/workflow/documentation.md>`_.
 * For a detailed description of the SEEK workflow of contact localization, specifically localizing the 2 points per electrode, see :doc:`localization guide <./localization_guide>`
 
 For a description of the visualization engine, see: https://github.com/cronelab/ReconstructionVisualizer
@@ -53,7 +52,7 @@ For a description of the visualization engine, see: https://github.com/cronelab/
 Setup and Installation
 ----------------------
 
-See :doc:`INSTALLATION GUIDE <./INSTALLATION.rst>`_ for full instructions. SEEK uses the Snakemake_
+See `INSTALLATION GUIDE <installation.rst>`_ for full instructions. SEEK uses the Snakemake_
 workflow management system to create the different workflows. We chose this because
 it is easy to run individual workflows, as well as an entire workflow from the command line.
 The full repository is set up similar to the `cookiecutter` Snakemake file: `cookiecutter gh:snakemake-workflows/cookiecutter-snakemake-workflow`.
