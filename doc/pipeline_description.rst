@@ -1,4 +1,6 @@
-.. _PipelineDescription:
+:orphan:
+
+.. _pipeline:
 
 =========================
 SEEK PIPELINE DESCRIPTION

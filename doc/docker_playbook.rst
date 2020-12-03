@@ -1,4 +1,6 @@
-.. _DockerPlaybook:
+:orphan:
+
+.. _docker_playbook:
 
 SEEK Docker Playbook
 ====================

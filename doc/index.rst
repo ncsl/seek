@@ -27,7 +27,7 @@ which contain anatomical information, and also numerous anatomical output files 
 you worrying about learning the ins and outs of FreeSurfer, FSL and other software.
 
 Finally, we pipe specific output to a visualization engine that is
-housed in another `github repository <https://github.com/cronelab/ReconstructionVisualizer>`_.
+housed in `ReconstructionVisualizer repository <https://github.com/cronelab/ReconstructionVisualizer>`_.
 
 Citing SEEK
 -----------

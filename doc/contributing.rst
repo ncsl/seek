@@ -1,3 +1,5 @@
+:orphan:
+
 .. _Contribute:
 
 Contributing to SEEK

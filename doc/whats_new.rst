@@ -47,4 +47,6 @@ People who contributed to this release (in alphabetical order):
 * Chester Huynh
 * Christopher Coogan
 
+:doc:`Find out what was new in previous releases <whats_new_previous_releases>`
+
 .. include:: authors.rst
