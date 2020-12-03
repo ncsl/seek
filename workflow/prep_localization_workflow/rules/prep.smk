@@ -59,7 +59,6 @@ ct_native_bids_fname = _get_bids_basename(subject_wildcard,
 # raw T1/CT output
 ct_output = os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname)
 
-
 logger.info('In prep localization workflow.')
 
 rule prep:
@@ -83,7 +82,10 @@ rule convert_dicom_to_nifti_ct:
     params:
           CT_FOLDER=RAW_CT_FOLDER,
           bids_root=bids_root.bids_root,
-    log: "logs/recon_workflow.{subject}.log"
+    log:
+       "logs/recon_workflow.{subject}.log"
+    container:
+         config['freesurfer_docker_url'],
     output:
           CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname),
     shell:

@@ -19,7 +19,7 @@ pycodestyle = "*"
 [packages]
 mne = ">=0.21"
 mne-bids = ">=0.5"
-pandas = "*"
+pandas = ">=1.0.4"
 natsort = "*"
 pybv = ">=0.4"
 nilearn = "*"

@@ -71,3 +71,9 @@ Snakemake utilizes a set of configuration files for the user to define their dat
 in the `pipeline/config/` directory. Configuration files are checked against the designed schemas in `pipeline/schemas` directory.
 Each corresponding sub-workflow is documented in a `.smk` Snakemake file, which can define things like `Prep`, which prepares
 raw dicom files from scratch to run through the SEEK workflow.
+
+Understanding Docker in SEEK
+----------------------------
+To heavily utilize Freesurfer, FSL, MRTrix3, and more, we make use of Docker.
+
+:doc: `To better understand how we use Docker, see our Docker playbook <docker_playbook>.`

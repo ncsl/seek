@@ -2,6 +2,9 @@
 FROM ubuntu:latest
 #FROM freesurfer/freesurfer:7.1.1
 ENV DEBIAN_FRONTEND noninteractive
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
 
 ARG FSL_VERSION=6.0.4
 
@@ -14,9 +17,7 @@ RUN apt-get update && apt-get -y install bc binutils libgomp1 perl psmisc sudo t
 #    libjpeg62-turbo-dev
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     locale-gen
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
+
 
 # Download Blender and set path
 RUN mkdir /usr/local/blender \
@@ -70,13 +71,13 @@ RUN wget -O- https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/dev/freesurf
 ENV PATH=/usr/local/freesurfer/bin:/usr/local/freesurfer/mni/bin:$PATH
 ENV FREESURFER_HOME /usr/local/freesurfer
 RUN $FREESURFER_HOME/SetUpFreeSurfer.sh
-COPY ./freesurferlicense.txt /usr/local/freesurfer/.license
+COPY ./dockerfiles/freesurferlicense.txt /usr/local/freesurfer/.license
 ENV SUBJECTS_DIR=/data/derivatives/freesurfer
 
 # FSL builder
 
 # Node & bids-validator
-RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - && \
+RUN curl -sL https://deb.nodesource.com/setup_15.x | bash - && \
     apt-get install -y nodejs && \
     npm i -g bids-validator
 

@@ -3,27 +3,44 @@
 INSTALLATION GUIDE
 ==================
 
-The best way to install is via a Docker installation.
+``seek`` uses open-source third-party softwares to run the various workflows. ``seek`` itself
+is a wrapper using snakemake_. The best way to install the 3rd party softwares for ``seek`` usage
+is via a Docker installation.
 
-Docker Installation
--------------------
+seek Installation
+-----------------
+First we can install seek. There are a few ways to do so:
+
+Through git
+
+.. code-block:: bash
+
+    # clone repository locally
+    $ git clone https://github.com/ncsl/seek
+
+    # modify config yaml
+    $ cd seek/
+    $ vim config/localconfig.yaml
+
+
+Dependencies Docker Installation
+--------------------------------
 
 To run the SEEK pipeline in Docker, first follow instructions to install `Docker <https://docs.docker.com/get-docker/>`_.
 
 **NOTE: You will need approximately at least 8-9 GB free disc space to run the Docker container.**
 
-To setup the container in your system:
+To setup the container in your system, you will pull pre-built Docker images from
+neuroseek's `Docker Hub <https://hub.docker.com/orgs/neuroseek/repositories>`_.
 
 .. code-block::
 
-   # build the composition in `docker-compose.yml`
-   docker-compose up --build
+    $ make pull-all
 
-   # run the container
-   docker-compose up
+This will now pull all Docker containers needed to run ``seek`` to your local machine.
 
-
-Now if you type in ``docker container ls``\ , you should see the corresponding container.
+Now if you type in ``docker container ls``\,
+you should see the corresponding container.
 
 .. code-block::
 
@@ -32,6 +49,9 @@ Now if you type in ``docker container ls``\ , you should see the corresponding c
 
    # turn image to containeer
    docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
+
+:doc: `To better understand how we use Docker, see our Docker playbook <docker_playbook>.`
+
 
 Manual Installation (Not Recommended; See Docker)
 -------------------------------------------------
@@ -64,21 +84,6 @@ Anaconda and Python3.6+ :
         # dev versions of mne-python, mne-bids
         pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
         pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
-
-::
-
-    Pip and setup.py install
-
-    .. code-block::
-
-        # run installation via setup.py
-        make inplace-all
-
-        # install testing functionality
-        make install-tests
-
-        make check
-        make test
 
 
 Pipeline Installations (3rd Party Modules to Install)
@@ -134,3 +139,4 @@ Note that as of 2019, installation still requires Python2, which should come in 
 .. _MRTrix3: https://mrtrix.readthedocs.io/en/latest/installation/linux_install.html
 .. _SPM: https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
 .. _FieldTripToolbox: http://www.fieldtriptoolbox.org/download/
+.. _snakemake: https://snakemake.readthedocs.io/en/stable/

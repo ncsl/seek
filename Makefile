@@ -10,9 +10,43 @@ name := seek
 version := 1.0.0
 dockerhub := neuroseek
 
+# docker containers
+blender_version := 2.82
+acpcdetect_version := 2.0
+#fsl_version := 6.0
+freesurfer7-with-mrtrix3_version := 1.0
+
 ############################## DOCKER #########################
 build:
 	@docker-compose build;
+
+build-acpc:
+	docker build --rm -f ./dockerfiles/Dockerfile.acpcdetect -t $(dockerhub)/acpcdetect:$(acpcdetect_version)  ./dockerfiles
+
+build-blender:
+	docker build --rm -f ./dockerfiles/Dockerfile.blender -t $(dockerhub)/blender:$(blender_version)  ./dockerfiles
+
+build-freesurfer:
+	docker build --rm -f ./dockerfiles/Dockerfile.freesurfer-with-mrtrix3 -t $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)  ./dockerfiles
+
+push-acpc:
+	docker push $(dockerhub)/acpcdetect:$(acpcdetect_version)
+
+push-blender:
+	docker push $(dockerhub)/blender:$(blender_version)
+
+push-freesurfer:
+	docker push $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)
+
+docker-build:
+	docker build --rm -t $(dockerhub)/$(name):$(version) .
+
+docker-run:
+	docker stop $(name);
+	docker run --rm --name $(name) -p 5000:5000 -d $(image):$(version)
+
+docker-pull:
+	docker pull $(dockerhub)/$(name):$(version)
 
 run:
 	docker run --name seek seek

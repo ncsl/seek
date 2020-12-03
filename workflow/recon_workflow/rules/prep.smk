@@ -15,10 +15,22 @@ This pipeline depends on the following functions:
     * mrconvert
     * acpcdetect
 
-from FreeSurfer6+, acpcdetect2.0. To create a DAG pipeline, run:
+from FreeSurfer6+, acpcdetect2.0.
+
+Docker containers
+-----------------
+To run the workflow, there are a series of containers that we
+depend on. They are containers for:
+
+    - acpcdetectv2.0
+    - FSLv6.0
+    - FreeSurfer7.0 with MRtrix3v3.0.2
+
+Notes
+-----
+To create a DAG pipeline, run:
 
     snakemake --dag | dot -Tpdf > dag_pipeline_reconstruction.pdf
-
 """
 
 # Authors: Adam Li <adam2392@gmail.com>
@@ -27,6 +39,7 @@ from FreeSurfer6+, acpcdetect2.0. To create a DAG pipeline, run:
 import os
 import sys
 from pathlib import Path
+
 from mne_bids import BIDSPath
 
 # hack to run from this file folder
@@ -46,9 +59,9 @@ bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
                      )
 subject_wildcard = "{subject}"
 
-# import pandas as pd
-
-# subjects = pd.read_table(configdir / config["subjects"]).set_index("subject", drop=False)
+freesurfer_dockerurl = config['freesurfer_docker']
+acpcdetect_dockerurl = config['acpcdetect_docker']
+fsl_dockerurl = config['fsl_docker']
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
@@ -91,8 +104,8 @@ from_id = 'CT'  # post implant CT
 to_id = 'T1w'  # freesurfer's T1w
 kind = 'xfm'
 pre_to_post_transform_fname = BIDSPath(subject=subject_wildcard,
-                                                 session='presurgery',
-                                                 space='T1w').basename + \
+                                       session='presurgery',
+                                       space='T1w').basename + \
                               f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # after ACPC
@@ -105,8 +118,8 @@ from_id = 'CT'  # post implant CT
 to_id = 'T1w'  # freesurfer's T1w
 kind = 'xfm'
 pre_to_post_acpc_transform_fname = BIDSPath(subject=subject_wildcard,
-                                                      session='presurgery',
-                                                      space='T1wACPC').basename + \
+                                            session='presurgery',
+                                            space='T1wACPC').basename + \
                                    f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # output files
@@ -152,6 +165,8 @@ rule convert_dicom_to_nifti_mri:
           MRI_FOLDER=RAW_MRI_FOLDER,
           bids_root=bids_root.bids_root,
     log: "logs/recon_workflow.{subject}.log"
+    container:
+             freesurfer_dockerurl
     output:
           MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
     shell:
@@ -167,6 +182,8 @@ rule convert_dicom_to_nifti_ct:
           CT_FOLDER=RAW_CT_FOLDER,
           bids_root=bids_root.bids_root,
     log: "logs/recon_workflow.{subject}.log"
+    container:
+             freesurfer_dockerurl
     output:
           CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname),
     shell:
@@ -183,7 +200,7 @@ rule t1w_compute_robust_fov:
           MRI_bids_fname_gz=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname) + '.gz',
           MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_robustfov_native_bids_fname),
     container:
-             "docker://neuroseek/seek",
+             fsl_dockerurl,
     shell:
          "echo 'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz}';"
          'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz};'  # -m roi2full.mat
@@ -202,6 +219,8 @@ rule t1w_automatic_acpc_alignment:
     params:
           anat_dir=str(BIDS_PRESURG_ANAT_DIR),
           acpc_fs_dir=str(FSOUT_ACPC_FOLDER),
+    container:
+             acpcdetect_dockerurl
     output:
           MRI_bids_fname_fscopy=os.path.join(FSOUT_ACPC_FOLDER, premri_native_bids_fname),
           MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
@@ -224,6 +243,8 @@ rule coregistert1_ct_to_t1w:
     input:
          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
          CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname),
+    container:
+             fsl_dockerurl
     output:
           # mapped image from CT -> MRI
           CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname + ".gz"),
@@ -248,6 +269,8 @@ rule coregistert1_ct_to_t1wacpc:
     input:
          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname),
          CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname),
+    container:
+             fsl_dockerurl
     output:
           # mapped image from CT -> MRI
           CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER, ctint1_acpc_bids_fname + ".gz"),

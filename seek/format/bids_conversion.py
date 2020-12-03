@@ -73,6 +73,7 @@ def _write_coordsystem_json(
     img_fname: str = None,
     overwrite: bool = True,
     verbose: bool = True,
+    coordsystem: str=None,
 ):
     system_description = (
         "FreeSurfer Coordinate System derived from the CT, or T1 MRI scan."
@@ -90,9 +91,12 @@ def _write_coordsystem_json(
         )
         coordsystem_name = "MRI"
 
+    if coordsystem is None:
+        coordsystem = coordsystem_name
+
     fid_json = {
         "IntendedFor": os.path.basename(img_fname),
-        "iEEGCoordinateSystem": coordsystem_name,  # MRI, Pixels, or ACPC
+        "iEEGCoordinateSystem": coordsystem,  # MRI, Pixels, or ACPC
         "iEEGCoordinateUnits": unit,  # m (MNE), mm, cm , or pixels
         "iEEGCoordinateSystemDescription": system_description,
         "iEEGCoordinateProcessingDescription": processing_description,

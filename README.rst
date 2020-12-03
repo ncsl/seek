@@ -26,20 +26,23 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
    :target: https://snakemake.readthedocs.io
    :alt: Snakemake
 
-.. image:: https://api.netlify.com/api/v1/badges/d36d01d2-319a-4e0d-b84f-1d5b4133d5f8/deploy-status
-   :target: https://app.netlify.com/sites/elated-almeida-a25d64/deploys
-   :alt: Netlify Status
-
 .. image:: https://badges.gitter.im/ncsl/seek.svg
    :target: https://gitter.im/ncsl/seek?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
    :alt: Gitter
-
 
 This repo describes efforts to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
 be easily interpolated. See `Fieltrip Toolbox`_.
 
 To start using the workflows with your data, see [workflow documentation](workflow/documentation.md) file.
+
+We build and keep up-to-date a number of Dockerfiles to run various workflows:
+
+- acpcdetect:
+.. image:: https://img.shields.io/docker/image-size/neuroseek/acpcdetect/2.0   :alt: Docker Image Size (tag)
+
+- blender:
+.. image:: https://img.shields.io/docker/image-size/neuroseek/blender/2.82   :alt: Docker Image Size (tag)
 
 Documentation
 -------------
