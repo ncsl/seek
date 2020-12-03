@@ -3,8 +3,8 @@
 INSTALLATION GUIDE
 ==================
 
-``seek`` uses open-source third-party softwares to run the various workflows. ``seek`` itself
-is a wrapper using snakemake_. The best way to install the 3rd party softwares for ``seek`` usage
+``seek`` uses open-source third-party software to run the various workflows. ``seek`` itself
+is a wrapper using snakemake_. The best way to install the 3rd party software for ``seek`` usage
 is via a Docker installation.
 
 seek Installation

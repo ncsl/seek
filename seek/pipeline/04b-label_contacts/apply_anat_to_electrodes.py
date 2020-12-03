@@ -220,9 +220,9 @@ if __name__ == "__main__":
             required=False,
             help="The output datafile with all the electrode points clustered.",
             default=sourcepath
-                    / "electrodes localized"
-                    / "stolk"
-                    / f"{subject}_elec_acpc_f.mat",
+            / "electrodes localized"
+            / "stolk"
+            / f"{subject}_elec_acpc_f.mat",
         )
         parser.add_argument(
             "-output_bids_electrodes_file",
@@ -242,7 +242,9 @@ if __name__ == "__main__":
             required=False,
             default=fs_lut_fpath,
         )
-        parser.add_argument("-mri_img_fpath", required=False, default=mri_img_fpath.fpath)
+        parser.add_argument(
+            "-mri_img_fpath", required=False, default=mri_img_fpath.fpath
+        )
         args = parser.parse_args()
 
         # Extract arguments from parser
@@ -292,14 +294,20 @@ if __name__ == "__main__":
 
         # Output labeled .mat files with atlas, white matter, and brainmask information
         electrodes_tsv, electrodes_json = apply_atlas(
-            bids_root, output_electrodes_tsv_fpath, inv_affine, fs_patient_dir, fs_lut_fpath
+            bids_root,
+            output_electrodes_tsv_fpath,
+            inv_affine,
+            fs_patient_dir,
+            fs_lut_fpath,
         )
 
         # save sidecar electrodes tsv
         _to_tsv(electrodes_tsv, output_electrodes_tsv_fpath)
 
         # save sidecar electrodes json
-        with open(str(output_electrodes_tsv_fpath).replace(".tsv", ".json"), "w") as fout:
+        with open(
+            str(output_electrodes_tsv_fpath).replace(".tsv", ".json"), "w"
+        ) as fout:
             json.dump(electrodes_json, fout, indent=4)
 
         # create a coordsystem JSON file
@@ -307,6 +315,8 @@ if __name__ == "__main__":
             "electrodes.tsv", "coordsystem.json"
         )
         _write_coordsystem_json(
-            fname=output_coordsyste_fpath, unit="mm", img_fname=mri_img_fpath,
-            coordsystem='individual'
+            fname=output_coordsyste_fpath,
+            unit="mm",
+            img_fname=mri_img_fpath,
+            coordsystem="individual",
         )

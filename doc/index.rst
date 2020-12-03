@@ -7,7 +7,7 @@ Freesurfer_, FSL_, MRTrix3_, Blender_ and FieldTripToolbox_.
 
 Why?
 ----
-Using the above listed softwares to generate i) BIDS-compatible files and ii)
+Using the above listed software to generate i) BIDS-compatible files and ii)
 compute a pipeline that will obtain anatomical information for iEEG electrodes
 is highly complex. There is a big learning curve, and custom bash scripts to generate
 these files for many subjects are prone to error.
@@ -24,7 +24,7 @@ What is the result?
 
 After running through the seek workflows, one will obtain BIDS-iEEG compatible ``*electrodes.tsv`` files
 which contain anatomical information, and also numerous anatomical output files without
-you worrying about learning the ins and outs of FreeSurfer, FSL and other softwares.
+you worrying about learning the ins and outs of FreeSurfer, FSL and other software.
 
 Finally, we pipe specific output to a visualization engine that is
 housed in another `github repository <https://github.com/cronelab/ReconstructionVisualizer>`_.

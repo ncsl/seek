@@ -5,7 +5,7 @@ SEEK Docker Playbook
 
 To enable workflows to run seamlessly across workstations without
 lengthy and buggy installations, we utilize Docker containers that house
-specific softwares that are utilized by different rules in ``snakemake`` workflows.
+specific software that are utilized by different rules in ``snakemake`` workflows.
 
 See `docker hub <https://hub.docker.com/orgs/neuroseek/repositories>`_ for
 full list of Docker containers we maintain.
@@ -33,7 +33,7 @@ We include a ``Makefile`` recipe for building and pushing each Docker container.
         $ make build-acpcdetect
 
 will build the ``acpcdetect`` Docker container. Then to push it to ``neuroseek`` Docker Hub,
-one must have push privilages (for developers)
+one must have push privileges (for developers)
 
     .. code-block:: bash
 

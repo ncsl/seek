@@ -31,6 +31,9 @@ from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT,
 
 configfile: _get_seek_config()
 
+freesurfer_dockerurl = config['freesurfer_docker']
+fsl_dockerurl = config['fsl_docker']
+
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
                      center_id=_get_subject_center(subjects, centers, subject))
@@ -104,6 +107,8 @@ rule prep_recon:
           elecsdir=str(FSOUT_ELECS_FOLDER),
           acpcdir=str(FSOUT_ACPC_FOLDER),
           INPUT_FS_ORIG_DIR=os.path.join(FSOUT_MRI_FOLDER, "orig"),
+    container:
+        freesurfer_dockerurl
     output:
           MRI_MGZ_IMG=os.path.join(FSOUT_MRI_FOLDER, "orig", "001.mgz"),
     shell:
@@ -125,6 +130,8 @@ rule reconstruction:
     params:
           patient=subject_wildcard,
           SUBJECTS_DIR=FS_DIR,
+    container:
+        freesurfer_dockerurl
     output:
           outsuccess_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
     shell:
@@ -148,6 +155,8 @@ rule convert_pial_surface_files_ascii:
     params:
           lhpial=os.path.join(FSOUT_SURF_FOLDER, "lh.pial"),
           rhpial=os.path.join(FSOUT_SURF_FOLDER, "rh.pial"),
+    container:
+        freesurfer_dockerurl
     output:
           lhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "lh.pial.asc"),
           rhpial=os.path.join(FSOUT_SURF_FOLDER, "ascii", "rh.pial.asc"),
@@ -163,6 +172,8 @@ rule convert_FS_T1_to_nifti:
          recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
     params:
           PREMRI_MGZ_IMG=os.path.join(FSOUT_MRI_FOLDER, "T1.mgz"),
+    container:
+        freesurfer_dockerurl
     output:
           PREMRI_NIFTI_IMG=os.path.join(FSOUT_MRI_FOLDER, "T1_fs_LIA.nii"),
           t1_fs_fpath=t1_fs_fpath
@@ -178,6 +189,8 @@ rule convert_brainmask_to_nifti:
          recon_success_file=os.path.join(FSPATIENT_SUBJECT_DIR, "{subject}_recon_success.txt")
     params:
           brainmask_mgz=os.path.join(FSOUT_MRI_FOLDER, "brainmask.mgz")
+    container:
+        freesurfer_dockerurl
     output:
           brainmask_nifti=os.path.join(FSOUT_MRI_FOLDER, "brainmask.nii.gz")
     shell:
@@ -198,6 +211,8 @@ rule create_subcortical_volume:
           SUBJECTS_DIR=FS_DIR,
           patient=subject_wildcard,
           scripts_dir=SCRIPTS_UTIL_DIR,
+    container:
+         freesurfer_dockerurl
     output:
           subcort_success_flag_file=os.path.join(FSPATIENT_SUBJECT_DIR, f'{subject_wildcard}_subcort_success.txt'),
     shell:
@@ -222,6 +237,8 @@ rule create_subcortical_segmentations:
           SUBJECTS_DIR=FS_DIR,
           subject=subject_wildcard,
           scripts_dir=SCRIPTS_UTIL_DIR,
+    container:
+        freesurfer_dockerurl
     output:
 #           output_files=os.path.join(FSPATIENT_SUBJECT_DIR, 'mri', 'ThalamicNuclei.v12.T1.volumes.txt'),
 #             ThalamicNuclei.v12.T1.mgz: stores the discrete segmentation volumes at subvoxel resolution (0.5 mm).

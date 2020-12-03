@@ -73,7 +73,7 @@ def _write_coordsystem_json(
     img_fname: str = None,
     overwrite: bool = True,
     verbose: bool = True,
-    coordsystem: str=None,
+    coordsystem: str = None,
 ):
     system_description = (
         "FreeSurfer Coordinate System derived from the CT, or T1 MRI scan."
