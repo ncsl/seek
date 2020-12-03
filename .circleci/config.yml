@@ -51,7 +51,14 @@ jobs:
 
       - store_artifacts:
           path: doc/_build/html/
-          destination: html
+          destination: dev
+
+      - run:
+          name: Check links
+          command: |
+            make -C doc clean
+            make -C doc linkcheck
+            make -C doc linkcheck-grep
 
   docs-deploy:
     # will only be run on master branch
@@ -89,4 +96,16 @@ workflows:
           filters:
             branches:
               only: master
+
+  scheduled:
+    jobs:
+      - docs-build
+
+    triggers:
+      - schedule:
+          cron: "0 4 * * *"
+          filters:
+            branches:
+              only:
+                - master
 
