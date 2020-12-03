@@ -1,0 +1,21 @@
+{
+  "title": "SEEK: Stereotactic ElectroEncephalography Kit",
+  "description": "SEEK is a Snakemake-Python library pipeline explicitly for neuroimaging data workflow that involves T1 MRI, CT,\nand iEEG data.",
+  "creators": [
+    {
+      "affiliation": "Institute for Computational Medicine, Johns Hopkins University, Baltimore, MD, USA",
+      "name": "Li, Adam",
+      "orcid": "0000-0001-8421-365X"
+    },
+  ],
+  "keywords": [
+    "BIDS",
+    "brain imaging data structure",
+    "neuroscience",
+    "neuroimaging",
+    "python",
+    "ieeg"
+  ],
+  "license": "GNU",
+  "upload_type": "software"
+}

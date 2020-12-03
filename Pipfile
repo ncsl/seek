@@ -15,6 +15,7 @@ numpydoc = "*"
 sphinxcontrib-restbuilder = "*"
 pytest = "*"
 pycodestyle = "*"
+sphinx-copybutton = "*"
 
 [packages]
 mne = ">=0.21"
