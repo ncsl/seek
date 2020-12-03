@@ -17,6 +17,7 @@ import seek
 
 curdir = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(curdir, '..', 'seek')))
+sys.path.append(os.path.abspath(os.path.join(curdir, 'sphinxext')))
 
 # -- Project information -----------------------------------------------------
 
@@ -52,11 +53,16 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.autosectionlabel',
     'numpydoc',
+    'sphinx_copybutton',
     # "seek.sphinxext.snakemakerule",
 ]
 
 # generate autosummary even if no references
 autosummary_generate = True
+autodoc_default_options = {'inherited-members': None}
+numpydoc_class_members_toctree = False
+numpydoc_attributes_as_param_list = True
+default_role = 'autolink'  # XXX silently allows bad syntax, someone should fix
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

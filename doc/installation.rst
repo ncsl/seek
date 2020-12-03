@@ -50,7 +50,7 @@ you should see the corresponding container.
    # turn image to containeer
    docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
 
-:doc: `To better understand how we use Docker, see our Docker playbook <docker_playbook>.`
+:doc: `To better understand how we use Docker, see our Docker playbook <docker_playbook>`
 
 
 Manual Installation (Not Recommended; See Docker)
@@ -91,31 +91,31 @@ Pipeline Installations (3rd Party Modules to Install)
 
 #. Octave
 
-Runs open-source MATLAB-like functions. This runs various scripts for converting output files to object files for rendering visualizations.
-Follow: https://www.gnu.org/software/octave/#install
+    Runs open-source MATLAB-like functions. This runs various scripts for converting output files to object files for rendering visualizations.
+    Follow: https://www.gnu.org/software/octave/#install
 
-.. code-block::
+    .. code-block::
 
-   brew install octave
-
+       brew install octave
 
 #. Gawk_
 
-Runs command line tools.
+    Runs command line tools.
 
 #. Blender_
 
-Allows nice 3D mesh creations
+    Allows nice 3D mesh creations
 
 #. Reconstruction (Freesurfer_)
-This step is necessary to generate a parcellation and surface reconstruction of the patient's brain.
-The general requirements is just a Linux, or OSX computer with enough RAM.
-Currently, this repo is designed to work with FreeSurfer.
+
+    This step is necessary to generate a parcellation and surface reconstruction of the patient's brain.
+    The general requirements is just a Linux, or OSX computer with enough RAM.
+    Currently, this repo is designed to work with FreeSurfer.
 
 #. Coregistration (`FSL Flirt`_)
 
-This step is necessary to map different imaging sessions together. Specifically, for this pipeline, we need it to map CT images to T1 MRI
-Note that as of 2019, installation still requires Python2, which should come in any Linux distribution.
+    This step is necessary to map different imaging sessions together. Specifically, for this pipeline, we need it to map CT images to T1 MRI
+    Note that as of 2019, installation still requires Python2, which should come in any Linux distribution.
 
      .. code-block::
 

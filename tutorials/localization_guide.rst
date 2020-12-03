@@ -1,4 +1,4 @@
-.. _LocalizationGuide:
+.. _localization_guide:
 
 ============================================
 Semi-Automated Localizing Electrodes Process

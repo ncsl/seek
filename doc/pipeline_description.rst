@@ -190,7 +190,7 @@ Workflow Steps Explained
 
 #. Contact Localization
 
-Note first, one should follow :ref:`LocalizationGuide`_ before running this.
+Note first, one should follow :ref:`Localization Guide <localization_guide>` before running this.
 
 .. code-block::
 

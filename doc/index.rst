@@ -40,10 +40,6 @@ Please also cite the following papers to credit BIDS and iEEG-BIDS:
 - `BIDS <https://doi.org/10.1038/sdata.2016.44>`_
 - `BIDS-iEEG <https://doi.org/10.1038/s41597-019-0105-7>`_
 
-
-.. contents:: :local:
-    :depth: 3
-
 .. _Blender: https://www.blender.org/download/Blender2.81/blender-2.81-linux-glibc217-x86_64.tar.bz2/
 .. _Freesurfer: https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall
 .. _FSL: https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation/
@@ -51,3 +47,6 @@ Please also cite the following papers to credit BIDS and iEEG-BIDS:
 .. _SPM: https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
 .. _FieldTripToolbox: http://www.fieldtriptoolbox.org/download/
 .. _snakemake: https://snakemake.readthedocs.io/en/stable/
+
+.. contents:: :local:
+    :depth: 3
