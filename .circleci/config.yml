@@ -56,9 +56,9 @@ jobs:
       - run:
           name: Check links
           command: |
-            pipenv make -C doc clean
-            pipenv make -C doc linkcheck
-            pipenv make -C doc linkcheck-grep
+            pipenv run make -C doc clean
+            pipenv run make -C doc linkcheck
+            pipenv run make -C doc linkcheck-grep
 
   docs-deploy:
     # will only be run on master branch
