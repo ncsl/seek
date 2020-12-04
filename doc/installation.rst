@@ -52,7 +52,7 @@ you should see the corresponding container.
    # turn image to containeer
    docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
 
-:doc: `To better understand how we use Docker, see our Docker playbook <docker_playbook>`
+:doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>`
 
 
 Manual Installation (Not Recommended; See Docker)

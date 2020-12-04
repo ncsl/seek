@@ -192,7 +192,7 @@ Workflow Steps Explained
 
 #. Contact Localization
 
-Note first, one should follow :ref:`Localization Guide <localization_guide>` before running this.
+Note first, one should follow the :ref:`Localization Guide <localization_guide>`_ before running this.
 
 .. code-block::
 
@@ -203,10 +203,10 @@ Note first, one should follow :ref:`Localization Guide <localization_guide>` bef
 Snakemake Rules
 ---------------
 Each of these workflows are enabled by a set of ``snakemake`` rules.
-For an in-depth explanation on each particular rule, see `rules document <rules>`_.
+For an in-depth explanation on each particular rule, see :doc:`rules document <rules>`_.
 
 Docker Usage in SEEK
 --------------------
 To heavily utilize Freesurfer, FSL, MRTrix3, and more, we make use of Docker.
 
-:doc: `To better understand how we use Docker, see our Docker playbook <docker_playbook>.`
+:doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>.`
