@@ -26,4 +26,4 @@ jobs:
           output-directory: "docs/seek"
           destination-github-username: "cronelab"
           destination-repository-name: "ReconstructionVisualizer"
-          user-email: c.coogan2201@gmail.com
+          user-email: adam2392@gmail.com
