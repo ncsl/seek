@@ -44,7 +44,7 @@ from mne_bids import BIDSPath
 
 # hack to run from this file folder
 sys.path.append("../../../")
-from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
+from seek.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
                                            _get_anat_bids_dir, _get_ct_bids_dir,
                                            _get_bids_basename, _get_subject_center)
 
@@ -54,10 +54,9 @@ configfile: _get_seek_config()
 configpath = Path(_get_seek_config()).parent
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-                     center_id=_get_subject_center(subjects, centers, subject)
-                     )
 subject_wildcard = "{subject}"
+bids_root = BidsRoot(subject_wildcard, BIDS_ROOT(config['bids_root']), 
+                        site_id=config['site_id'], subject_wildcard=subject_wildcard)
 
 freesurfer_dockerurl = config['freesurfer_docker']
 acpcdetect_dockerurl = config['acpcdetect_docker']
@@ -65,11 +64,11 @@ fsl_dockerurl = config['fsl_docker']
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
-RAW_CT_FOLDER = bids_root.get_rawct_dir(subject_wildcard)
-RAW_MRI_FOLDER = bids_root.get_premri_dir(subject_wildcard)
-FSOUT_MRI_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard)) / "mri"
-FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard)) / "CT"
-FSOUT_ACPC_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard)) / "acpc"
+RAW_CT_FOLDER = bids_root.get_rawct_dir()
+RAW_MRI_FOLDER = bids_root.get_premri_dir()
+FSOUT_MRI_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "mri"
+FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "CT"
+FSOUT_ACPC_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "acpc"
 
 BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
 BIDS_PRESURG_CT_DIR = _get_ct_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')

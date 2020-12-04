@@ -23,8 +23,8 @@ import sys
 from pathlib import Path
 
 sys.path.append("../../../")
-from seek.pipeline.utils.fileutils import SCRIPTS_UTIL_DIR
-from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT,
+from seek.utils.fileutils import SCRIPTS_UTIL_DIR
+from seek.utils.fileutils import (BidsRoot, BIDS_ROOT,
                                            _get_seek_config,
                                            _get_anat_bids_dir, _get_bids_basename,
                                            _get_subject_center)
@@ -35,13 +35,13 @@ freesurfer_dockerurl = config['freesurfer_docker']
 fsl_dockerurl = config['fsl_docker']
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-                     center_id=_get_subject_center(subjects, centers, subject))
 subject_wildcard = "{subject}"
+bids_root = BidsRoot(subject_wildcard, BIDS_ROOT(config['bids_root']))
+
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
-FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir(subject_wildcard)
+FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir()
 FSOUT_MRI_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "mri"
 FSOUT_CT_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "CT"
 FSOUT_ELECS_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "elecs"
@@ -57,6 +57,8 @@ print('In reconstruction workflow.')
 subworkflow prep_workflow:
     workdir:
            "../"
+    #workdir:
+    #       "../01-prep/"
     snakefile:
              "./rules/prep.smk"
     configfile:

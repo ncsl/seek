@@ -38,6 +38,12 @@ push-blender:
 push-freesurfer:
 	docker push $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)
 
+pull-all:
+	docker pull $(dockerhub)/acpcdetect:$(acpcdetect_version)
+	docker pull $(dockerhub)/blender:$(blender_version)
+	docker pull $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)
+	docker pull docker://cbinyu/fsl6-core
+
 docker-build:
 	docker build --rm -t $(dockerhub)/$(name):$(version) .
 

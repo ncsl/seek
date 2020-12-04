@@ -75,13 +75,13 @@ print('In coregistration workflow.')
 #     configfile:
 #               _get_seek_config()
 
-# subworkflow reconstruction_workflow:
-#     workdir:
-#            "../02-reconstruction/"
-#     snakefile:
-#              "../02-reconstruction/reconstruction.smk"
-#     configfile:
-#               _get_seek_config()
+subworkflow reconstruction_workflow:
+    workdir:
+          "../02-reconstruction/"
+    snakefile:
+           "./02-reconstruction/reconstruction.smk"
+    configfile:
+              _get_seek_config()
 
 # First rule
 rule coregister_ct_and_T1w_images:

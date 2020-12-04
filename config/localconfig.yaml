@@ -2,25 +2,24 @@
 bids_root:
 #  "/home/ksr/Desktop/contact_localization/efri/"
 #  "/Users/adam2392/Dropbox/efri/"
-#  "/home/adam2392/hdd/epilepsy_bids/"
+  "/home/adam2392/hdd/epilepsy_bids/"
 #  '/Users/adam2392/Dropbox/epilepsy_bids/'
-  '/Users/adam2392/Documents/seek-testing-data/'
+#  '/Users/adam2392/Documents/seek-testing-data/'
 
 # session name to give all datasets; corresponds to the ``ses-`` BIDS entity
 session: "presurgery"
 
 ############# define list of subjects to run this for #############
 subjects: 'subjects.tsv'
-#nl02	cleveland	''
-#nl06	cleveland	''
-#nl11	cleveland	''
+
+site_id: 'cleveland'
 
 blender_path: 'blender'
 
 # define Docker urls to pull from for each software
 acpcdetect_docker: 'docker://neuroseek/acpcdetect:2.0'
 fsl_docker: 'docker://cbinyu/fsl6-core'
-freesurfer_docker: 'docker://neuroseek/freesurfer7-with-mrtrix3'
+freesurfer_docker: 'docker://neuroseek/freesurfer7-with-mrtrix3:1.0'
 blender_docker: 'docker://neuroseek/blender:2.8'
 
 params:
