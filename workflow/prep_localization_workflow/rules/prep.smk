@@ -36,6 +36,8 @@ from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config
 
 configfile: _get_seek_config()
 
+freesurfer_dockerurl = config['freesurfer_docker']
+
 # get the actual file path to the config
 configpath = Path(_get_seek_config()).parent
 
@@ -85,7 +87,7 @@ rule convert_dicom_to_nifti_ct:
     log:
        "logs/recon_workflow.{subject}.log"
     container:
-         config['freesurfer_docker_url'],
+         freesurfer_dockerurl
     output:
           CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname),
     shell:
