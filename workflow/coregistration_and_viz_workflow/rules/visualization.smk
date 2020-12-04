@@ -23,6 +23,10 @@ from seek.pipeline.utils.fileutils import BidsRoot, BIDS_ROOT, _get_session_name
 
 configfile: _get_seek_config()
 
+freesurfer_dockerurl = config['freesurfer_docker']
+fsl_dockerurl = config['fsl_docker']
+blender_dockerurl = config['blender_docker']
+
 BLENDER_PATH = config["blender_path"]
 print(BLENDER_PATH)
 
@@ -114,6 +118,8 @@ rule convert_subcort_to_obj:
           subject=subject_wildcard,
           fsdir=FS_DIR,
           FS_OBJ_FOLDER=str(FS_OBJ_FOLDER),
+    container:
+        blender_dockerurl
     output:
           obj_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER, "{subject}_subcortobjects_success.txt"),
     shell:
@@ -127,6 +133,8 @@ rule convert_annot_to_dpv:
     input:
          LH_ANNOT_FILE=LH_ANNOT_FILE,
          RH_ANNOT_FILE=RH_ANNOT_FILE,
+    container:
+        blender_dockerurl
     output:
           LH_ANNOT_DPV=LH_ANNOT_DPV,
           RH_ANNOT_DPV=RH_ANNOT_DPV,
@@ -144,6 +152,8 @@ rule split_surfaces:
     params:
           LH_PIAL_ROI=LH_PIAL_ROI,
           RH_PIAL_ROI=RH_PIAL_ROI,
+    container:
+        blender_dockerurl
     output:
           roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER, "surfaces_roi_flag_success.txt")
     shell:
@@ -164,6 +174,8 @@ rule create_surface_objects:
           subject=subject_wildcard,
           materialcolors_file=os.path.join(os.getcwd(), "./scripts/materialColors.json"),
           BLENDER_PATH=BLENDER_PATH,
+    container:
+        blender_dockerurl
     output:
           surface_scene_file=surface_scene_fpath,
           surface_fbx_file=surface_fbx_fpath,

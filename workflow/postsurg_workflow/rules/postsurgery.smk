@@ -24,6 +24,10 @@ from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config
 
 configfile: _get_seek_config()
 
+acpcdetect_dockerurl = config['acpcdetect_docker']
+freesurfer_dockerurl = config['freesurfer_docker']
+fsl_dockerurl = config['fsl_docker']
+
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
                      center_id=_get_subject_center(subjects, centers, subject))
@@ -194,6 +198,8 @@ rule convert_dicom_to_bids:
     params:
           MRI_FOLDER=RAW_POSTMRI_FOLDER,
           bids_root=bids_root.bids_root,
+    container:
+        freesurfer_dockerurl
     output:
           MRI_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
     shell:
@@ -205,6 +211,8 @@ Apply robust FOV.
 rule postt1w_compute_robust_fov:
     input:
          MRI_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
+    container:
+        freesurfer_dockerurl
     output:
           MRI_bids_fname_gz=os.path.join(FSOUT_POSTMRI_ACPC_FOLDER, postmri_robustfov_native_bids_fname) + '.gz',
           MRI_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_robustfov_native_bids_fname),
@@ -227,6 +235,8 @@ rule postt1w_automatic_acpc_alignment:
     params:
           anat_dir=str(BIDS_POSTSURG_ANAT_DIR),
           acpc_fs_dir=str(FSOUT_POSTMRI_ACPC_FOLDER),
+    container:
+        acpcdetect_dockerurl
     output:
           MRI_bids_fname_fscopy=os.path.join(FSOUT_POSTMRI_ACPC_FOLDER, postmri_bids_fname),
           MRI_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_bids_fname),
@@ -251,6 +261,8 @@ rule coregister_t1w_postacpc_to_pre:
          post_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
     params:
           FSOUT_POSTMRI_FOLDER=str(FSOUT_POSTMRI_FOLDER),
+    container:
+        fsl_dockerurl
     output:
           # mapped image from CT -> MRI
           POST_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_POSTMRI_FOLDER, postinpre_bids_fname + ".gz"),
@@ -278,6 +290,8 @@ rule coregister_t1w_postacpc_to_preacpc:
          post_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_native_bids_fname),
     params:
           FSOUT_POSTMRI_FOLDER=str(FSOUT_POSTMRI_FOLDER),
+    container:
+        fsl_dockerurl
     output:
           # mapped image from CT -> MRI
           POST_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_POSTMRI_FOLDER, postinpre_acpc_bids_fname + ".gz"),
@@ -305,6 +319,8 @@ rule coregister_t1w_postacpc_to_FSt1w:
          post_bids_fname=os.path.join(BIDS_POSTSURG_ANAT_DIR, postmri_bids_fname),
     params:
           FSOUT_POSTMRI_FOLDER=str(FSOUT_POSTMRI_FOLDER),
+    container:
+        fsl_dockerurl
     output:
           # mapped image from CT -> MRI
           POST_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_POSTMRI_FOLDER, postinpre_fs_bids_fname + ".gz"),

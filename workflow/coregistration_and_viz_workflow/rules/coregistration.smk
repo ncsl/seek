@@ -24,6 +24,9 @@ from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config
 
 configfile: _get_seek_config()
 
+freesurfer_dockerurl = config['freesurfer_docker']
+fsl_dockerurl = config['fsl_docker']
+
 # get the freesurfer patient directory
 bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
                      center_id=config.get('center_id')
@@ -104,6 +107,8 @@ rule prep_ct_for_coregistration:
          CT_NIFTI_IMG=os.path.join(BIDS_PRESURG_CT_DIR, ct_bids_fname),
     params:
           CTDIR=str(FSOUT_CT_FOLDER),
+    container:
+             freesurfer_dockerurl
     output:
           CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
     shell:
@@ -118,22 +123,32 @@ rule coregister_ct_to_t1wfs:
     input:
          PREMRI_NIFTI_IMG_MGZ=t1_fs_fpath,
          CT_NIFTI_IMG_MGZ=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
+    container:
+             fsl_dockerurl
     output:
           # mapped image from CT -> MRI
           CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER, ctint1_fs_bids_fname + ".gz"),
-          CT_IN_PRE_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ctint1_fs_bids_fname),
           # mapping matrix for post to pre in T1
           MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, ct_to_t1wfs_transform_fname),
-          ct_tot1_fs_output=ct_tot1_fs_output,
           ct_tot1_fs_map=ct_tot1_fs_map,
     shell:
          "flirt -in {input.CT_NIFTI_IMG_MGZ} \
                              -ref {input.PREMRI_NIFTI_IMG_MGZ} \
                              -omat {output.MAPPING_FILE_ORIG} \
                              -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
+         "cp {output.MAPPING_FILE_ORIG} {output.ct_tot1_fs_map};"
+
+rule convert_ctgz_to_nifti:
+    input:
+         CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER, ctint1_fs_bids_fname + ".gz"),
+    container:
+             fsl_dockerurl,
+    output:
+          CT_IN_PRE_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ctint1_fs_bids_fname),
+          ct_tot1_fs_output=ct_tot1_fs_output,
+    shell:
          "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_IMG};"
          "cp {output.CT_IN_PRE_NIFTI_IMG} {output.ct_tot1_fs_output};"
-         "cp {output.MAPPING_FILE_ORIG} {output.ct_tot1_fs_map};"
 
 """
 Rule to map the brain mask over to the CT space.
@@ -144,6 +159,8 @@ rule map_brainmask_to_ct:
          CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER, ct_bids_fname),
          # mapping matrix for post to pre in T1
          MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER, ct_to_t1wfs_transform_fname),
+    container:
+             fsl_dockerurl
     output:
           # mapping matrix for post to pre in T1
           brainmask_inct_file=os.path.join(FSOUT_CT_FOLDER, "brainmask_inct.nii.gz"),
