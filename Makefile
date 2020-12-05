@@ -13,7 +13,6 @@ dockerhub := neuroseek
 # docker containers
 blender_version := 2.82
 acpcdetect_version := 2.0
-#fsl_version := 6.0
 freesurfer7-with-mrtrix3_version := 1.0
 
 ############################## DOCKER #########################
@@ -24,7 +23,7 @@ build-acpc:
 	docker build --rm -f ./dockerfiles/Dockerfile.acpcdetect -t $(dockerhub)/acpcdetect:$(acpcdetect_version)  ./dockerfiles
 
 build-blender:
-	docker build --rm -f ./dockerfiles/Dockerfile.blender -t $(dockerhub)/blender:$(blender_version)  ./dockerfiles
+	docker build --rm -f ./dockerfiles/Dockerfile.meshgenerator -t $(dockerhub)/blender:$(blender_version)  ./dockerfiles
 
 build-freesurfer:
 	docker build --rm -f ./dockerfiles/Dockerfile.freesurfer-with-mrtrix3 -t $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)  ./dockerfiles
@@ -43,27 +42,6 @@ pull-all:
 	docker pull $(dockerhub)/blender:$(blender_version)
 	docker pull $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)
 	docker pull docker://cbinyu/fsl6-core
-
-docker-build:
-	docker build --rm -t $(dockerhub)/$(name):$(version) .
-
-docker-run:
-	docker stop $(name);
-	docker run --rm --name $(name) -p 5000:5000 -d $(image):$(version)
-
-docker-pull:
-	docker pull $(dockerhub)/$(name):$(version)
-
-run:
-	docker run --name seek seek
-
-stop:
-	docker stop seek
-	docker rm seek
-
-push:
-	echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-	docker push $(dockerhub)/$(name):$(version)
 
 ############################## UTILITY FOR PYTHON #########################
 clean-pyc:
@@ -126,7 +104,7 @@ pycodestyle:
 	@pycodestyle
 
 init:
-    export SEEKHOME=$(pwd)
+    @export "SEEKHOME=$(pwd)";
 #    @echo "HI";
 
 check-manifest:

@@ -43,6 +43,7 @@ def _get_seek_path():
     """Get relative path to the config file."""
     import seek
 
+    print(seek.__file__)
     if seek.__file__ is None:
         base_path = None
     else:
@@ -197,21 +198,13 @@ class BidsRoot:
         return Path(self.derivatives_dir / "freesurfer" / self.subject_wildcard)
 
     def get_premri_dir(self):
-        return Path(
-            self.bids_root / self.source_chain / "premri"
-        ).as_posix()
+        return Path(self.bids_root / self.source_chain / "premri").as_posix()
 
     def get_postmri_dir(self):
-        return Path(
-            self.bids_root / self.source_chain / "postmri"
-        ).as_posix()
+        return Path(self.bids_root / self.source_chain / "postmri").as_posix()
 
     def get_rawct_dir(self):
-        return Path(
-            self.bids_root / self.source_chain / "postct"
-        ).as_posix()
+        return Path(self.bids_root / self.source_chain / "postct").as_posix()
 
     def get_rawacpc_dir(self):
-        return Path(
-            self.bids_root / self.source_chain / "acpc"
-        ).as_posix()
+        return Path(self.bids_root / self.source_chain / "acpc").as_posix()

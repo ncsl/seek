@@ -164,7 +164,7 @@ rule convert_dicom_to_nifti_mri:
           MRI_FOLDER=RAW_MRI_FOLDER,
           bids_root=bids_root.bids_root,
     log: "logs/recon_workflow.{subject}.log"
-    container:
+    singularity:
              freesurfer_dockerurl
     output:
           MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_native_bids_fname),
