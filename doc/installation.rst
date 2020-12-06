@@ -54,6 +54,39 @@ you should see the corresponding container.
 
 :doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>`
 
+Singularity Installation (for Linux)
+------------------------------------
+This will install the Go version 1.15.6. We minimally require
+1.13.
+
+:code-block:
+
+    export VERSION=1.15.6 OS=linux ARCH=amd64 && \
+    wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz && \
+    sudo tar -C /usr/local -xzvf go$VERSION.$OS-$ARCH.tar.gz && \
+    rm go$VERSION.$OS-$ARCH.tar.gz
+
+:code-block:
+
+    echo 'export GOPATH=${HOME}/go' >> ~/.bashrc && \
+    echo 'export PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin' >> ~/.bashrc && \
+    source ~/.bashrc
+
+Now install singularity
+
+    go get -d github.com/sylabs/singularity
+
+    export VERSION=3.7.0 && # adjust this as necessary \
+    mkdir -p $GOPATH/src/github.com/sylabs && \
+    cd $GOPATH/src/github.com/sylabs && \
+    wget https://github.com/sylabs/singularity/releases/download/v${VERSION}/singularity-${VERSION}.tar.gz && \
+    tar -xzf singularity-${VERSION}.tar.gz && \
+    cd ./singularity && \
+    ./mconfig
+
+    ./mconfig && \
+    make -C ./builddir && \
+    sudo make -C ./builddir install
 
 Manual Installation (Not Recommended; See Docker)
 -------------------------------------------------
