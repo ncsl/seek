@@ -125,8 +125,15 @@ class BidsRoot:
 
     """
 
-    def __init__(self, subject_id, bids_root, site_id=None, derivatives_dir=None, 
-                 subject_wildcard="{subject}", **kwargs):
+    def __init__(
+        self,
+        subject_id,
+        bids_root,
+        site_id=None,
+        derivatives_dir=None,
+        subject_wildcard="{subject}",
+        **kwargs,
+    ):
         self.subject_id = subject_id
 
         bids_root = Path(bids_root)
@@ -170,7 +177,7 @@ class BidsRoot:
         return self._get_source_chain()
 
     def _get_source_chain(self):
-        source_chain = Path('sourcedata')
+        source_chain = Path("sourcedata")
         if self.site_id is not None:
             source_chain = source_chain / self.site_id
         source_chain = source_chain / self.subject_wildcard

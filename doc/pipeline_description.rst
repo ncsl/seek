@@ -207,6 +207,13 @@ For an in-depth explanation on each particular rule, see :doc:`rules document <r
 
 Docker Usage in SEEK
 --------------------
-To heavily utilize Freesurfer, FSL, MRTrix3, and more, we make use of Docker.
+To heavily utilize Freesurfer, FSL, MRTrix3, and more, we make use of Docker. Docker images are pre-built for
+you and stored at ``neuroseek``'s Docker Hub. To utilize the containers, one can run
+
+.. code-block::
+
+    snakemake --cores 1 --use-singularity --singularity-args "--bind <bids_root>"
+
+where ``<bids_root>`` is the path to the data defined in the ``localconfig.yaml`` file.
 
 :doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>.`
