@@ -141,11 +141,11 @@ rule prep:
     input:
          MRI_NIFTI_IMG=expand(t1_output, subject=subjects),
          CT_bids_fname=expand(ct_output, subject=subjects),
-         ct_tot1_output=expand(ct_tot1_output, subject=subjects),
-         ct_tot1_map=expand(ct_tot1_map, subject=subjects),
+         # ct_tot1_output=expand(ct_tot1_output, subject=subjects),
+         # ct_tot1_map=expand(ct_tot1_map, subject=subjects),
          t1_acpc_output=expand(t1_acpc_output, subject=subjects),
-         ct_tot1_acpc_output=expand(ct_tot1_acpc_output, subject=subjects),
-         ct_tot1_acpc_map=expand(ct_tot1_acpc_map, subject=subjects),
+         # ct_tot1_acpc_output=expand(ct_tot1_acpc_output, subject=subjects),
+         # ct_tot1_acpc_map=expand(ct_tot1_acpc_map, subject=subjects),
     params:
           bids_root=bids_root.bids_root,
     output:
@@ -154,6 +154,7 @@ rule prep:
          "echo 'done';"
          "bids-validator {params.bids_root};"
          "touch fig1.png {output};"
+
 """
 Rule for prepping fs_recon by converting dicoms -> NIFTI images.
 
@@ -204,6 +205,19 @@ rule t1w_compute_robust_fov:
          "echo 'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz}';"
          'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz};'  # -m roi2full.mat
          'mrconvert {output.MRI_bids_fname_gz} {output.MRI_bids_fname} --datatype uint16;'
+
+
+rule convert_t1w_robust_fov_to_nifti:
+    input:
+         MRI_bids_fname_gz=os.path.join(FSOUT_ACPC_FOLDER, premri_robustfov_native_bids_fname) + '.gz',
+    log: "logs/recon_workflow.{subject}.log"
+    output:
+          MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR, premri_robustfov_native_bids_fname),
+    container:
+            freesurfer_dockerurl,
+    shell:
+         'mrconvert {input.MRI_bids_fname_gz} {output.MRI_bids_fname} --datatype uint16;'
+
 
 """
 Rule for automatic ACPC alignment using acpcdetect software. 

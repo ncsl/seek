@@ -56,8 +56,12 @@ you should see the corresponding container.
 
 Singularity Installation (for Linux)
 ------------------------------------
-This will install the Go version 1.15.6. We minimally require
-1.13.
+To install Singularity, we tested on version 3.7.0, but it should work
+on any of the versions 3.5+.
+
+When installing these, we used the Go version 1.15.6.
+But minimally 1.13+ should work. Here are a few code snippets
+for installing Go and then singularity.
 
 :code-block:
 
@@ -74,8 +78,9 @@ This will install the Go version 1.15.6. We minimally require
 
 Now install singularity
 
-    go get -d github.com/sylabs/singularity
+:code-block:
 
+    go get -d github.com/sylabs/singularity
     export VERSION=3.7.0 && # adjust this as necessary \
     mkdir -p $GOPATH/src/github.com/sylabs && \
     cd $GOPATH/src/github.com/sylabs && \
@@ -83,6 +88,8 @@ Now install singularity
     tar -xzf singularity-${VERSION}.tar.gz && \
     cd ./singularity && \
     ./mconfig
+
+:code-block:
 
     ./mconfig && \
     make -C ./builddir && \
