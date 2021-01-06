@@ -147,7 +147,7 @@ rule convert_ctgz_to_nifti:
         CT_IN_PRE_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER,ctint1_fs_bids_fname),
         ct_tot1_fs_output=ct_tot1_fs_output,
     shell:
-        "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_IMG};"
+        "mrconvert {input.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_IMG};"
         "cp {output.CT_IN_PRE_NIFTI_IMG} {output.ct_tot1_fs_output};"
 
 """
