@@ -1,4 +1,4 @@
-import argparse
+import sys
 import json
 import os
 
@@ -74,18 +74,20 @@ def main(mat_color_json_fpath):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--materialColorsPath",
-        # dest="describe",
-        # action="store_true",
-        default="/home/scripts/materialColors.json",
-        help=("If set, is the path to the materialColors JSON file."),
-    )
-
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument(
+    #     "--materialColorsPath",
+    #     # dest="describe",
+    #     # action="store_true",
+    #     default="/home/scripts/materialColors.json",
+    #     help=("If set, is the path to the materialColors JSON file."),
+    # )
+    #
+    # args = parser.parse_args()
 
     # Extract arguments from parser
-    mat_colors_json_fpath = args.materialColorsPath
+    mat_colors_json_fpath = sys.argv[0]
+    if mat_colors_json_fpath == '':
+        mat_colors_json_fpath = "/home/scripts/materialColors.json"
 
     main(mat_color_json_fpath=mat_colors_json_fpath)
