@@ -148,6 +148,7 @@ rule convert_annot_to_dpv:
         LH_ANNOT_DPV=LH_ANNOT_DPV,
         RH_ANNOT_DPV=RH_ANNOT_DPV,
     shell:
+        "cd {params.scripts_dir}/octave/;"
         "{params.scripts_dir}/octave/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
         "{params.scripts_dir}/octave/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
 
