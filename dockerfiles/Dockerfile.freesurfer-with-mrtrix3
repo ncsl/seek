@@ -23,7 +23,14 @@ RUN yum -y install \
     libtiff5-dev \
     libpng-dev \
     eigen3-devel \
-    zlib-devel libqt5-devel libgl1-mesa-dev fftw-devel libtiff-devel libpng-devel gcc-c++
+    zlib-devel libqt5-devel libgl1-mesa-dev fftw-devel libtiff-devel libpng-devel gcc-c++ \
+    unzip
+
+# install Matlab compiler runtime for hippocampal/amygdala and brainstem segementation
+# The hippocampal/amygdala and brainstem modules require the (free) Matlab runtime.
+# You will need to download the Matlab Compiler Runtime (MCR) for Matlab 2014b.
+# To do so, please run the following command (you might need root permissions):
+RUN fs_install_mcr R2014b
 
 # install miniconda3
 RUN yum -y update \

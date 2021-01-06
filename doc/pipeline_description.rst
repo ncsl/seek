@@ -214,6 +214,10 @@ you and stored at ``neuroseek``'s Docker Hub. To utilize the containers, one can
 
     snakemake --cores 1 --use-singularity --singularity-args "--bind <bids_root>"
 
+For example::
+
+        snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/"
+
 where ``<bids_root>`` is the path to the data defined in the ``localconfig.yaml`` file.
 
 :doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>.`

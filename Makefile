@@ -13,7 +13,7 @@ dockerhub := neuroseek
 # docker containers
 blender_version := 2.82
 acpcdetect_version := 2.0
-freesurfer7-with-mrtrix3_version := 1.0
+freesurfer7-with-mrtrix3_version := 1.1
 
 ############################## DOCKER #########################
 build:
@@ -104,11 +104,15 @@ pycodestyle:
 	@pycodestyle
 
 init:
-    @export "SEEKHOME=$(pwd)";
-#    @echo "HI";
+	pipenv shell
+    export SEEKHOME = $(shell pwd)
 
 check-manifest:
 	check-manifest --ignore .circleci*,docs,.DS_Store,annonymize
+
+create_dags:
+	snakemake --forceall --dag | dot -Tpdf > recon_workflow.pdf;
+	#cd -
 
 black:
 	@if command -v black > /dev/null; then \
