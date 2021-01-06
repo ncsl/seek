@@ -46,10 +46,10 @@ ENV PATH /usr/local/freesurfer/bin:$PATH
 COPY ./freesurferlicense.txt /usr/local/freesurfer/.license
 
 # Set work directory
-WORKDIR /home/scripts
+#WORKDIR /home/scripts
 
 # Copy all scripts to image
-COPY ./scripts /home/scripts
-RUN chmod +x runscript.sh && chmod +x aseg2srf.sh
-
-CMD [ "/bin/bash", "-c", "./runscript.sh" ] 
+#COPY ./scripts /home/scripts
+#RUN chmod +x runscript.sh && chmod +x aseg2srf.sh
+#
+#CMD [ "/bin/bash", "-c", "./runscript.sh" ]

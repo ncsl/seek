@@ -34,7 +34,7 @@ bids_root = BidsRoot(subject_wildcard,BIDS_ROOT(config['bids_root']),
     site_id=config['site_id'],subject_wildcard=subject_wildcard)
 
 SEEKHOME = _get_seek_path()
-scripts_dir=os.path.join(SEEKHOME, 'workflow', 'prep_vizengine_workflow', 'scripts')
+scripts_dir = os.path.join(SEEKHOME,'workflow','prep_vizengine_workflow','scripts')
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
@@ -92,9 +92,11 @@ subworkflow contact_labeling_workflow:
 rule generate_visualization_blender_meshes:
     input:
         surface_scene_file=expand(surface_scene_fpath,subject=subjects),
-        # electrodes_scene_file=expand(electrodes_scene_fpath,subject=subjects),
+    # electrodes_scene_file=expand(electrodes_scene_fpath,subject=subjects),
     # surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
     # surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
+    log:
+        expand("logs/prep_vizengine.{subject}.log",subject=subjects)
     output:
         report=report('figviz.png',caption='report/figviz.rst',category='Visualization Prep')
     shell:
@@ -107,6 +109,8 @@ rule convert_asc_to_srf:
     input:
         LH_PIAL_ASC=LH_PIAL_ASC,
         RH_PIAL_ASC=RH_PIAL_ASC,
+    log:
+        "logs/prep_vizengine.{subject}.log"
     output:
         LH_PIAL_SRF=LH_PIAL_SRF,
         RH_PIAL_SRF=RH_PIAL_SRF,
@@ -121,7 +125,9 @@ rule convert_annot_to_dpv:
         LH_ANNOT_FILE=LH_ANNOT_FILE,
         RH_ANNOT_FILE=RH_ANNOT_FILE,
     params:
-        scripts_dir = scripts_dir
+        scripts_dir=scripts_dir
+    log:
+        "logs/prep_vizengine.{subject}.log"
     container:
         blender_dockerurl
     output:
@@ -140,10 +146,12 @@ rule split_surfaces:
         RH_ANNOT_DPV=RH_ANNOT_DPV,
         LH_PIAL_SRF=LH_PIAL_SRF,
         RH_PIAL_SRF=RH_PIAL_SRF,
+    log:
+        "logs/prep_vizengine.{subject}.log"
     params:
         LH_PIAL_ROI=LH_PIAL_ROI,
         RH_PIAL_ROI=RH_PIAL_ROI,
-        scripts_dir= scripts_dir,
+        scripts_dir=scripts_dir,
         FS_ROI_FOLDER=FS_ROI_FOLDER,
     container:
         blender_dockerurl
@@ -167,6 +175,8 @@ rule convert_subcort_to_blenderobj:
         fsdir=FS_DIR,
         FS_OBJ_FOLDER=str(FS_OBJ_FOLDER),
         scripts_dir=scripts_dir
+    log:
+        "logs/prep_vizengine.{subject}.log"
     container:
         blender_dockerurl
     output:
@@ -189,6 +199,8 @@ rule convert_cortical_to_blenderobj:
         subject=subject_wildcard,
         scripts_dir=scripts_dir,
         fsdir=FS_DIR,
+    log:
+        "logs/prep_vizengine.{subject}.log"
     container:
         blender_dockerurl
     output:
@@ -201,6 +213,7 @@ rule convert_cortical_to_blenderobj:
 
 
 """Rule to create brain surface ``.glb`` files."""
+
 rule create_brain_glb_files:
     input:
         surface_obj_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_obj_flag_success.txt"),
@@ -211,7 +224,9 @@ rule create_brain_glb_files:
         fsdir=FS_DIR,
         subject=subject_wildcard,
         materialcolors_file=os.path.join(os.getcwd(),"./scripts/materialColors.json"),
-        scripts_dir = scripts_dir,
+        scripts_dir=scripts_dir,
+    log:
+        "logs/prep_vizengine.{subject}.log"
     container:
         blender_dockerurl
     output:
@@ -221,12 +236,13 @@ rule create_brain_glb_files:
         "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
         "export SUBJECT={params.subject};"
-        "blender --background {params.scripts_dir}/startup.blend " \
+        "/usr/local/blender/blender --background {params.scripts_dir}/startup.blend " \
         "--python {params.scripts_dir}/brain_generator.py " \
         "--materialColorsPath {params.materialcolors_file};"
 
 
 """Rule to create electrode in brain coordinate system ``.glb`` files."""
+
 rule create_electrode_glb_files:
     input:
         electrode_fpath=str(electrodes_fname)
@@ -235,6 +251,8 @@ rule create_electrode_glb_files:
         subject=subject_wildcard,
         materialcolors_file=os.path.join(os.getcwd(),"./scripts/materialColors.json"),
         scripts_dir=scripts_dir
+    log:
+        "logs/prep_vizengine.{subject}.log"
     container:
         blender_dockerurl
     output:
@@ -246,4 +264,3 @@ rule create_electrode_glb_files:
         "blender --background {params.scripts_dir}/startup.blend " \
         "--python {params.scripts_dir}/electrode_generator.py " \
         "--elecfpath {input.electrode_fpath};"
-
