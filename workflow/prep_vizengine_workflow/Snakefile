@@ -53,7 +53,7 @@ rule all:
 
 ##### setup report #####
 
-report: "report/workflow.rst"
+report: "../report/workflow.rst"
 
 ##### load rules #####
 
