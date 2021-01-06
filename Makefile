@@ -68,9 +68,9 @@ init:
     export SEEKHOME = $(shell pwd)
 
 create_dags:
-	snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/recon_workflow.pdf;
-	snakemake --snakefile ./workflow/prep_localization_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/prep_localization_workflow.pdf;
-	snakemake --snakefile ./workflow/coregistration_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/coregistration_workflow.pdf;
+#	snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/recon_workflow.pdf;
+#	snakemake --snakefile ./workflow/prep_localization_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/prep_localization_workflow.pdf;
+#	snakemake --snakefile ./workflow/coregistration_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/coregistration_workflow.pdf;
 	snakemake --snakefile ./workflow/prep_vizengine_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/prep_viz_workflow.pdf;
 
 ############################## UTILITY FOR PYTHON #########################

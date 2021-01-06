@@ -60,6 +60,7 @@ RH_PIAL_ROI = os.path.join(FS_ROI_FOLDER,"rh.pial_roi")
 # blender output file paths
 surface_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","reconstruction.glb")
 surface_fbx_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","reconstruction.fbx")
+electrodes_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","electrodes.glb")
 
 # coordinate system and electrodes as tsv files
 manual_coordsystem_fname = BIDSPath(
@@ -88,6 +89,7 @@ subworkflow contact_labeling_workflow:
 rule generate_visualization_blender_meshes:
     input:
         surface_scene_file=expand(surface_scene_fpath,subject=subjects),
+        electrodes_scene_file=expand(electrodes_scene_fpath,subject=subjects),
     # surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
     # surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
     output:
@@ -111,7 +113,7 @@ rule convert_asc_to_srf:
 
 """Convert Subcortical surface files to Blender object files."""
 
-rule convert_subcort_to_obj:
+rule convert_subcort_to_blenderobj:
     input:
         subcort_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"{subject}_subcort_success.txt"),
     params:
@@ -125,7 +127,7 @@ rule convert_subcort_to_obj:
     shell:
         "export SUBJECTS_DIR={params.fsdir};"
         "mkdir -p {params.FS_OBJ_FOLDER};"
-        "./scripts/objMaker.sh {params.subject};"
+        "./scripts/bash/objMaker.sh {params.subject};"
         "touch {output.obj_success_flag_file};"
 
 """Convert annotation files to DPV files for Blender."""
@@ -140,8 +142,8 @@ rule convert_annot_to_dpv:
         LH_ANNOT_DPV=LH_ANNOT_DPV,
         RH_ANNOT_DPV=RH_ANNOT_DPV,
     shell:
-        "./scripts/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
-        "./scripts/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
+        "./scripts/octave/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
+        "./scripts/octave/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
 
 """Split surfaces into files per right/left hemisphere."""
 
@@ -160,14 +162,36 @@ rule split_surfaces:
         roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_roi_flag_success.txt")
     shell:
         # "cd ./scripts/;"
-        "./scripts/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
-        "./scripts/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
+        "./scripts/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
+        "./scripts/octave/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
         "touch {output.roi_flag_file};"
 
-rule create_surface_objects:
+
+"""Rule to create blender ``.obj`` files from ``.srf`` files."""
+
+rule convert_cortical_to_blenderobj:
     input:
         roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_roi_flag_success.txt"),
-        electrode_fpath=electrodes_fname,
+        obj_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"{subject}_subcortobjects_success.txt"),
+    params:
+        LH_PIAL_ROI=LH_PIAL_ROI,
+        RH_PIAL_ROI=RH_PIAL_ROI,
+        subject=subject_wildcard,
+    container:
+        blender_dockerurl
+    output:
+        surface_obj_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_obj_flag_success.txt"),
+    shell:
+        "echo 'Creating surface objects for rendering!';"
+        "export SUBJECTS_DIR={params.fsdir};"
+        "./scripts/bash/surfaceToObject.sh {params.subject};"
+        "touch {output.surface_obj_flag_file};"
+
+
+"""Rule to create brain surface ``.glb`` files."""
+rule create_brain_glb_files:
+    input:
+        surface_obj_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_obj_flag_success.txt"),
         obj_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"{subject}_subcortobjects_success.txt"),
     params:
         LH_PIAL_ROI=LH_PIAL_ROI,
@@ -181,16 +205,29 @@ rule create_surface_objects:
         surface_scene_file=surface_scene_fpath,
         surface_fbx_file=surface_fbx_fpath,
     shell:
-        "echo 'Creating surface objects for rendering!';"
+        "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
-        "./scripts/surfaceToObject.sh {params.subject};"
-        "blender --background --python ./scripts/sceneCreator.py -- " \
-        "{params.fsdir} " \
-        "{params.subject} " \
-        "{input.electrode_fpath} " \
-        "True False " \
-        "{output.surface_fbx_file} " \
-        "{output.surface_scene_file} " \
-        "{params.materialcolors_file};"
-    # "cp {output.surface_scene_file} {output.copied_surface_scene_file};"
-    # "cp {output.surface_fbx_file} {output.copied_surface_fbx_file};"
+        "export SUBJECT={params.subject};"
+        "blender --background ./scripts/startup.blend --python ./scripts/brain_generator.py " \
+        "--materialColorsPath {params.materialcolors_file};"
+
+
+"""Rule to create electrode in brain coordinate system ``.glb`` files."""
+rule create_electrode_glb_files:
+    input:
+        electrode_fpath=str(electrodes_fname)
+    params:
+        fsdir=FS_DIR,
+        subject=subject_wildcard,
+        materialcolors_file=os.path.join(os.getcwd(),"./scripts/materialColors.json"),
+    container:
+        blender_dockerurl
+    output:
+        electrodes_scene_file=electrodes_scene_fpath,
+    shell:
+        "echo 'Creating brain glb objects for rendering!';"
+        "export SUBJECTS_DIR={params.fsdir};"
+        "export SUBJECT={params.subject};"
+        "blender --background ./scripts/startup.blend --python ./scripts/electrode_generator.py " \
+        "--elecfpath {input.electrode_fpath};"
+
