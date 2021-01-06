@@ -1,3 +1,5 @@
+:orphan:
+
 .. _testing:
 
 Guide to setup Testing Environment

@@ -69,4 +69,4 @@ To push all the images that you have tested and built locally
 Testing Docker Containers
 -------------------------
 If any Docker containers need to be updated, then the workflows should be tested. See the
-`testing guide <testing>_`.
+:doc:`testing guide <testing>`

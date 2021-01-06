@@ -217,6 +217,9 @@ Rule for extracting the subcortical regions
 
 - creates a new folder aseg2srf inside the fs_output data directory
 - c/p this into our final result directory
+
+Note: when running this rule with singularity, need to bind the 
+SEEK repository directory.
 """
 
 rule create_subcortical_volume:

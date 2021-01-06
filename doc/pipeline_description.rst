@@ -209,24 +209,24 @@ For an in-depth explanation on each particular rule, see :doc:`rules document <r
 
 For an example visualization of the rules that are ran in each subsequent workflow, we created
 a DAG of rules that are ran through for subjects named ``nl02``, ``nl06`` and ``nl11``. We start
-off with the :download:`reconstruction workflow <_static/recon_workflow.pdf`. This workflow, runs
+off with the :download:`reconstruction workflow <doc/_static/recon_workflow.pdf`. This workflow, runs
 preparation commands for the T1 images, such as `robust_fov`, `acpcdetect` and then runs
 various `FreeSurfer` commands (mainly `recon-all`), which takes many hours.
 
 In the meantime, if you have your CT images, you can prepare for localization using the
-RECOMMENDED FieldTrip toolbox. The :download:`prep localization workflow <_static/prep_localization_workflow.pdf`
+RECOMMENDED FieldTrip toolbox. The :download:`prep localization workflow <doc/_static/prep_localization_workflow.pdf`
 will simply setup files for FieldTrip. At this point, please follow the tutorial on localizing electrode
 contacts (CHRISTOPHER TO LINK HERE WHAT RAPH PUT TOGETHER).
 
-Next, we look at the :download:`coregistration workflow <_static/coregistration_workflow.pdf>`. This
+Next, we look at the :download:`coregistration workflow <doc/_static/coregistration_workflow.pdf>`. This
 will perform series of coregistrations that follows BIDS naming convention for possible downstream usage.
 ``SEEK currently does not actively use any of these coregistrations. Any coregistration for electrode
 localization currently takes place in FieldTrip Toolbox interactively using SPM12.``
 
 After localizing electrode coordinates in FieldTrip toolbox, one can run the
-:download:`label electrodes anatomically workflow <_static/label_contacts_workflow.pdf>`.
+:download:`label electrodes anatomically workflow <doc/_static/label_contacts_workflow.pdf>`.
 
-Finally, we look at the :download:`prep visualization workflow <_static/prep_viz_workflow.pdf>`. After
+Finally, we look at the :download:`prep visualization workflow <doc/_static/prep_viz_workflow.pdf>`. After
 all other workflows have ran, then
 
 Docker Usage in SEEK
@@ -244,4 +244,4 @@ For example::
 
 where ``<bids_root>`` is the path to the data defined in the ``localconfig.yaml`` file.
 
-:doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>.`
+:doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>`
