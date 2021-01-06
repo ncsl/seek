@@ -238,7 +238,7 @@ rule create_brain_glb_files:
         "export SUBJECT={params.subject};"
         "/usr/local/blender/blender --background {params.scripts_dir}/startup.blend " \
         "--python {params.scripts_dir}/brain_generator.py " \
-        "--materialColorsPath {params.materialcolors_file};"
+        "-- materialColorsPath {params.materialcolors_file};"
 
 
 """Rule to create electrode in brain coordinate system ``.glb`` files."""
