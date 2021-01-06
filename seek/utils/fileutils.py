@@ -25,7 +25,7 @@ TEMPLATE_SUBJECT = "cvs_avg35_inMNI152"
 
 def _get_subject_center(subjects, centers, subject):
     sub_idx = list(subjects).index(subject)
-    print(f"Found {centers[sub_idx]} for {subject}")
+    logger.debug(f"Found {centers[sub_idx]} for {subject}")
     return centers[sub_idx]
 
 
@@ -43,7 +43,7 @@ def _get_seek_path():
     """Get relative path to the config file."""
     import seek
 
-    print(seek.__file__)
+    logger.debug(f"Attempting to infer seek filepath: {seek.__file__}.")
     if seek.__file__ is None:
         base_path = None
     else:

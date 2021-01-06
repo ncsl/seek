@@ -50,6 +50,17 @@ or
     
 if you don't want to run the examples to build the documentation. This will result in a faster build but produce no plots in the examples.
 
+### Creating a DAG for each workflow
+``Snakemake`` has the nice property of implicitly building a directed acyclic graph (DAG) of 
+your anatomical analysis. To visualize this DAG for your subjects, one can make use of the 
+snakemake command:
+
+    $ snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./recon_workflow.pdf;
+
+We package all these DAG creation commands into a ``Makefile`` recipe, which can be ran as:
+
+    $ make create_dags
+
 ## BIDS-Validation
 To robustly apply seek workflows and reconstruction visualiztion, we rely on the BIDS specification 
 for storing data. One can use the `bids-validator` to verify that a dataset is BIDS-compliant.

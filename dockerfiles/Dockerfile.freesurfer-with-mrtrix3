@@ -24,7 +24,7 @@ RUN yum -y install \
     libpng-dev \
     eigen3-devel \
     zlib-devel libqt5-devel libgl1-mesa-dev fftw-devel libtiff-devel libpng-devel gcc-c++ \
-    unzip
+    unzip libXt libXext ncurses-compat-libs
 
 # install Matlab compiler runtime for hippocampal/amygdala and brainstem segementation
 # The hippocampal/amygdala and brainstem modules require the (free) Matlab runtime.

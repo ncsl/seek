@@ -205,6 +205,16 @@ Snakemake Rules
 Each of these workflows are enabled by a set of ``snakemake`` rules.
 For an in-depth explanation on each particular rule, see :doc:`rules document <rules>`_.
 
+For an example visualization of the rules that are ran in each subsequent workflow, we created
+a DAG of rules that are ran through for subjects named ``nl02``, ``nl06`` and ``nl11``. We start
+off with the :download:`reconstruction workflow <_static/recon_workflow.pdf`. This workflow, runs
+preparation commands for the T1 images, such as `robust_fov`, `acpcdetect` and then runs
+various `FreeSurfer` commands (mainly `recon-all`), which takes many hours.
+
+Next, we look at the :download:`coregistration workflow <_static/coregistration_workflow.pdf>`.
+
+Finally, we look at the :download:`prep visualization workflow <_static/prep_viz_workflow.pdf>`.
+
 Docker Usage in SEEK
 --------------------
 To heavily utilize Freesurfer, FSL, MRTrix3, and more, we make use of Docker. Docker images are pre-built for

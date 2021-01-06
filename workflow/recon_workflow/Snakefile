@@ -7,8 +7,9 @@ from snakemake.logging import logger
 from snakemake.utils import validate, min_version
 
 sys.path.append(os.getenv('SEEKHOME'))
-print(os.getcwd())
-print(os.getenv('SEEKHOME'))
+
+logger.debug(f'In reconstruction rule workflow with current working directory: {os.getcwd()}. '
+             f'SEEKHOME is {os.getenv("SEEKHOME")}.')
 from seek.utils.fileutils import _get_seek_config
 
 ##### set minimum snakemake version #####

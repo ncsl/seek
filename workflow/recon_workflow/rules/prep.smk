@@ -50,6 +50,8 @@ from seek.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
 
 configfile: _get_seek_config()
 
+logger.debug('In prep workflow...')
+
 # get the actual file path to the config
 configpath = Path(_get_seek_config()).parent
 
@@ -135,7 +137,7 @@ t1_acpc_output = os.path.join(BIDS_PRESURG_ANAT_DIR, premri_bids_fname)
 ct_tot1_acpc_output = os.path.join(BIDS_PRESURG_CT_DIR, ctint1_acpc_bids_fname)
 ct_tot1_acpc_map = os.path.join(BIDS_PRESURG_CT_DIR, pre_to_post_acpc_transform_fname)
 
-print('In prep workflow.')
+
 
 rule prep:
     input:

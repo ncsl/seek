@@ -13,7 +13,20 @@ dockerhub := neuroseek
 # docker containers
 blender_version := 2.82
 acpcdetect_version := 2.0
-freesurfer7-with-mrtrix3_version := 1.1
+freesurfer7-with-mrtrix3_version := 1.2
+
+############################## MAIN COMMANDS #########################
+snakemake_all: recon coregistration prep_viz
+
+recon:
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/"
+
+coregistration:
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/"
+
+prep_viz:
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/"
+
 
 ############################## DOCKER #########################
 build:
@@ -42,6 +55,16 @@ pull-all:
 	docker pull $(dockerhub)/blender:$(blender_version)
 	docker pull $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)
 	docker pull docker://cbinyu/fsl6-core
+
+############################## UTILITY FOR SNAKEMAKE #########################
+init:
+	pipenv shell
+    export SEEKHOME = $(shell pwd)
+
+create_dags:
+	snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/recon_workflow.pdf;
+	snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/coregistration_workflow.pdf;
+	snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/prep_viz_workflow.pdf;
 
 ############################## UTILITY FOR PYTHON #########################
 clean-pyc:
@@ -84,13 +107,6 @@ test: inplace check-manifest
 test-doc:
 	$(PYTESTS) --doctest-modules --doctest-ignore-import-errors
 
-test-coverage:
-	rm -rf coverage .coverage
-	$(PYTESTS) --cov=./ --cov-report html:coverage
-
-trailing-spaces:
-	find . -name "*.py" | xargs perl -pi -e 's/[ \t]*$$//'
-
 build-doc:
 	cd doc; make clean
 	cd doc; make html
@@ -103,16 +119,8 @@ pycodestyle:
 	@echo "Running pycodestyle"
 	@pycodestyle
 
-init:
-	pipenv shell
-    export SEEKHOME = $(shell pwd)
-
 check-manifest:
 	check-manifest --ignore .circleci*,docs,.DS_Store,annonymize
-
-create_dags:
-	snakemake --forceall --dag | dot -Tpdf > recon_workflow.pdf;
-	#cd -
 
 black:
 	@if command -v black > /dev/null; then \

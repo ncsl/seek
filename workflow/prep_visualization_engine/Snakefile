@@ -7,7 +7,7 @@ from snakemake.logging import logger
 
 sys.path.append(os.getenv('SEEKHOME'))
 
-print(os.getcwd())
+logger.debug(f'The current working directory for prepping visualization workflow: {os.getcwd()}')
 
 from seek.pipeline.utils.fileutils import _get_seek_config
 

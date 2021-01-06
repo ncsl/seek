@@ -31,6 +31,8 @@ from seek.utils.fileutils import (BidsRoot, BIDS_ROOT,
 
 configfile: _get_seek_config()
 
+logger.debug('In reconstruction workflow.')
+
 freesurfer_dockerurl = config['freesurfer_docker']
 fsl_dockerurl = config['fsl_docker']
 
@@ -52,7 +54,6 @@ BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root, subject_wildcard
 premri_bids_fname = _get_bids_basename(subject_wildcard, session='presurgery',
                                        space='ACPC', imgtype='T1w', ext='nii')
 
-print('In reconstruction workflow.')
 
 subworkflow prep_workflow:
     workdir:
