@@ -21,22 +21,18 @@ snakemake-all: recon coregistration prep_viz
 recon:
 	cd workflow/recon_workflow && \
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
-	cd $OLDPWD;
 
 prep-localization:
 	cd workflow/prep_localization_workflow && \
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
-	cd $OLDPWD;
 
 coregistration:
 	cd workflow/coregistration_workflow && \
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/";
-	cd $OLDPWD;
 
 prep-viz:
 	cd workflow/prep_vizengine_workflow &&
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/";
-	cd $OLDPWD;
 
 ############################## DOCKER #########################
 build:
