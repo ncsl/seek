@@ -66,9 +66,13 @@ Setup and Installation
 ----------------------
 
 See `INSTALLATION GUIDE <installation.rst>`_ for full instructions. SEEK uses the Snakemake_
-workflow management system to create the different workflows. We chose this because
+workflow management system to create different workflows. We chose this because
 it is easy to run individual workflows, as well as an entire workflow from the command line.
 The full repository is set up similar to the `cookiecutter` Snakemake file: `cookiecutter gh:snakemake-workflows/cookiecutter-snakemake-workflow`.
+
+The workflows start from ``dicom`` files for the T1 MRI image and CT image with the implanted electrodes.
+The snakemake workflows then automate the naming and computations to get to anatomically labeled electrodes
+that also can be fed into a `visualization engine <https://github.com/cronelab/ReconstructionVisualizer>`_.
 
 The recommended installation is via Docker_. See here for instructions on running workflows in the container are shown here below:
 
@@ -158,7 +162,7 @@ Development
 ===========
 
 Seek was created and is maintained by `Adam Li <https://adam2392.github.io>`_. It is also maintained and contributed by
-Christopher Coogan and other researchers in the NCSL and Crone lab. Contributions are more than welcome so feel free to contact me, open an issue or submit a pull request! See the
+`Christopher Coogan <https://github.com/TheBrainChain>`_ and other researchers in the NCSL and Crone lab. Contributions are more than welcome so feel free to contact me, open an issue or submit a pull request! See the
 :doc:`contribution guide <./doc/contributing>`.
 
 To report a bug, please visit the `GitHub repository <https://github.com/ncsl/seek/issues/>`_.
