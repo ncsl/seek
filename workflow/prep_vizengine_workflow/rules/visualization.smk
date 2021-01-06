@@ -78,9 +78,9 @@ electrodes_fname = manual_electrodes_fname  #.update(processing='seek')
 
 subworkflow contact_labeling_workflow:
     workdir:
-        "./rules/"
+        "../contact_labeling_workflow/"
     snakefile:
-        "./rules/label_contacts.smk"
+        "../contact_labeling_workflow/Snakefile"
     configfile:
         _get_seek_config()
 
