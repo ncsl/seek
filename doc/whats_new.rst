@@ -36,6 +36,7 @@ Bug
 
 API
 ~~~
+- Added a Makefile recipe for running all the related SEEK workflows, by `Adam Li`_ (`#34 <https://github.com/ncsl/seek/pull/34>`_)
 
 
 Authors
