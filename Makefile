@@ -31,6 +31,8 @@ coregistration:
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/";
 
 prep-viz:
+#	@read -p "Enter full absolute path to 'seek' repository:" path;
+#module_dir=./modules/$$module;
 	cd workflow/prep_vizengine_workflow && \
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,/home/adam2392/Documents/seek/";
 

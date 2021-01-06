@@ -1,6 +1,8 @@
 FROM ubuntu:latest
 ENV DEBIAN_FRONTEND noninteractive
 
+LABEL authors="Christopher Coogan <c.coogan2201@gmail.com>, Adam Li <ali39@jhu.edu>"
+
 # Install dependencies
 RUN apt-get update && apt-get -y install bc binutils libgomp1 perl psmisc sudo tar tcsh unzip \
     uuid-dev vim-common libjpeg62-dev curl octave gawk jq locales apt-utils
@@ -45,7 +47,6 @@ COPY ./freesurferlicense.txt /usr/local/freesurfer/.license
 
 # Set work directory
 WORKDIR /home/scripts
-
 
 # Copy all scripts to image
 COPY ./scripts /home/scripts

@@ -19,7 +19,7 @@ from mne_bids import BIDSPath
 
 sys.path.append("../../../")
 
-from seek.utils.fileutils import (BidsRoot, BIDS_ROOT,
+from seek.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_path,
                                   _get_session_name, _get_seek_config)
 
 configfile: _get_seek_config()
@@ -32,6 +32,9 @@ blender_dockerurl = config['blender_docker']
 subject_wildcard = "{subject}"
 bids_root = BidsRoot(subject_wildcard,BIDS_ROOT(config['bids_root']),
     site_id=config['site_id'],subject_wildcard=subject_wildcard)
+
+SEEKHOME = _get_seek_path()
+scripts_dir=os.path.join(SEEKHOME, 'workflow', 'prep_vizengine_workflow', 'scripts')
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
@@ -120,6 +123,7 @@ rule convert_subcort_to_blenderobj:
         subject=subject_wildcard,
         fsdir=FS_DIR,
         FS_OBJ_FOLDER=str(FS_OBJ_FOLDER),
+        scripts_dir=scripts_dir
     container:
         blender_dockerurl
     output:
@@ -127,7 +131,7 @@ rule convert_subcort_to_blenderobj:
     shell:
         "export SUBJECTS_DIR={params.fsdir};"
         "mkdir -p {params.FS_OBJ_FOLDER};"
-        "./scripts/bash/objMaker.sh {params.subject};"
+        "{params.scripts_dir}/bash/objMaker.sh {params.subject};"
         "touch {output.obj_success_flag_file};"
 
 """Convert annotation files to DPV files for Blender."""
@@ -136,14 +140,16 @@ rule convert_annot_to_dpv:
     input:
         LH_ANNOT_FILE=LH_ANNOT_FILE,
         RH_ANNOT_FILE=RH_ANNOT_FILE,
+    params:
+        scripts_dir = scripts_dir
     container:
         blender_dockerurl
     output:
         LH_ANNOT_DPV=LH_ANNOT_DPV,
         RH_ANNOT_DPV=RH_ANNOT_DPV,
     shell:
-        "./scripts/octave/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
-        "./scripts/octave/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
+        "{params.scripts_dir}/scripts/octave/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
+        "{params.scripts_dir}/scripts/octave/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
 
 """Split surfaces into files per right/left hemisphere."""
 
@@ -156,14 +162,15 @@ rule split_surfaces:
     params:
         LH_PIAL_ROI=LH_PIAL_ROI,
         RH_PIAL_ROI=RH_PIAL_ROI,
+        scripts_dir= scripts_dir
     container:
         blender_dockerurl
     output:
         roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_roi_flag_success.txt")
     shell:
         # "cd ./scripts/;"
-        "./scripts/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
-        "./scripts/octave/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
+        "{params.scripts_dir}/scripts/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
+        "{params.scripts_dir}/scripts/octave/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
         "touch {output.roi_flag_file};"
 
 
@@ -177,6 +184,7 @@ rule convert_cortical_to_blenderobj:
         LH_PIAL_ROI=LH_PIAL_ROI,
         RH_PIAL_ROI=RH_PIAL_ROI,
         subject=subject_wildcard,
+        scripts_dir=scripts_dir,
     container:
         blender_dockerurl
     output:
@@ -184,7 +192,7 @@ rule convert_cortical_to_blenderobj:
     shell:
         "echo 'Creating surface objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
-        "./scripts/bash/surfaceToObject.sh {params.subject};"
+        "{params.scripts_dir}/scripts/bash/surfaceToObject.sh {params.subject};"
         "touch {output.surface_obj_flag_file};"
 
 
@@ -199,6 +207,7 @@ rule create_brain_glb_files:
         fsdir=FS_DIR,
         subject=subject_wildcard,
         materialcolors_file=os.path.join(os.getcwd(),"./scripts/materialColors.json"),
+        scripts_dir = scripts_dir,
     container:
         blender_dockerurl
     output:
@@ -208,7 +217,8 @@ rule create_brain_glb_files:
         "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
         "export SUBJECT={params.subject};"
-        "blender --background ./scripts/startup.blend --python ./scripts/brain_generator.py " \
+        "blender --background {params.scripts_dir}/scripts/startup.blend " \
+        "--python {params.scripts_dir}/scripts/brain_generator.py " \
         "--materialColorsPath {params.materialcolors_file};"
 
 
@@ -220,6 +230,7 @@ rule create_electrode_glb_files:
         fsdir=FS_DIR,
         subject=subject_wildcard,
         materialcolors_file=os.path.join(os.getcwd(),"./scripts/materialColors.json"),
+        scripts_dir=scripts_dir
     container:
         blender_dockerurl
     output:
@@ -228,6 +239,7 @@ rule create_electrode_glb_files:
         "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
         "export SUBJECT={params.subject};"
-        "blender --background ./scripts/startup.blend --python ./scripts/electrode_generator.py " \
+        "blender --background {params.scripts_dir}/scripts/startup.blend " \
+        "--python {params.scripts_dir}/scripts/electrode_generator.py " \
         "--elecfpath {input.electrode_fpath};"
 
