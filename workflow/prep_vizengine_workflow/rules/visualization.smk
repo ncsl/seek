@@ -114,26 +114,6 @@ rule convert_asc_to_srf:
         "cp {input.LH_PIAL_ASC} {output.LH_PIAL_SRF};"
         "cp {input.RH_PIAL_ASC} {output.RH_PIAL_SRF};"
 
-"""Convert Subcortical surface files to Blender object files."""
-
-rule convert_subcort_to_blenderobj:
-    input:
-        subcort_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"{subject}_subcort_success.txt"),
-    params:
-        subject=subject_wildcard,
-        fsdir=FS_DIR,
-        FS_OBJ_FOLDER=str(FS_OBJ_FOLDER),
-        scripts_dir=scripts_dir
-    container:
-        blender_dockerurl
-    output:
-        obj_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"{subject}_subcortobjects_success.txt"),
-    shell:
-        "export SUBJECTS_DIR={params.fsdir};"
-        "mkdir -p {params.FS_OBJ_FOLDER};"
-        "{params.scripts_dir}/bash/objMaker.sh {params.subject};"
-        "touch {output.obj_success_flag_file};"
-
 """Convert annotation files to DPV files for Blender."""
 
 rule convert_annot_to_dpv:
@@ -177,6 +157,25 @@ rule split_surfaces:
         "{params.scripts_dir}/octave/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
         "touch {output.roi_flag_file};"
 
+"""Convert Subcortical surface files to Blender object files."""
+
+rule convert_subcort_to_blenderobj:
+    input:
+        subcort_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"{subject}_subcort_success.txt"),
+    params:
+        subject=subject_wildcard,
+        fsdir=FS_DIR,
+        FS_OBJ_FOLDER=str(FS_OBJ_FOLDER),
+        scripts_dir=scripts_dir
+    container:
+        blender_dockerurl
+    output:
+        obj_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"{subject}_subcortobjects_success.txt"),
+    shell:
+        "export SUBJECTS_DIR={params.fsdir};"
+        "mkdir -p {params.FS_OBJ_FOLDER};"
+        "{params.scripts_dir}/bash/objMaker.sh {params.subject};"
+        "touch {output.obj_success_flag_file};"
 
 """Rule to create blender ``.obj`` files from ``.srf`` files."""
 
