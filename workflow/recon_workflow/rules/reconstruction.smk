@@ -23,7 +23,6 @@ import sys
 from pathlib import Path
 
 sys.path.append("../../../")
-from seek.utils.fileutils import SCRIPTS_UTIL_DIR
 from seek.utils.fileutils import (BidsRoot, BIDS_ROOT,
                                   _get_seek_config,
                                   _get_anat_bids_dir, _get_bids_basename)
@@ -52,6 +51,7 @@ BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root,subject_wildcard,
 premri_bids_fname = _get_bids_basename(subject_wildcard,session='presurgery',
     space='ACPC',imgtype='T1w',ext='nii')
 
+SCRIPTS_UTIL_DIR = Path(os.getenv('SEEKHOME')) / 'seek' / 'scripts'
 
 subworkflow prep_workflow:
     workdir:
