@@ -223,7 +223,7 @@ rule create_brain_glb_files:
         RH_PIAL_ROI=RH_PIAL_ROI,
         fsdir=FS_DIR,
         subject=subject_wildcard,
-        materialcolors_file=os.path.join(os.getcwd(),"./scripts/materialColors.json"),
+        materialcolors_file=os.path.join(scripts_dir, "scripts/octave/materialColors.json"),
         scripts_dir=scripts_dir,
     log:
         "logs/prep_vizengine.{subject}.log"
