@@ -21,6 +21,6 @@ site_id: 'clevelandnl'
 acpcdetect_docker: 'docker://neuroseek/acpcdetect:2.0'
 fsl_docker: 'docker://cbinyu/fsl6-core'
 freesurfer_docker: 'docker://neuroseek/freesurfer7-with-mrtrix3:1.2'
-blender_docker: 'docker://neuroseek/blender:2.8'
+blender_docker: 'docker://neuroseek/blender:2.82'
 
 params:
