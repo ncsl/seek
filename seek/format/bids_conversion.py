@@ -14,11 +14,11 @@ import numpy as np
 from mne.utils import run_subprocess
 from mne_bids import write_anat
 from mne_bids.tsv_handler import _from_tsv, _to_tsv
-from mne_bids.utils import (
+from mne_bids.write import (
     _write_json,
     _write_tsv,
-    _update_sidecar,
 )
+from mne_bids.sidecar_updates import _update_sidecar
 from mne_bids.path import get_entities_from_fname
 
 
