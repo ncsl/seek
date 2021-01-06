@@ -28,7 +28,7 @@ else
     if nargin == 4,
         comment = varargin{4};
     else
-        comment = '';
+        comment = 'test';
     end
 end
 
