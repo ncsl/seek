@@ -1,37 +1,107 @@
+:orphan:
+
 .. _installation:
 
 INSTALLATION GUIDE
 ==================
 
-The best way to install is via a Docker installation.
+``seek`` uses open-source third-party software to run the various workflows. ``seek`` itself
+is a wrapper using snakemake_. The best way to install the 3rd party software for ``seek`` usage
+is via a Docker installation.
 
-Docker Installation
--------------------
+To fully install SEEK and run workflows, one will need to:
+
+#. install SEEK repository
+#. install Docker dependencies
+#. install Singularity
+
+We outline some of these steps below.
+
+seek Installation
+-----------------
+First we can install seek. There are a few ways to do so:
+
+Through git
+
+.. code-block:: bash
+
+    # clone repository locally
+    $ git clone https://github.com/ncsl/seek
+
+    # modify config yaml
+    $ cd seek/
+    $ vim config/localconfig.yaml
+
+
+Dependencies Docker Installation
+--------------------------------
 
 To run the SEEK pipeline in Docker, first follow instructions to install `Docker <https://docs.docker.com/get-docker/>`_.
 
 **NOTE: You will need approximately at least 8-9 GB free disc space to run the Docker container.**
 
-To setup the container in your system:
+To setup the container in your system, you will pull pre-built Docker images from
+neuroseek's `Docker Hub <https://hub.docker.com/orgs/neuroseek/repositories>`_.
 
-.. code-block::
+.. code-block:: bash
 
-   # build the composition in `docker-compose.yml`
-   docker-compose up --build
+    $ make pull-all
 
-   # run the container
-   docker-compose up
+This will now pull all Docker containers needed to run ``seek`` to your local machine.
 
+Now if you type in ``docker container ls``\,
+you should see the corresponding container.
 
-Now if you type in ``docker container ls``\ , you should see the corresponding container.
-
-.. code-block::
+.. code-block:: bash
 
    # turn recipe to image
    docker build <image_container_name>
 
    # turn image to containeer
    docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
+
+:doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>`
+
+Singularity Installation (for Linux)
+------------------------------------
+To install Singularity, we tested on version 3.7.0, but it should work
+on any of the versions 3.5+.
+
+When installing these, we used the Go version 1.15.6.
+But minimally 1.13+ should work. Here are a few code snippets
+for installing Go and then singularity.
+
+.. code-block:: bash
+
+    export VERSION=1.15.6 OS=linux ARCH=amd64 && \
+    wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz && \
+    sudo tar -C /usr/local -xzvf go$VERSION.$OS-$ARCH.tar.gz && \
+    rm go$VERSION.$OS-$ARCH.tar.gz
+
+.. code-block:: bash
+
+    echo 'export GOPATH=${HOME}/go' >> ~/.bashrc && \
+    echo 'export PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin' >> ~/.bashrc && \
+    source ~/.bashrc
+
+Now install singularity
+
+.. code-block:: bash
+
+    go get -d github.com/sylabs/singularity
+    export VERSION=3.7.0 && # adjust this as necessary \
+    mkdir -p $GOPATH/src/github.com/sylabs && \
+    cd $GOPATH/src/github.com/sylabs && \
+    wget https://github.com/sylabs/singularity/releases/download/v${VERSION}/singularity-${VERSION}.tar.gz && \
+    tar -xzf singularity-${VERSION}.tar.gz && \
+    cd ./singularity && \
+    ./mconfig
+
+.. code-block:: bash
+
+    ./mconfig && \
+    make -C ./builddir && \
+    sudo make -C ./builddir install
 
 Manual Installation (Not Recommended; See Docker)
 -------------------------------------------------
@@ -46,39 +116,19 @@ Python Installations
 There are a couple of tools that you need to install in your system before everything is working. You ar recommended to use a Linux based OS. 
 Follow links and tutorials on each respective tool to install. Preferably this is done via Docker, or Singularity, but if not, then:
 
-Anaconda and Python3.6+ :
+Anaconda and Python3.6+: Conda (https://docs.anaconda.com/anaconda/install/)
 
+This is mainly necessary to run snakemake, and any Python wrapper code.
 
-::
+.. code-block::
 
-    Conda (https://docs.anaconda.com/anaconda/install/)
-
-      This is mainly necessary to run snakemake, and any Python wrapper code.
-
-    .. code-block::
-
-        conda env create -f environment.yml --name=seek
-        source activate seek
-        conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
-        pip install coverage-badge anybadge
-        # dev versions of mne-python, mne-bids
-        pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
-        pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
-
-::
-
-    Pip and setup.py install
-
-    .. code-block::
-
-        # run installation via setup.py
-        make inplace-all
-
-        # install testing functionality
-        make install-tests
-
-        make check
-        make test
+    conda env create -f environment.yml --name=seek
+    source activate seek
+    conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
+    pip install coverage-badge anybadge
+    # dev versions of mne-python, mne-bids
+    pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
+    pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
 
 
 Pipeline Installations (3rd Party Modules to Install)
@@ -86,31 +136,31 @@ Pipeline Installations (3rd Party Modules to Install)
 
 #. Octave
 
-Runs open-source MATLAB-like functions. This runs various scripts for converting output files to object files for rendering visualizations.
-Follow: https://www.gnu.org/software/octave/#install
+    Runs open-source MATLAB-like functions. This runs various scripts for converting output files to object files for rendering visualizations.
+    Follow: https://www.gnu.org/software/octave/#install
 
-.. code-block::
+    .. code-block::
 
-   brew install octave
-
+       brew install octave
 
 #. Gawk_
 
-Runs command line tools.
+    Runs command line tools.
 
 #. Blender_
 
-Allows nice 3D mesh creations
+    Allows nice 3D mesh creations
 
 #. Reconstruction (Freesurfer_)
-This step is necessary to generate a parcellation and surface reconstruction of the patient's brain.
-The general requirements is just a Linux, or OSX computer with enough RAM.
-Currently, this repo is designed to work with FreeSurfer.
+
+    This step is necessary to generate a parcellation and surface reconstruction of the patient's brain.
+    The general requirements is just a Linux, or OSX computer with enough RAM.
+    Currently, this repo is designed to work with FreeSurfer.
 
 #. Coregistration (`FSL Flirt`_)
 
-This step is necessary to map different imaging sessions together. Specifically, for this pipeline, we need it to map CT images to T1 MRI
-Note that as of 2019, installation still requires Python2, which should come in any Linux distribution.
+    This step is necessary to map different imaging sessions together. Specifically, for this pipeline, we need it to map CT images to T1 MRI
+    Note that as of 2019, installation still requires Python2, which should come in any Linux distribution.
 
      .. code-block::
 
@@ -134,3 +184,4 @@ Note that as of 2019, installation still requires Python2, which should come in 
 .. _MRTrix3: https://mrtrix.readthedocs.io/en/latest/installation/linux_install.html
 .. _SPM: https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
 .. _FieldTripToolbox: http://www.fieldtriptoolbox.org/download/
+.. _snakemake: https://snakemake.readthedocs.io/en/stable/

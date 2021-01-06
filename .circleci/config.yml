@@ -29,7 +29,7 @@ jobs:
             pipenv run make check
 #            cd workflow/prep_localization_workflow/
 #            pipenv run snakemake --lint
-#            cd workflow/coregistration_and_viz_workflow/
+#            cd workflow/coregistration_workflow/
 #            pipenv run snakemake --lint
 #            cd workflow/recon_workflow/
 #            pipenv run snakemake --lint
@@ -51,7 +51,14 @@ jobs:
 
       - store_artifacts:
           path: doc/_build/html/
-          destination: html
+          destination: dev
+
+      - run:
+          name: Check links
+          command: |
+            pipenv run make -C doc clean
+#            pipenv run make -C doc linkcheck
+#            pipenv run make -C doc linkcheck-grep
 
   docs-deploy:
     # will only be run on master branch
@@ -80,7 +87,7 @@ jobs:
           command: gh-pages --dotfiles --message "doc updates [skip ci]" --dist doc/_build/html --dest ./dev
 
 workflows:
-  build:
+  commit:
     jobs:
       - docs-build
       - docs-deploy:
@@ -89,4 +96,16 @@ workflows:
           filters:
             branches:
               only: master
+
+  scheduled:
+    jobs:
+      - docs-build
+
+    triggers:
+      - schedule:
+          cron: "0 4 * * *"
+          filters:
+            branches:
+              only:
+                - master
 

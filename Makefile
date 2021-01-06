@@ -10,20 +10,68 @@ name := seek
 version := 1.0.0
 dockerhub := neuroseek
 
+# docker containers
+blender_version := 2.82
+acpcdetect_version := 2.0
+freesurfer7-with-mrtrix3_version := 1.2
+
+############################## MAIN COMMANDS #########################
+snakemake-all: recon coregistration prep_viz
+
+recon:
+	cd workflow/recon_workflow && \
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
+
+prep-localization:
+	cd workflow/prep_localization_workflow && \
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
+
+coregistration:
+	cd workflow/coregistration_workflow && \
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/";
+
+prep-viz:
+	cd workflow/prep_vizengine_workflow && \
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/";
+
 ############################## DOCKER #########################
 build:
 	@docker-compose build;
 
-run:
-	docker run --name seek seek
+build-acpc:
+	docker build --rm -f ./dockerfiles/Dockerfile.acpcdetect -t $(dockerhub)/acpcdetect:$(acpcdetect_version)  ./dockerfiles
 
-stop:
-	docker stop seek
-	docker rm seek
+build-blender:
+	docker build --rm -f ./dockerfiles/Dockerfile.meshgenerator -t $(dockerhub)/blender:$(blender_version)  ./dockerfiles
 
-push:
-	echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-	docker push $(dockerhub)/$(name):$(version)
+build-freesurfer:
+	docker build --rm -f ./dockerfiles/Dockerfile.freesurfer-with-mrtrix3 -t $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)  ./dockerfiles
+
+push-acpc:
+	docker push $(dockerhub)/acpcdetect:$(acpcdetect_version)
+
+push-blender:
+	docker push $(dockerhub)/blender:$(blender_version)
+
+push-freesurfer:
+	docker push $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)
+
+pull-all:
+	docker pull $(dockerhub)/acpcdetect:$(acpcdetect_version)
+	docker pull $(dockerhub)/blender:$(blender_version)
+	docker pull $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)
+	docker pull docker://cbinyu/fsl6-core
+
+############################## UTILITY FOR SNAKEMAKE #########################
+init:
+	pipenv shell
+    export SEEKHOME = $(shell pwd)
+
+create_dags:
+	snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/recon_workflow.pdf;
+	snakemake --snakefile ./workflow/prep_localization_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/prep_localization_workflow.pdf;
+	snakemake --snakefile ./workflow/coregistration_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/coregistration_workflow.pdf;
+	snakemake --snakefile ./workflow/prep_vizengine_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/prep_viz_workflow.pdf;
 
 ############################## UTILITY FOR PYTHON #########################
 clean-pyc:
@@ -66,13 +114,6 @@ test: inplace check-manifest
 test-doc:
 	$(PYTESTS) --doctest-modules --doctest-ignore-import-errors
 
-test-coverage:
-	rm -rf coverage .coverage
-	$(PYTESTS) --cov=./ --cov-report html:coverage
-
-trailing-spaces:
-	find . -name "*.py" | xargs perl -pi -e 's/[ \t]*$$//'
-
 build-doc:
 	cd doc; make clean
 	cd doc; make html
@@ -84,10 +125,6 @@ pydocstyle:
 pycodestyle:
 	@echo "Running pycodestyle"
 	@pycodestyle
-
-init:
-    export SEEKHOME=$(pwd)
-#    @echo "HI";
 
 check-manifest:
 	check-manifest --ignore .circleci*,docs,.DS_Store,annonymize
@@ -104,6 +141,9 @@ black:
 		exit 1; \
 	fi;
 	@echo "black passed"
+
+snakelint:
+	snakemake --lint ./workflow
 
 check:
 	@$(MAKE) -k black pydocstyle codespell-error

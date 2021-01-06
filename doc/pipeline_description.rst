@@ -1,4 +1,6 @@
-.. _PipelineDescription:
+:orphan:
+
+.. _pipeline:
 
 =========================
 SEEK PIPELINE DESCRIPTION
@@ -114,8 +116,8 @@ Workflow Steps Explained
 #. Setup data directory
 
    Setup your raw data directory for your patient to be read in:
-    
-    :: 
+
+    ::
 
          study_name/
             /raw/
@@ -123,7 +125,7 @@ Workflow Steps Explained
                     /premri/
                     /postct/
                     /postmri/ (optional)
-     
+
     For more details, see BIDS: https://bids.neuroimaging.io/
 
 #. Patient in FreeSurfer format explained:
@@ -131,6 +133,7 @@ Workflow Steps Explained
     Here is how an example output `derivatives` directory would look like.
 
     ::
+
         derivatives/
             freesurfer/
                 patient_id/
@@ -144,17 +147,18 @@ Workflow Steps Explained
                     /Meshes/
                     /acpc/
 
-    <patient_id> = The subject directory for data ran through FS (e.g. "umf001")
-    /mri/ = Includes the mri-derived image transformations, including the original mri image volume.
-    /surf/ = Includes the computed surface files for each hemisphere (rh and lh), such as white matter (wm), volume, thickness, pial, and smoothed surfaces
-    /label/ = Includes derived labels for each surface mesh.
-    /stats/ = Includes statistics computed for example for white matter, cortical volume.
+    * <patient_id> = The subject directory for data ran through FS (e.g. "umf001")
+    * /mri/ = Includes the mri-derived image transformations, including the original mri image volume.
+    * /surf/ = Includes the computed surface files for each hemisphere (rh and lh), such as white matter (wm), volume, thickness, pial, and smoothed surfaces
+    * /label/ = Includes derived labels for each surface mesh.
+    * /stats/ = Includes statistics computed for example for white matter, cortical volume.
+
     Additional Dirs Made Within to be compatible with FS
-    /elecs/ = Localized contacts with xyz coordinates, anatomical mapping, etc.
-    /CT/ = a directory to store the CT image volume and any transformations (e.g. mapped into T1 image volume)
-    /ascii/ = ascii type files that show the subcortical volume.
-    /Meshes/ = .mat files for the hemispheres and the triangular/vertices files for cortical and subcortical.
-    /acpc/ = Anterior-commissure & posterior-commissure aligned image volumes. This is generally a common preprocessing step in many pipelines.
+    * /elecs/ = Localized contacts with xyz coordinates, anatomical mapping, etc.
+    * /CT/ = a directory to store the CT image volume and any transformations (e.g. mapped into T1 image volume)
+    * /ascii/ = ascii type files that show the subcortical volume.
+    * /Meshes/ = .mat files for the hemispheres and the triangular/vertices files for cortical and subcortical.
+    * /acpc/ = Anterior-commissure & posterior-commissure aligned image volumes. This is generally a common preprocessing step in many pipelines.
 
 
 #. Change config.yaml file
@@ -190,7 +194,7 @@ Workflow Steps Explained
 
 #. Contact Localization
 
-Note first, one should follow :ref:`LocalizationGuide`_ before running this.
+Note first, one should follow the :ref:`Localization Guide <localization_guide>`_ before running this.
 
 .. code-block::
 
@@ -198,3 +202,46 @@ Note first, one should follow :ref:`LocalizationGuide`_ before running this.
        snakemake -n
        snakemake
 
+Snakemake Rules
+---------------
+Each of these workflows are enabled by a set of ``snakemake`` rules.
+For an in-depth explanation on each particular rule, see :doc:`rules document <rules>`_.
+
+For an example visualization of the rules that are ran in each subsequent workflow, we created
+a DAG of rules that are ran through for subjects named ``nl02``, ``nl06`` and ``nl11``. We start
+off with the :download:`reconstruction workflow <doc/_static/recon_workflow.pdf`. This workflow, runs
+preparation commands for the T1 images, such as `robust_fov`, `acpcdetect` and then runs
+various `FreeSurfer` commands (mainly `recon-all`), which takes many hours.
+
+In the meantime, if you have your CT images, you can prepare for localization using the
+RECOMMENDED FieldTrip toolbox. The :download:`prep localization workflow <doc/_static/prep_localization_workflow.pdf`
+will simply setup files for FieldTrip. At this point, please follow the tutorial on localizing electrode
+contacts (CHRISTOPHER TO LINK HERE WHAT RAPH PUT TOGETHER).
+
+Next, we look at the :download:`coregistration workflow <doc/_static/coregistration_workflow.pdf>`. This
+will perform series of coregistrations that follows BIDS naming convention for possible downstream usage.
+``SEEK currently does not actively use any of these coregistrations. Any coregistration for electrode
+localization currently takes place in FieldTrip Toolbox interactively using SPM12.``
+
+After localizing electrode coordinates in FieldTrip toolbox, one can run the
+:download:`label electrodes anatomically workflow <doc/_static/label_contacts_workflow.pdf>`.
+
+Finally, we look at the :download:`prep visualization workflow <doc/_static/prep_viz_workflow.pdf>`. After
+all other workflows have ran, then
+
+Docker Usage in SEEK
+--------------------
+To heavily utilize Freesurfer, FSL, MRTrix3, and more, we make use of Docker. Docker images are pre-built for
+you and stored at ``neuroseek``'s Docker Hub. To utilize the containers, one can run
+
+.. code-block::
+
+    snakemake --cores 1 --use-singularity --singularity-args "--bind <bids_root>"
+
+For example::
+
+        snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/"
+
+where ``<bids_root>`` is the path to the data defined in the ``localconfig.yaml`` file.
+
+:doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>`

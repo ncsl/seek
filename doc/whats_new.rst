@@ -36,6 +36,7 @@ Bug
 
 API
 ~~~
+- Added a Makefile recipe for running all the related SEEK workflows, by `Adam Li`_ (`#34 <https://github.com/ncsl/seek/pull/34>`_)
 
 
 Authors
@@ -47,6 +48,6 @@ People who contributed to this release (in alphabetical order):
 * Chester Huynh
 * Christopher Coogan
 
-.. _Adam Li: https://github.com/adam2392
-.. _Chester Huynh: https://github.com/ChesterHuynh
-.. _Christopher Coogan: https://github.com/TheBrainChain
+:doc:`Find out what was new in previous releases <whats_new_previous_releases>`
+
+.. include:: authors.rst

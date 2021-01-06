@@ -17,6 +17,7 @@ import seek
 
 curdir = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(curdir, '..', 'seek')))
+sys.path.append(os.path.abspath(os.path.join(curdir, 'sphinxext')))
 
 # -- Project information -----------------------------------------------------
 
@@ -52,11 +53,16 @@ extensions = [
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.autosectionlabel',
     'numpydoc',
+    'sphinx_copybutton',
     # "seek.sphinxext.snakemakerule",
 ]
 
 # generate autosummary even if no references
 autosummary_generate = True
+autodoc_default_options = {'inherited-members': None}
+numpydoc_class_members_toctree = False
+numpydoc_attributes_as_param_list = True
+default_role = 'autolink'  # XXX silently allows bad syntax, someone should fix
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -107,7 +113,7 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']
+html_static_path = ['_static']
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -119,10 +125,13 @@ html_theme_options = {
     'navbar_pagenav': False,  # no "Page" navigation in sidebar
     'bootstrap_version': "3",
     'navbar_links': [
+        # here list header string to show, and the rst filename
+        ('News', 'whats_new'),
+        ('Install', 'installation'),
         ('Tutorials', 'auto_examples/index'),
         ("Pipeline Description", "pipeline_description"),
-        ('Python API', 'api'),
-        ("What's new", "whats_new"),
+        # ('Python API', 'api'),
+        ("Contribute!", "contributing"),
         ("GitHub", "https://github.com/ncsl/seek", True),
     ]
 }

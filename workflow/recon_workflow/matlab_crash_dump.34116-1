@@ -1,0 +1,133 @@
+
+------------------------------------------------------------------------
+       Segmentation violation detected at Mon Dec 28 16:55:41 2020
+------------------------------------------------------------------------
+
+Configuration:
+  Crash Decoding     : Disabled
+  Current Visual     : None
+  Default Encoding   : UTF-8
+  GNU C Library      : 2.17 stable
+  MATLAB Architecture: glnxa64
+  MATLAB Root        : /usr/local/freesurfer/MCRv84
+  MATLAB Version     : 8.4.0.150421 (R2014b)
+  Operating System   : Linux 5.5.4-050504-generic #202002150446 SMP Sat Feb 15 09:50:30 UTC 2020 x86_64
+  Processor ID       : x86 Family 143 Model 1 Stepping 1, AuthenticAMD
+  Software OpenGL    : 0
+  Virtual Machine    : Java 1.7.0_11-b21 with Oracle Corporation Java HotSpot(TM) 64-Bit Server VM mixed mode
+  Window System      : No active display
+
+Fault Count: 1
+
+
+Abnormal termination:
+Segmentation violation
+
+Register State (from fault):
+  RAX = 0000000000000000  RBX = 00007f5ba87cd1ac
+  RCX = 0000000000000000  RDX = 0000000000000028
+  RSP = 00007f5ba87cd180  RBP = 00007f5ba87cd1e0
+  RSI = 00007f5b51c212b8  RDI = 00007f5ba052c810
+
+   R8 = 00007f5b51c212b9   R9 = 00007f5ba0266800
+  R10 = 00007f5ba64ab540  R11 = 00007f5b9505f090
+  R12 = 00007f5b51c212c1  R13 = 00007f5b51c212b9
+  R14 = 00007f5ba18fca00  R15 = 00007f5ba0266800
+
+  RIP = 00007f5ba5d11475  EFL = 0000000000010202
+
+   CS = 0033   FS = 0000   GS = 0000
+
+Stack Trace (from fault):
+[  0] 0x00007f5ba5d11475 /usr/local/freesurfer/MCRv84/sys/java/jre/glnxa64/jre/lib/amd64/server/libjvm.so+05657717
+[  1] 0x00007f5ba5d2cb1e /usr/local/freesurfer/MCRv84/sys/java/jre/glnxa64/jre/lib/amd64/server/libjvm.so+05770014
+[  2] 0x00007f5bb2f0b0fe /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwjmi.so+00930046 _Z18mljGetStaticMethodP7_jclassPKcS2_+00000062
+[  3] 0x00007f5b51769888 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhg.so+05359752
+[  4] 0x00007f5b5176dcbe /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhg.so+05377214
+[  5] 0x00007f5b517701bd /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhg.so+05386685
+[  6] 0x00007f5b51ade595 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhg.so+08983957
+[  7] 0x00007f5bb0676b42 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02575170
+[  8] 0x00007f5bb0676d06 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02575622
+[  9] 0x00007f5bb0595c62 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+01653858
+[ 10] 0x00007f5bb0596a51 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+01657425
+[ 11] 0x00007f5bb056486a /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+01452138
+[ 12] 0x00007f5bb05f43fb /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02040827
+[ 13] 0x00007f5bb05f2a12 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02034194
+[ 14] 0x00007f5bb05f2b3a /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02034490 _Z27omConstructObjectWithClientN4mcos9COSNameIDEiPPK11mxArray_tagPKNS_9COSClientE+00000074
+[ 15] 0x00007f5b5176b46f /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhg.so+05366895
+[ 16] 0x00007f5b5176b8a4 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhg.so+05367972
+[ 17] 0x00007f5b51866d1c /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhg.so+06397212
+[ 18] 0x00007f5b519e09d3 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhg.so+07944659
+[ 19] 0x00007f5b519e0ab5 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhg.so+07944885 MLInitialize_hg+00000133
+[ 20] 0x00007f5b52b17a03 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwhgbuiltins.so+00809475 MLInitialize_hgbuiltins+00000019
+[ 21] 0x00007f5bb295fde5 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_dispatcher.so+00548325
+[ 22] 0x00007f5bb2952f8a /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_dispatcher.so+00495498 _ZN13Mlm_MATLAB_fn8try_loadEv+00000042
+[ 23] 0x00007f5bb294b155 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_dispatcher.so+00463189 _ZN13Mlm_MATLAB_fn4loadEv+00000037
+[ 24] 0x00007f5bb2946d75 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_dispatcher.so+00445813 _ZN13Mfh_MATLAB_fn11dispatch_fhEiPP11mxArray_tagiS2_+00000053
+[ 25] 0x00007f5bb1cabb70 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+04053872
+[ 26] 0x00007f5bb1c5be02 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03726850
+[ 27] 0x00007f5bb1c5e022 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03735586
+[ 28] 0x00007f5bb1c63f87 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03760007
+[ 29] 0x00007f5bb1c5f6ff /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03741439
+[ 30] 0x00007f5bb1c60334 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03744564
+[ 31] 0x00007f5bb1cd552e /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+04224302
+[ 32] 0x00007f5bb299b329 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_dispatcher.so+00791337 _ZN8Mfh_file11dispatch_fhEiPP11mxArray_tagiS2_+00000697
+[ 33] 0x00007f5bb0657ca8 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02448552
+[ 34] 0x00007f5bb05ef7e2 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02021346
+[ 35] 0x00007f5bb05f11ce /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02027982
+[ 36] 0x00007f5bb05f6b70 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02050928
+[ 37] 0x00007f5bb05f258d /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02033037
+[ 38] 0x00007f5bb0659e06 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02457094
+[ 39] 0x00007f5bb06d92ab /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02978475
+[ 40] 0x00007f5bb2946e34 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_dispatcher.so+00446004 _ZN13Mfh_MATLAB_fn11dispatch_fhEiPP11mxArray_tagiS2_+00000244
+[ 41] 0x00007f5bb06d8dd1 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcos.so+02977233
+[ 42] 0x00007f5bb1cabb70 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+04053872
+[ 43] 0x00007f5bb1c2c293 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03531411
+[ 44] 0x00007f5bb1c5d0de /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03731678
+[ 45] 0x00007f5bb1c63f87 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03760007
+[ 46] 0x00007f5bb1c5f6ff /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03741439
+[ 47] 0x00007f5bb1c60334 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03744564
+[ 48] 0x00007f5bb1cd552e /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+04224302
+[ 49] 0x00007f5bb299b4af /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_dispatcher.so+00791727 _ZN8Mfh_file11dispatch_fhEiPP11mxArray_tagiS2_+00001087
+[ 50] 0x00007f5bb1cabb70 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+04053872
+[ 51] 0x00007f5bb1c5be02 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03726850
+[ 52] 0x00007f5bb1c5e0e8 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03735784
+[ 53] 0x00007f5bb1c63f87 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03760007
+[ 54] 0x00007f5bb1c5f6ff /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03741439
+[ 55] 0x00007f5bb1c606b5 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03745461
+[ 56] 0x00007f5bb1c52ef7 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03690231
+[ 57] 0x00007f5bb1c5523c /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03699260
+[ 58] 0x00007f5bb1c51a1f /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03684895
+[ 59] 0x00007f5bb1c52143 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03686723
+[ 60] 0x00007f5bb1c4fc98 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03677336
+[ 61] 0x00007f5bb1bcebb0 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwm_interpreter.so+03148720 inEvalCmd+00000096
+[ 62] 0x00007f5bb325f629 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00718377
+[ 63] 0x00007f5bb3284e3c /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00871996 _Z32mnRunPathDependentInitializationv+00000060
+[ 64] 0x00007f5bb326e040 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00778304 _ZN11mcrInstance26init_on_interpreter_threadEP11MfileReaderP13MexFileReader+00000576
+[ 65] 0x00007f5bbadd723c /usr/local/freesurfer/MCRv84//bin/glnxa64/libmwmlutil.so+03154492 _ZNK5boost9function0IbEclEv+00000028
+[ 66] 0x00007f5bb3277575 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00816501
+[ 67] 0x00007f5bb327b5d9 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00832985 _ZN5boost6detail11task_objectIbNS_3_bi6bind_tIbPFbRKNS_8functionIFbvEEEENS2_5list1INS2_5valueIS6_EEEEEEE6do_runEv+00000025
+[ 68] 0x00007f5bb327b65b /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00833115 _ZN5boost6detail9task_baseIbE3runEv+00000059
+[ 69] 0x00007f5bb327b6b7 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00833207
+[ 70] 0x00007f5bb324abca /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00633802
+[ 71] 0x00007f5baf7c9a46 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwuix.so+00330310
+[ 72] 0x00007f5baf7b1ad2 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwuix.so+00232146
+[ 73] 0x00007f5bbfb1300f /usr/local/freesurfer/MCRv84//bin/glnxa64/libmwservices.so+02523151
+[ 74] 0x00007f5bbfb1317c /usr/local/freesurfer/MCRv84//bin/glnxa64/libmwservices.so+02523516
+[ 75] 0x00007f5bbfb0f07f /usr/local/freesurfer/MCRv84//bin/glnxa64/libmwservices.so+02506879
+[ 76] 0x00007f5bbfb144b5 /usr/local/freesurfer/MCRv84//bin/glnxa64/libmwservices.so+02528437
+[ 77] 0x00007f5bbfb148e7 /usr/local/freesurfer/MCRv84//bin/glnxa64/libmwservices.so+02529511
+[ 78] 0x00007f5bbfb14fc0 /usr/local/freesurfer/MCRv84//bin/glnxa64/libmwservices.so+02531264 _Z25svWS_ProcessPendingEventsiib+00000080
+[ 79] 0x00007f5bb324b248 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00635464
+[ 80] 0x00007f5bb324b564 /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00636260
+[ 81] 0x00007f5bb3237cdd /usr/local/freesurfer/MCRv84/bin/glnxa64/libmwmcr.so+00556253
+[ 82] 0x00007f5bc0772ea5                             /lib64/libpthread.so.0+00032421
+[ 83] 0x00007f5bc049b96d                                   /lib64/libc.so.6+01042797 clone+00000109
+
+
+If this problem is reproducible, please submit a Service Request via:
+    http://www.mathworks.com/support/contact_us/
+
+A technical support engineer might contact you with further information.
+
+Thank you for your help.

@@ -1,20 +1,26 @@
 # home directory that every dataset sits in -> fileutils sets the BIDS structure
 bids_root:
-#  "/home/ksr/Desktop/contact_localization/efri/"
-#  "/Users/adam2392/Dropbox/efri/"
-#  "/home/adam2392/hdd/epilepsy_bids/"
-#  '/Users/adam2392/Dropbox/epilepsy_bids/'
-  '/Users/adam2392/Documents/seek-testing-data/'
+  "/home/adam2392/hdd/epilepsy_bids/"
+#  '/Users/adam2392/Dropbox/epilepsy_bids'
+#  '/Users/adam2392/Documents/seek-testing-data'
 
 # session name to give all datasets; corresponds to the ``ses-`` BIDS entity
 session: "presurgery"
 
+# FreeSurfer variable for SUBJECTS_DIR
+# when 'n/a', this will be housed in the
+# ``<bids_root>/derivatives/freesurfer/`` directory
+SUBJECTS_DIR: "n/a"
+
 ############# define list of subjects to run this for #############
 subjects: 'subjects.tsv'
-#nl02	cleveland	''
-#nl06	cleveland	''
-#nl11	cleveland	''
 
-blender_path: 'blender'
+site_id: 'clevelandnl'
+
+# define Docker urls to pull from for each software
+acpcdetect_docker: 'docker://neuroseek/acpcdetect:2.0'
+fsl_docker: 'docker://cbinyu/fsl6-core'
+freesurfer_docker: 'docker://neuroseek/freesurfer7-with-mrtrix3:1.2'
+blender_docker: 'docker://neuroseek/blender:2.8'
 
 params:

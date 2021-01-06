@@ -4,4 +4,4 @@ __name__ = "seek"
 __version__ = "0.1.0"
 
 from .format import bids_validate, convert_img_to_bids
-from .utils import PatientBidsRoot, FREESURFER_HOME
+from .utils import BidsRoot, FREESURFER_HOME

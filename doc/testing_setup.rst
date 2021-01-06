@@ -1,3 +1,7 @@
+:orphan:
+
+.. _testing:
+
 Guide to setup Testing Environment
 ==================================
 Seek is a pipeline manager for the workflows involving SEEG electrode implantations,

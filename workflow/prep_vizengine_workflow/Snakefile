@@ -1,15 +1,14 @@
-import os
 import sys
-from pathlib import Path
-
 import pandas as pd
-from snakemake.logging import logger
+from pathlib import Path
+import os
 from snakemake.utils import validate, min_version
+from snakemake.logging import logger
 
 sys.path.append(os.getenv('SEEKHOME'))
 
-logger.debug(f'In reconstruction rule workflow with current working directory: {os.getcwd()}. '
-             f'SEEKHOME is {os.getenv("SEEKHOME")}.')
+logger.debug(f'The current working directory for prepping visualization workflow: {os.getcwd()}')
+
 from seek.utils.fileutils import _get_seek_config
 
 ##### set minimum snakemake version #####
@@ -41,11 +40,19 @@ centers = subject_df['center_id'].tolist()
 snakemake --rulegraph | dot -Tpdf > dag.pdf
 """
 rule all:
-    input: ['fig1.png', 'figreconstruct.png']
+    input:
+         ['figviz.png']
+
+##### setup singularity #####
+
+# this container defines the underlying OS for each job when using the workflow
+# with --use-singularity
+# singularity: "docker://neuroseek/seek"
 
 ##### setup report #####
-report: "../report/workflow.rst"
+
+report: "report/workflow.rst"
 
 ##### load rules #####
-include: "rules/prep.smk"
-include: "rules/reconstruction.smk"
+
+include: "rules/visualization.smk"

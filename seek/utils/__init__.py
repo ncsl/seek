@@ -1,5 +1,5 @@
 from .fileutils import (
-    PatientBidsRoot,
+    BidsRoot,
     FREESURFER_HOME,
     MRTRIX3_HOME,
     SCRIPTS_UTIL_DIR,

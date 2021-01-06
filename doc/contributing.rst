@@ -1,3 +1,5 @@
+:orphan:
+
 .. _Contribute:
 
 Contributing to SEEK
@@ -5,18 +7,18 @@ Contributing to SEEK
 
 (adopted from scikit-learn)
 
-The latest contributing guide is available in the repository at
-`doc/contributing.rst`, or online at:
+``The latest contributing guide is available in the repository at:``
+`https://github.com/ncsl/seek/CONTRIBUTING.md`_
 
-There are many ways to contribute to NeuroimgPipe, with the most common ones
+There are many ways to contribute to SEEK, with the most common ones
 being contribution of code or documentation to the project. Improving the
 documentation is no less important than improving the pipeline itself. If you
 find a typo in the documentation, or have made improvements, do not hesitate to
 submit a GitHub pull request. Documentation can be found under the
-[doc/](https://github.com/ncsl/seek/tree/master/doc) directory.
+`doc <https://github.com/ncsl/seek/tree/master/doc>`_ directory.
 
 But there are many other ways to help. In particular answering queries on the
-[issue tracker](https://github.com/ncsl/seek/issues), and
+`issue tracker <https://github.com/ncsl/seek/issues>`_, and
 investigating bugs are very valuable contributions that decrease the burden on 
 the project maintainers.
 
@@ -71,3 +73,9 @@ Snakemake utilizes a set of configuration files for the user to define their dat
 in the `pipeline/config/` directory. Configuration files are checked against the designed schemas in `pipeline/schemas` directory.
 Each corresponding sub-workflow is documented in a `.smk` Snakemake file, which can define things like `Prep`, which prepares
 raw dicom files from scratch to run through the SEEK workflow.
+
+Understanding Docker in SEEK
+----------------------------
+To heavily utilize Freesurfer, FSL, MRTrix3, and more, we make use of Docker.
+
+:doc: `To better understand how we use Docker, see our Docker playbook <docker_playbook>`
