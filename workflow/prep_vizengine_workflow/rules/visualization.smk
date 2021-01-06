@@ -65,11 +65,12 @@ surface_fbx_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","rec
 manual_coordsystem_fname = BIDSPath(
     subject=subject_wildcard,session=_get_session_name(config),
     # processing='manual',
-    acquisition='seeg',space='fs',
+    acquisition='seeg',space='fs',datatype='ieeg',
     suffix='coordsystem',extension='.json',root=bids_root.bids_root)
 manual_electrodes_fname = BIDSPath(
     subject=subject_wildcard,session=_get_session_name(config),
     # processing='manual',
+    datatype='ieeg',
     acquisition='seeg',space='fs',
     suffix='electrodes',extension='.tsv',root=bids_root.bids_root)
 
