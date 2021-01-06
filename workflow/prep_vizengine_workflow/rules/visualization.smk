@@ -188,6 +188,7 @@ rule convert_cortical_to_blenderobj:
         RH_PIAL_ROI=RH_PIAL_ROI,
         subject=subject_wildcard,
         scripts_dir=scripts_dir,
+        fsdir=FS_DIR,
     container:
         blender_dockerurl
     output:
