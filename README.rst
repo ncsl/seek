@@ -37,7 +37,9 @@ be easily interpolated. See `Fieltrip Toolbox`_.
 We build and keep up-to-date a number of Dockerfiles to run various workflows:
 
 - acpcdetect:
-.. image:: https://img.shields.io/docker/image-size/neuroseek/acpcdetect/   :alt: Docker Image Size (tag)
+.. image:: https://img.shields.io/docker/image-size/neuroseek/acpcdetect
+
+:alt: Docker Image Size (tag)
 
 - blender:
 .. image:: https://img.shields.io/docker/image-size/neuroseek/blender/   :alt: Docker Image Size (tag)
