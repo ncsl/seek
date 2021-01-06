@@ -100,7 +100,7 @@ rule generate_visualization_blender_meshes:
     output:
         report=report('figviz.png',caption='report/figviz.rst',category='Visualization Prep')
     shell:
-        "echo 'Done!;'"
+        "echo 'Done!;"
         "touch figviz.png {output};"
 
 """Convert Ascii pial files to surface files."""

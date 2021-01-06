@@ -43,7 +43,7 @@ snakemake --rulegraph | dot -Tpdf > dag.pdf
 
 rule all:
     input:
-        ['figviz.png']
+        ['figviz.png',]
 
 ##### setup singularity #####
 
