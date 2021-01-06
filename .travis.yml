@@ -40,8 +40,8 @@ install:
 script:
   - pipenv run make check
 
-deploy:
-  provider: script
-  script: make build
-  on:
-    branch: master
+#deploy:
+#  provider: script
+#  script: make build
+#  on:
+#    branch: master

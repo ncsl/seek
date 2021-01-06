@@ -97,15 +97,15 @@ workflows:
             branches:
               only: master
 
-  scheduled:
-    jobs:
-      - docs-build
-
-    triggers:
-      - schedule:
-          cron: "0 4 * * *"
-          filters:
-            branches:
-              only:
-                - master
+#  scheduled:
+#    jobs:
+#      - docs-build
+#
+#    triggers:
+#      - schedule:
+#          cron: "0 4 * * *"
+#          filters:
+#            branches:
+#              only:
+#                - master
 
