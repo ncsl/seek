@@ -148,7 +148,7 @@ rule convert_annot_to_dpv:
         LH_ANNOT_DPV=LH_ANNOT_DPV,
         RH_ANNOT_DPV=RH_ANNOT_DPV,
     shell:
-        "cd {params.scripts_dir}/octave/;"
+        "cd {params.scripts_dir}/octave/;"  # needed to have `read_annotation.m` in path
         "{params.scripts_dir}/octave/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
         "{params.scripts_dir}/octave/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
 
@@ -169,7 +169,7 @@ rule split_surfaces:
     output:
         roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_roi_flag_success.txt")
     shell:
-        # "cd ./scripts/;"
+        "cd {params.scripts_dir}/octave/;"  # needed to have `srfread` in path
         "{params.scripts_dir}/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
         "{params.scripts_dir}/octave/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
         "touch {output.roi_flag_file};"
