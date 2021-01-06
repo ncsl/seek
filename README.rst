@@ -38,14 +38,18 @@ We build and keep up-to-date a number of Dockerfiles to run various workflows:
 
 - acpcdetect:
 .. image:: https://img.shields.io/docker/image-size/neuroseek/acpcdetect
-
-:alt: Docker Image Size (tag)
+    :target: https://hub.docker.com/repository/docker/neuroseek/acpcdetect
+    :alt: Docker Image Size (tag)
 
 - blender:
-.. image:: https://img.shields.io/docker/image-size/neuroseek/blender/   :alt: Docker Image Size (tag)
+.. image:: https://img.shields.io/docker/image-size/neuroseek/blender/
+    :target: https://hub.docker.com/repository/docker/neuroseek/blender
+    :alt: Docker Image Size (tag)
 
 - FreeSurfer7+ with MRTrix3:
-.. image:: https://img.shields.io/docker/image-size/neuroseek/freesurfer7-with-mrtrix3/   :alt: Docker Image Size (tag)
+.. image:: https://img.shields.io/docker/image-size/neuroseek/freesurfer7-with-mrtrix3/
+    :target: https://hub.docker.com/repository/docker/neuroseek/freesurfer7-with-mrtrix3
+    :alt: Docker Image Size (tag)
 
 
 Note: For FSL, we use a 3rd party docker image.
