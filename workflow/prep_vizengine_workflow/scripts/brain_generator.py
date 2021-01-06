@@ -9,6 +9,7 @@ def main(mat_color_json_fpath):
     patientDir = os.environ.get("SUBJECTS_DIR")
     patientID = os.environ.get("SUBJECT")
 
+    print(f'Loading materialColors.json file from {mat_color_json_fpath}')
     with open(mat_color_json_fpath, 'r', encoding='utf-8') as json_file:
         data = json.load(json_file)
 
