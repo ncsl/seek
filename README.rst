@@ -62,6 +62,25 @@ The full repository is set up similar to the `cookiecutter` Snakemake file: `coo
 
 The recommended installation is via Docker_. See here for instructions on running workflows in the container are shown here below:
 
+Data Organization
+-----------------
+
+We use BIDS. See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
+
+Before data is converted to BIDS in ``seek/pipeline/01-prep`` pipeline,
+then ``sourcedata/`` should contain a semi-structured format of the neuroimaging data that will
+be put through the workflow.
+
+**sourcedata/**
+
+.. code-block::
+
+   /{subject}/
+       - premri/*.dcm
+       - posmri/*.dcm
+       - postct/*.dcm
+
+
 Docker Installation
 -------------------
 
@@ -103,31 +122,26 @@ To setup the container in your system:
 
 For running individual pipelines, see `INSTALLATION GUIDE <INSTALLATION.md>`_.
 
+Running workflows using Docker and Snakemake
+--------------------------------------------
+To run snakemake workflows using Docker, we have implemented various ``Makefile`` recipes.
+
+See:
+
+* snakemake-all
+* recon
+* prep_localization
+* coregistration
+* prep_viz
+
+``You will need to alter the bind paths to your specific BIDS root directory and SEEK repository directory``.
+
 Creating persistent volumes in Docker
 -------------------------------------
 
 If one wants to make a persistent data volume that reflects changes in the Docker container running Snakemake workflows, 
 then one can just make a ``data/`` directory inside this repository. Then add in sourcedata. This
 directory serves as the BIDS root of the workflows.
-
-
-Data Organization
------------------
-
-We use BIDS. See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
-
-Before data is converted to BIDS in ``seek/pipeline/01-prep`` pipeline, 
-then ``sourcedata/`` should contain a semi-structured format of the neuroimaging data that will
-be put through the workflow.
-
-**sourcedata/**
-
-.. code-block::
-
-   /{subject}/
-       - premri/*.dcm
-       - posmri/*.dcm
-       - postct/*.dcm
 
 
 Development
@@ -141,10 +155,6 @@ To report a bug, please visit the `GitHub repository <https://github.com/ncsl/se
 
 Note that this program is provided with NO WARRANTY OF ANY KIND. If you can, always double check the results with a human researcher, or clinician.
 
-Pipeline Process Visualized
-============================
-
-`DAG of Pipeline in Snakemake <seek/neuroimg/pipeline/dag_neuroimaging_pipeline_reconstruction.pdf>`_
 
 How to cite SEEK?
 =================
