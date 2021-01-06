@@ -130,9 +130,9 @@ See:
 
 * snakemake-all
 * recon
-* prep_localization
+* prep-localization
 * coregistration
-* prep_viz
+* prep-viz
 
 ``You will need to alter the bind paths to your specific BIDS root directory and SEEK repository directory``.
 

@@ -16,14 +16,14 @@ acpcdetect_version := 2.0
 freesurfer7-with-mrtrix3_version := 1.2
 
 ############################## MAIN COMMANDS #########################
-snakemake_all: recon coregistration prep_viz
+snakemake-all: recon coregistration prep_viz
 
 recon:
 	cd workflow/recon_workflow;
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
 	cd $OLDPWD;
 
-prep_localization:
+prep-localization:
 	cd workflow/prep_localization_workflow;
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
 	cd $OLDPWD;
@@ -33,7 +33,7 @@ coregistration:
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/";
 	cd $OLDPWD;
 
-prep_viz:
+prep-viz:
 	cd workflow/prep_vizengine_workflow;
 	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/";
 	cd $OLDPWD;
