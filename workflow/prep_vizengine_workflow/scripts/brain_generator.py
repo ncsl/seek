@@ -9,7 +9,7 @@ def main(mat_color_json_fpath):
     patientDir = os.environ.get("SUBJECTS_DIR")
     patientID = os.environ.get("SUBJECT")
 
-    with open(mat_color_json_fpath) as json_file:
+    with open(mat_color_json_fpath, 'r', encoding='utf-8') as json_file:
         data = json.load(json_file)
 
     scn = bpy.context.scene
