@@ -30,9 +30,9 @@ from pathlib import Path
 
 # hack to run from this file folder
 sys.path.append("../../../")
-from seek.pipeline.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                           _get_ct_bids_dir,
-                                           _get_bids_basename, _get_subject_center)
+from seek.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
+                                  _get_ct_bids_dir,
+                                  _get_bids_basename)
 
 configfile: _get_seek_config()
 
@@ -42,53 +42,54 @@ freesurfer_dockerurl = config['freesurfer_docker']
 configpath = Path(_get_seek_config()).parent
 
 # get the freesurfer patient directory
-bids_root = BidsRoot(BIDS_ROOT(config['bids_root']),
-                     center_id=_get_subject_center(subjects, centers, subject)
-                     )
 subject_wildcard = "{subject}"
+bids_root = BidsRoot(subject_wildcard,BIDS_ROOT(config['bids_root']),
+    site_id=config['site_id'],subject_wildcard=subject_wildcard)
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
-RAW_CT_FOLDER = bids_root.get_rawct_dir(subject_wildcard)
-FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir(subject_wildcard)) / "CT"
-BIDS_PRESURG_CT_DIR = _get_ct_bids_dir(bids_root.bids_root, subject_wildcard, session='presurgery')
+RAW_CT_FOLDER = bids_root.get_rawct_dir()
+FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "CT"
+BIDS_PRESURG_CT_DIR = _get_ct_bids_dir(bids_root.bids_root,subject_wildcard,session='presurgery')
 
 # original native files
 ct_native_bids_fname = _get_bids_basename(subject_wildcard,
-                                          session='presurgery', space='orig',
-                                          imgtype='CT', ext='nii')
+    session='presurgery',space='orig',
+    imgtype='CT',ext='nii')
+
 # output files
 # raw T1/CT output
-ct_output = os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname)
+ct_output = os.path.join(BIDS_PRESURG_CT_DIR,ct_native_bids_fname)
 
 logger.info('In prep localization workflow.')
 
 rule prep:
     input:
-         CT_bids_fname=expand(ct_output, subject=subjects),
+        CT_bids_fname=expand(ct_output,subject=subjects),
     params:
-          bids_root=bids_root.bids_root,
+        bids_root=bids_root.bids_root,
     output:
-          report=report('fig1.png', caption='report/figprep.rst', category='Prep')
+        report=report('fig1.png',caption='report/figprep.rst',category='Prep')
     shell:
-         "echo 'done';"
-         "bids-validator {params.bids_root};"
-         "touch fig1.png {output};"
+        "echo 'done';"
+        "bids-validator {params.bids_root};"
+        "touch fig1.png {output};"
 
 """
 Rule for prepping fs_recon by converting dicoms -> NIFTI images.
 
 For more information, see BIDS specification.
 """
+
 rule convert_dicom_to_nifti_ct:
     params:
-          CT_FOLDER=RAW_CT_FOLDER,
-          bids_root=bids_root.bids_root,
+        CT_FOLDER=RAW_CT_FOLDER,
+        bids_root=bids_root.bids_root,
     log:
-       "logs/recon_workflow.{subject}.log"
+        "logs/recon_workflow.{subject}.log"
     container:
-         freesurfer_dockerurl
+        freesurfer_dockerurl
     output:
-          CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR, ct_native_bids_fname),
+        CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR,ct_native_bids_fname),
     shell:
-         "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
+        "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"

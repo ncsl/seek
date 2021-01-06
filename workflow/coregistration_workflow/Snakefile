@@ -7,9 +7,10 @@ from snakemake.logging import logger
 
 sys.path.append(os.getenv('SEEKHOME'))
 
-print(os.getcwd())
+logger.debug(f'Running coregistration workflow with '
+             f'current working directory: {os.getcwd()}.')
 
-from seek.pipeline.utils.fileutils import _get_seek_config
+from seek.utils.fileutils import _get_seek_config
 
 ##### set minimum snakemake version #####
 min_version("5.27.4")
@@ -41,7 +42,7 @@ snakemake --rulegraph | dot -Tpdf > dag.pdf
 """
 rule all:
     input:
-         ['figct.png', 'figviz.png',
+         ['figct.png',
           # 'figcontactsanat.png'
           ]
 
@@ -59,8 +60,3 @@ report: "report/workflow.rst"
 
 include: "rules/coregistration.smk"
 # include: "rules/label_contacts.smk"
-include: "rules/visualization.smk"
-# include: "04-contact_localization/contact_localization.smk"
-# include: "05-visualization/visualization.smk"
-# include: "06-postsurgery/postsurgery.smk"
-# include: "07-group_analysis/groups.smk"

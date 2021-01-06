@@ -9,6 +9,14 @@ INSTALLATION GUIDE
 is a wrapper using snakemake_. The best way to install the 3rd party software for ``seek`` usage
 is via a Docker installation.
 
+To fully install SEEK and run workflows, one will need to:
+
+#. install SEEK repository
+#. install Docker dependencies
+#. install Singularity
+
+We outline some of these steps below.
+
 seek Installation
 -----------------
 First we can install seek. There are a few ways to do so:
@@ -35,7 +43,7 @@ To run the SEEK pipeline in Docker, first follow instructions to install `Docker
 To setup the container in your system, you will pull pre-built Docker images from
 neuroseek's `Docker Hub <https://hub.docker.com/orgs/neuroseek/repositories>`_.
 
-.. code-block::
+.. code-block:: bash
 
     $ make pull-all
 
@@ -44,7 +52,7 @@ This will now pull all Docker containers needed to run ``seek`` to your local ma
 Now if you type in ``docker container ls``\,
 you should see the corresponding container.
 
-.. code-block::
+.. code-block:: bash
 
    # turn recipe to image
    docker build <image_container_name>
@@ -63,14 +71,14 @@ When installing these, we used the Go version 1.15.6.
 But minimally 1.13+ should work. Here are a few code snippets
 for installing Go and then singularity.
 
-:code-block:
+.. code-block:: bash
 
     export VERSION=1.15.6 OS=linux ARCH=amd64 && \
     wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz && \
     sudo tar -C /usr/local -xzvf go$VERSION.$OS-$ARCH.tar.gz && \
     rm go$VERSION.$OS-$ARCH.tar.gz
 
-:code-block:
+.. code-block:: bash
 
     echo 'export GOPATH=${HOME}/go' >> ~/.bashrc && \
     echo 'export PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin' >> ~/.bashrc && \
@@ -78,7 +86,7 @@ for installing Go and then singularity.
 
 Now install singularity
 
-:code-block:
+.. code-block:: bash
 
     go get -d github.com/sylabs/singularity
     export VERSION=3.7.0 && # adjust this as necessary \
@@ -89,7 +97,7 @@ Now install singularity
     cd ./singularity && \
     ./mconfig
 
-:code-block:
+.. code-block:: bash
 
     ./mconfig && \
     make -C ./builddir && \
@@ -108,24 +116,19 @@ Python Installations
 There are a couple of tools that you need to install in your system before everything is working. You ar recommended to use a Linux based OS. 
 Follow links and tutorials on each respective tool to install. Preferably this is done via Docker, or Singularity, but if not, then:
 
-Anaconda and Python3.6+ :
+Anaconda and Python3.6+: Conda (https://docs.anaconda.com/anaconda/install/)
 
+This is mainly necessary to run snakemake, and any Python wrapper code.
 
-::
+.. code-block::
 
-    Conda (https://docs.anaconda.com/anaconda/install/)
-
-      This is mainly necessary to run snakemake, and any Python wrapper code.
-
-    .. code-block::
-
-        conda env create -f environment.yml --name=seek
-        source activate seek
-        conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
-        pip install coverage-badge anybadge
-        # dev versions of mne-python, mne-bids
-        pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
-        pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
+    conda env create -f environment.yml --name=seek
+    source activate seek
+    conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
+    pip install coverage-badge anybadge
+    # dev versions of mne-python, mne-bids
+    pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
+    pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
 
 
 Pipeline Installations (3rd Party Modules to Install)
