@@ -20,11 +20,11 @@ snakemake-all: recon coregistration prep_viz
 
 recon:
 	cd workflow/recon_workflow && \
-	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,/home/adam2392/Documents/seek/";
 
 prep-localization:
 	cd workflow/prep_localization_workflow && \
-	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,/home/adam2392/Documents/seek/";
 
 coregistration:
 	cd workflow/coregistration_workflow && \
@@ -32,7 +32,7 @@ coregistration:
 
 prep-viz:
 	cd workflow/prep_vizengine_workflow && \
-	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
+	snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,/home/adam2392/Documents/seek/";
 
 ############################## DOCKER #########################
 build:
