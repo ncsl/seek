@@ -169,7 +169,7 @@ rule split_surfaces:
     output:
         roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_roi_flag_success.txt")
     shell:
-        "cd {params.scripts_dir}/octave/;"  # needed to have `srfread` in path
+        "cd {params.scripts_dir}/octave/;"  # needed to have `srfread/srfwrite` in path
         "echo '{params.scripts_dir}/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI}';"
         "{params.scripts_dir}/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
         "{params.scripts_dir}/octave/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
