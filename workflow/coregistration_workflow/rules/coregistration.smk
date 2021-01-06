@@ -142,7 +142,7 @@ rule convert_ctgz_to_nifti:
     input:
         CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER,ctint1_fs_bids_fname + ".gz"),
     container:
-        fsl_dockerurl,
+        freesurfer_dockerurl
     output:
         CT_IN_PRE_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER,ctint1_fs_bids_fname),
         ct_tot1_fs_output=ct_tot1_fs_output,
