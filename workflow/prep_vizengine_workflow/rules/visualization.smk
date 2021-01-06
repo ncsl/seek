@@ -61,8 +61,8 @@ LH_PIAL_ROI = os.path.join(FS_ROI_FOLDER,"lh.pial_roi")
 RH_PIAL_ROI = os.path.join(FS_ROI_FOLDER,"rh.pial_roi")
 
 # blender output file paths
-surface_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","reconstruction.glb")
-surface_fbx_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","reconstruction.fbx")
+surface_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects", "brain.glb")
+surface_fbx_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","brain.fbx")
 electrodes_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","electrodes.glb")
 
 # coordinate system and electrodes as tsv files

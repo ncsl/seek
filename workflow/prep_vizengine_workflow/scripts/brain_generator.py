@@ -66,7 +66,7 @@ def main(mat_color_json_fpath):
 
     bpy.ops.export_scene.gltf(
         export_format="GLB",
-        filepath="{dir}/{patient}".format(dir=subjDir, patient="brain"),
+        filepath=f"{subjDir}/blender_objects/brain",
         export_texcoords=False,
         export_normals=False,
         export_cameras=False,
