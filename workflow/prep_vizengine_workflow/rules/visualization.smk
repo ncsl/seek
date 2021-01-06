@@ -196,7 +196,6 @@ rule convert_cortical_to_blenderobj:
     shell:
         "echo 'Creating surface objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
-        "cd {params.scripts_dir}/bash/;"
         "{params.scripts_dir}/bash/surfaceToObject.sh {params.subject};"
         "touch {output.surface_obj_flag_file};"
 
