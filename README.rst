@@ -147,7 +147,6 @@ arguments to bind directories to the singularity container. For example
     snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
 
 where, you can alter the cores used, and also bind various directories.
-
 See ``Makefile`` for more details on the following recipes:
 
 * snakemake-all
