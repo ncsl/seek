@@ -75,12 +75,12 @@ def main(mat_color_json_fpath):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_option(
+    parser.add_argument(
         "--materialColorsPath",
-        dest="describe",
-        action="store_true",
+        # dest="describe",
+        # action="store_true",
         default="/home/scripts/materialColors.json",
-        help=("If set print the descriptive statistics " "(min, max, etc.)."),
+        help=("If set, is the path to the materialColors JSON file."),
     )
 
     args = parser.parse_args()
