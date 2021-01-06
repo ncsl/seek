@@ -167,7 +167,7 @@ rule split_surfaces:
 rule create_surface_objects:
     input:
         roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_roi_flag_success.txt"),
-        electrode_fpath=contact_labeling_workflow(electrodes_fname),
+        electrode_fpath=electrodes_fname,
         obj_success_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"{subject}_subcortobjects_success.txt"),
     params:
         LH_PIAL_ROI=LH_PIAL_ROI,
