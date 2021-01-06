@@ -58,7 +58,7 @@ Documentation
 -------------
 
 * For a detailed description of the overall SEEK workflow, see `workflow documentation <https://github.com/ncsl/seek/blob/master/workflow/documentation.md>`_.
-* For a detailed description of the SEEK workflow of contact localization, specifically localizing the 2 points per electrode, see :doc:`localization guide <./localization_guide>`
+* For a detailed description of the SEEK workflow of contact localization, specifically localizing the 2 points per electrode, see :doc:`localization guide <./tutorials/localization_guide>`_
 
 For a description of the visualization engine, see: https://github.com/cronelab/ReconstructionVisualizer
 
