@@ -263,4 +263,4 @@ rule create_electrode_glb_files:
         "export SUBJECT={params.subject};"
         "blender --background {params.scripts_dir}/startup.blend " \
         "--python {params.scripts_dir}/electrode_generator.py " \
-        "--elecfpath {input.electrode_fpath};"
+        "-- {input.electrode_fpath};"
