@@ -139,8 +139,16 @@ For running individual pipelines, see `INSTALLATION GUIDE <INSTALLATION.md>`_.
 Running workflows using Docker and Snakemake
 --------------------------------------------
 To run snakemake workflows using Docker, we have implemented various ``Makefile`` recipes.
+First, you need to change directory to the correct workflow and then run snakemake with some
+arguments to bind directories to the singularity container. For example
 
-See:
+.. code-block:: bash
+
+    snakemake --cores 1 --use-singularity --singularity-args "--bind ~/hdd/epilepsy_bids/,~/Documents/seek/";
+
+where, you can alter the cores used, and also bind various directories.
+
+See ``Makefile`` for more details on the following recipes:
 
 * snakemake-all
 * recon
