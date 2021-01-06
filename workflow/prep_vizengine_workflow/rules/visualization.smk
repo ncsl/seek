@@ -231,7 +231,7 @@ rule create_brain_glb_files:
         blender_dockerurl
     output:
         surface_scene_file=surface_scene_fpath,
-        surface_fbx_file=surface_fbx_fpath,
+        # surface_fbx_file=surface_fbx_fpath,
     shell:
         "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
