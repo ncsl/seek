@@ -42,8 +42,6 @@ vtx = [vtx zeros(size(vtx,1),1)];
 fac = [fac zeros(size(fac,1),1)];
 
 % Write to the disk
-disp(comment);
-disp(fname);
 fid = fopen(fname,'w');
 fprintf(fid,'#!ascii %s\n',comment);             % signature and comment
 fprintf(fid,'%g %g\n',size(vtx,1),size(fac,1));  % number of vertices and faces
