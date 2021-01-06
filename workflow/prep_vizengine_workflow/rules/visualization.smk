@@ -148,8 +148,8 @@ rule convert_annot_to_dpv:
         LH_ANNOT_DPV=LH_ANNOT_DPV,
         RH_ANNOT_DPV=RH_ANNOT_DPV,
     shell:
-        "{params.scripts_dir}/scripts/octave/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
-        "{params.scripts_dir}/scripts/octave/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
+        "{params.scripts_dir}/octave/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
+        "{params.scripts_dir}/octave/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
 
 """Split surfaces into files per right/left hemisphere."""
 
@@ -169,8 +169,8 @@ rule split_surfaces:
         roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_roi_flag_success.txt")
     shell:
         # "cd ./scripts/;"
-        "{params.scripts_dir}/scripts/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
-        "{params.scripts_dir}/scripts/octave/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
+        "{params.scripts_dir}/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
+        "{params.scripts_dir}/octave/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
         "touch {output.roi_flag_file};"
 
 
@@ -192,7 +192,7 @@ rule convert_cortical_to_blenderobj:
     shell:
         "echo 'Creating surface objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
-        "{params.scripts_dir}/scripts/bash/surfaceToObject.sh {params.subject};"
+        "{params.scripts_dir}/bash/surfaceToObject.sh {params.subject};"
         "touch {output.surface_obj_flag_file};"
 
 
@@ -217,8 +217,8 @@ rule create_brain_glb_files:
         "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
         "export SUBJECT={params.subject};"
-        "blender --background {params.scripts_dir}/scripts/startup.blend " \
-        "--python {params.scripts_dir}/scripts/brain_generator.py " \
+        "blender --background {params.scripts_dir}/startup.blend " \
+        "--python {params.scripts_dir}/brain_generator.py " \
         "--materialColorsPath {params.materialcolors_file};"
 
 
@@ -239,7 +239,7 @@ rule create_electrode_glb_files:
         "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
         "export SUBJECT={params.subject};"
-        "blender --background {params.scripts_dir}/scripts/startup.blend " \
-        "--python {params.scripts_dir}/scripts/electrode_generator.py " \
+        "blender --background {params.scripts_dir}/startup.blend " \
+        "--python {params.scripts_dir}/electrode_generator.py " \
         "--elecfpath {input.electrode_fpath};"
 
