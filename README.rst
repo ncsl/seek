@@ -34,15 +34,18 @@ This repo describes efforts to pipeline explicitly a neuroimaging data workflow 
 and iEEG data (ECoG, or SEEG). For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
 be easily interpolated. See `Fieltrip Toolbox`_.
 
-To start using the workflows with your data, see [workflow documentation](workflow/documentation.md) file.
-
 We build and keep up-to-date a number of Dockerfiles to run various workflows:
 
 - acpcdetect:
-.. image:: https://img.shields.io/docker/image-size/neuroseek/acpcdetect/2.0   :alt: Docker Image Size (tag)
+.. image:: https://img.shields.io/docker/cloud/image-size/neuroseek/acpcdetect/2.0   :alt: Docker Image Size (tag)
 
 - blender:
-.. image:: https://img.shields.io/docker/image-size/neuroseek/blender/2.82   :alt: Docker Image Size (tag)
+.. image:: https://img.shields.io/docker/cloud/image-size/neuroseek/blender/2.82   :alt: Docker Image Size (tag)
+
+- FreeSurfer7+ with MRTrix3:
+.. image:: https://img.shields.io/docker/cloud/image-size/neuroseek/freesurfer7-with-mrtrix3/1.2   :alt: Docker Image Size (tag)
+
+Note: For FSL, we use a 3rd party docker image.
 
 Documentation
 -------------
