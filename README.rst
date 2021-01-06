@@ -32,7 +32,7 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
 
 This repo describes efforts to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
 and iEEG data (ECoG, or SEEG). For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
-be easily interpolated. See `Fieltrip Toolbox`_.
+be easily interpolated. See `Fieldtrip Toolbox`_.
 
 We build and keep up-to-date a number of Dockerfiles to run various workflows:
 
