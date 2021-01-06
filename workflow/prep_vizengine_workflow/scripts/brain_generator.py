@@ -87,6 +87,7 @@ if __name__ == "__main__":
     # args = parser.parse_args()
 
     # Extract arguments from parser
+    # Note: that arguments for Python start at index 5. See the snakemake rule
     mat_colors_json_fpath = sys.argv[5]
     if mat_colors_json_fpath == '':
         mat_colors_json_fpath = "/home/scripts/materialColors.json"
