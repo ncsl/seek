@@ -6,8 +6,8 @@ SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
    :target: https://circleci.com/gh/ncsl/seek
    :alt: CircleCI
 
-.. image:: https://github.com/ncsl/seek/workflows/build/badge.svg
-    :target: https://github.com/ncsl/seek/actions
+.. image:: https://github.com/ncsl/seek/workflows/.github/workflows/main.yml/badge.svg
+    :target: https://github.com/ncsl/seek/actions/
     :alt: GitHub Actions
 
 .. image:: https://travis-ci.com/ncsl/seek.svg?token=6sshyCajdyLy6EhT8YAq&branch=master
@@ -69,7 +69,7 @@ For a description of the visualization engine, see: https://github.com/cronelab/
 Setup and Installation
 ----------------------
 
-See `INSTALLATION GUIDE <https://github.com/ncsl/seek/doc/installation.rst>`_ for full instructions. SEEK uses the Snakemake_
+See `INSTALLATION GUIDE <https://github.com/ncsl/seek/blob/master/doc/installation.rst>`_ for full instructions. SEEK uses the Snakemake_
 workflow management system to create different workflows. We chose this because
 it is easy to run individual workflows, as well as an entire workflow from the command line.
 The full repository is set up similar to the `cookiecutter` Snakemake file: `cookiecutter gh:snakemake-workflows/cookiecutter-snakemake-workflow`.
@@ -97,48 +97,6 @@ be put through the workflow.
        - premri/*.dcm
        - posmri/*.dcm
        - postct/*.dcm
-
-
-Docker Installation
--------------------
-
-The Docker containers sit on `Docker Hub`_, specifically at `https://hub.docker.com/r/neuroseek/seek <https://hub.docker.com/r/neuroseek/seek>`_.
-
-Setup: Note that the docker container names are:
-
-.. code-block::
-
-   - seek_reconstruction
-   - seek_localization  # tbd
-   - seek_visualization  # tbd
-
-
-To setup the container in your system:
-
-.. code-block::
-
-   docker-compose up --build
-
-::
-
-    Running workflows within the container:
-    In another terminal, one can run the pipeline commands in terminal.
-
-    .. code-block::
-
-       # run container and mount data directories
-       docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
-
-::
-
-    Running workflows **using** the container:
-
-    .. code-block::
-
-       # run snakemake using the containers
-       snakemake <rule_name> --use-singularity
-
-For running individual pipelines, see `INSTALLATION GUIDE <INSTALLATION.md>`_.
 
 Running workflows using Docker and Snakemake
 --------------------------------------------
@@ -179,7 +137,6 @@ Seek was created and is maintained by `Adam Li <https://adam2392.github.io>`_. I
 To report a bug, please visit the `GitHub repository <https://github.com/ncsl/seek/issues/>`_.
 
 Note that this program is provided with NO WARRANTY OF ANY KIND. If you can, always double check the results with a human researcher, or clinician.
-
 
 How to cite SEEK?
 =================

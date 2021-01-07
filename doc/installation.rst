@@ -15,7 +15,10 @@ To fully install SEEK and run workflows, one will need to:
 #. install Docker dependencies
 #. install Singularity
 
-We outline some of these steps below.
+We outline some of these steps below. After you have set up everything (don't forget to
+format your data repository according to our necessary format), then you can easily run
+the snakemake workflows. For more information on running workflows, see
+`README <https://github.com/ncsl/seek>`_.
 
 seek Installation
 -----------------
