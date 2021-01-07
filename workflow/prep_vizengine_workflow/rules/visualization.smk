@@ -260,6 +260,6 @@ rule create_electrode_glb_files:
         "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
         "export SUBJECT={params.subject};"
-        "blender --background {params.scripts_dir}/startup.blend " \
+        "/usr/local/blender/blender --background {params.scripts_dir}/startup.blend " \
         "--python {params.scripts_dir}/electrode_generator.py " \
         "-- {input.electrode_fpath};"
