@@ -8,6 +8,17 @@ import numpy as np
 import pandas as pd
 
 
+def text_num_split(item):
+    """Split string into alphabet and numeric parts.
+
+    Requires that string starts with alphabet and ends
+    with numeric char.
+    """
+    for index, letter in enumerate(item, 0):
+        if letter.isdigit():
+            return [item[:index], item[index:]]
+
+
 def main(elec_fpath):
     fs_subjects_dir = os.environ.get("SUBJECTS_DIR")
     subject = os.environ.get("SUBJECT")
@@ -28,7 +39,10 @@ def main(elec_fpath):
 
     # loop through all electrodes stored in electrodes.tsv file
     for index, elecName in enumerate(elec_df["name"]):
-        electrodeGroup = elecName.split("'")[0]
+        if "'" in elecName:
+            electrodeGroup = elecName.split("'")[0]
+        else:
+            electrodeGroup = text_num_split(elecName)[0]
 
         # create a new electrode group
         if oldElectrodeGroup != electrodeGroup:
