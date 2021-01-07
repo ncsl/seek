@@ -68,6 +68,8 @@ rule prep:
         CT_bids_fname=expand(ct_output,subject=subjects),
     params:
         bids_root=bids_root.bids_root,
+    log:
+        expand("logs/prep_localization.{subject}.log",subject=subjects),
     output:
         report=report('fig1.png',caption='report/figprep.rst',category='Prep')
     shell:
@@ -86,7 +88,7 @@ rule convert_dicom_to_nifti_ct:
         CT_FOLDER=RAW_CT_FOLDER,
         bids_root=bids_root.bids_root,
     log:
-        "logs/recon_workflow.{subject}.log"
+        "logs/prep_localization.{subject}.log"
     container:
         freesurfer_dockerurl
     output:
