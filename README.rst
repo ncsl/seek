@@ -119,14 +119,6 @@ See ``Makefile`` for more details on the following recipes:
 
 ``You will need to alter the bind paths to your specific BIDS root directory and SEEK repository directory``.
 
-Creating persistent volumes in Docker
--------------------------------------
-
-If one wants to make a persistent data volume that reflects changes in the Docker container running Snakemake workflows, 
-then one can just make a ``data/`` directory inside this repository. Then add in sourcedata. This
-directory serves as the BIDS root of the workflows.
-
-
 Development
 ===========
 
@@ -162,3 +154,10 @@ Several functions of Seek essentially make use of existing software packages for
 FAQ
 ===
 1. For incorporation of DTI data, see `ndmeg <https://github.com/neurodata/ndmg>`_.
+
+Developer Note: Creating persistent volumes in Docker
+-----------------------------------------------------
+
+If one wants to make a persistent data volume that reflects changes in the Docker container running Snakemake workflows,
+then one can just make a ``data/`` directory inside this repository. Then add in sourcedata. This
+directory serves as the BIDS root of the workflows.
