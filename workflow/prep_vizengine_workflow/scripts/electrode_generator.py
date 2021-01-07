@@ -61,9 +61,9 @@ def main(elec_fpath):
                 1,
             )
             mat.use_nodes = True
-        electrodeName = "{group}{name}".format(
-            group=electrodeGroup, name=elecName.split("'")[1]
-        )
+        # electrodeName = "{group}{name}".format(
+        #     group=electrodeGroup, name=elecName.split("'")[1]
+        # )
 
         # check of nans / 'n/a' in elec_df
         if any(np.isnan(elec_df[col][index]) for col in ["x", "y", "z"]):
@@ -77,7 +77,7 @@ def main(elec_fpath):
         bpy.ops.mesh.primitive_ico_sphere_add(
             location=(electrodeX, electrodeY, electrodeZ)
         )
-        bpy.context.active_object.name = electrodeName
+        bpy.context.active_object.name = elecName
         bpy.context.active_object.active_material = mat
         bpy.context.active_object.parent = bpy.data.objects[electrodeGroup]
 
