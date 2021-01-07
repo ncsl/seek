@@ -69,7 +69,7 @@ For a description of the visualization engine, see: https://github.com/cronelab/
 Setup and Installation
 ----------------------
 
-See `INSTALLATION GUIDE <installation.rst>`_ for full instructions. SEEK uses the Snakemake_
+See `INSTALLATION GUIDE <https://github.com/ncsl/seek/doc/installation.rst>`_ for full instructions. SEEK uses the Snakemake_
 workflow management system to create different workflows. We chose this because
 it is easy to run individual workflows, as well as an entire workflow from the command line.
 The full repository is set up similar to the `cookiecutter` Snakemake file: `cookiecutter gh:snakemake-workflows/cookiecutter-snakemake-workflow`.
