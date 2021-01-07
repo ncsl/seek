@@ -92,7 +92,7 @@ subworkflow contact_labeling_workflow:
 rule generate_visualization_blender_meshes:
     input:
         surface_scene_file=expand(surface_scene_fpath,subject=subjects),
-    # electrodes_scene_file=expand(electrodes_scene_fpath,subject=subjects),
+        electrodes_scene_file=expand(electrodes_scene_fpath,subject=subjects),
     # surface_scene_file = os.path.join("./webserver/templates/static/", "reconstruction.glb"),
     # surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
     log:
@@ -249,7 +249,6 @@ rule create_electrode_glb_files:
     params:
         fsdir=FS_DIR,
         subject=subject_wildcard,
-        materialcolors_file=os.path.join(scripts_dir, "octave/materialColors.json"),
         scripts_dir=scripts_dir
     log:
         "logs/prep_vizengine.{subject}.log"

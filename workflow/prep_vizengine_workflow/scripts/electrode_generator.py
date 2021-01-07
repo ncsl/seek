@@ -1,70 +1,80 @@
 import os
 import os.path
 import random
-from os import path
+import sys
 
 import bpy
-import pandas
+import numpy as np
+import pandas as pd
 
 
-# TODO: pass in electrodes.tsv file from Snakemake
-def main():
-    patientDir = os.environ.get("SUBJECTS_DIR")
-    patientID = os.environ.get("SUBJECT")
+def main(elec_fpath):
+    fs_subjects_dir = os.environ.get("SUBJECTS_DIR")
+    subject = os.environ.get("SUBJECT")
+    subjects_dir = f"{fs_subjects_dir}/{subject}"
 
     scn = bpy.context.scene
     if not scn.render.engine == "CYCLES":
         scn.render.engine = "CYCLES"
 
-    subjDir = "{patientDir}/{patient}".format(patientDir=patientDir, patient=patientID)
-
+    # create blender object
     bpy.ops.object.empty_add()
     bpy.context.active_object.name = "Electrodes"
-    if path.exists("{dir}/electrodes/tkrRAS_electrodes.tsv".format(dir=subjDir)):
 
-        electrodes = pandas.read_csv(
-            "{dir}/electrodes/tkrRAS_electrodes.tsv".format(dir=subjDir), sep="\t"
+    elec_df = pd.read_csv(elec_fpath, sep="\t")
+
+    # keep track of which electrode group
+    oldElectrodeGroup = ""
+
+    # loop through all electrodes stored in electrodes.tsv file
+    for index, elecName in enumerate(elec_df["name"]):
+        electrodeGroup = elecName.split("'")[0]
+
+        # create a new electrode group
+        if oldElectrodeGroup != electrodeGroup:
+            bpy.ops.object.empty_add()
+            bpy.context.active_object.name = electrodeGroup
+            bpy.context.active_object.parent = bpy.data.objects["Electrodes"]
+            oldElectrodeGroup = electrodeGroup
+            mat = bpy.data.materials.new("electrodeMaterial")
+            mat.diffuse_color = (
+                random.random(),
+                random.random(),
+                random.random(),
+                1,
+            )
+            mat.use_nodes = True
+        electrodeName = "{group}{name}".format(
+            group=electrodeGroup, name=elecName.split("'")[1]
         )
 
-        oldElectrodeGroup = ""
+        # check of nans / 'n/a' in elec_df
+        if any(np.isnan(elec_df[col][index]) for col in ["x", "y", "z"]):
+            continue
 
-        for index, elecName in enumerate(electrodes["name"]):
-            electrodeGroup = elecName.split("'")[0]
-            if oldElectrodeGroup != electrodeGroup:
-                bpy.ops.object.empty_add()
-                bpy.context.active_object.name = electrodeGroup
-                bpy.context.active_object.parent = bpy.data.objects["Electrodes"]
-                oldElectrodeGroup = electrodeGroup
-                mat = bpy.data.materials.new("electrodeMaterial")
-                mat.diffuse_color = (
-                    random.random(),
-                    random.random(),
-                    random.random(),
-                    1,
-                )
-                mat.use_nodes = True
-            electrodeName = "{group}{name}".format(
-                group=electrodeGroup, name=elecName.split("'")[1]
-            )
-            electrodeX = float(electrodes["x"][index])
-            electrodeY = float(electrodes["y"][index])
-            electrodeZ = float(electrodes["z"][index])
-            bpy.ops.mesh.primitive_ico_sphere_add(
-                location=(electrodeX, electrodeY, electrodeZ)
-            )
-            bpy.context.active_object.name = electrodeName
-            bpy.context.active_object.active_material = mat
-            bpy.context.active_object.parent = bpy.data.objects[electrodeGroup]
+        electrodeX = float(elec_df["x"][index])
+        electrodeY = float(elec_df["y"][index])
+        electrodeZ = float(elec_df["z"][index])
 
-        bpy.ops.export_scene.gltf(
-            export_format="GLB",
-            filepath="{dir}/{patient}".format(dir=subjDir, patient="electrodes"),
-            export_texcoords=False,
-            export_normals=False,
-            export_cameras=False,
-            export_yup=False,
+        # create a blender-mesh sphere at the electrode location
+        bpy.ops.mesh.primitive_ico_sphere_add(
+            location=(electrodeX, electrodeY, electrodeZ)
         )
+        bpy.context.active_object.name = electrodeName
+        bpy.context.active_object.active_material = mat
+        bpy.context.active_object.parent = bpy.data.objects[electrodeGroup]
+
+    bpy.ops.export_scene.gltf(
+        export_format="GLB",
+        filepath=f"{subjects_dir}/blender_objects/electrodes",
+        export_texcoords=False,
+        export_normals=False,
+        export_cameras=False,
+        export_yup=False,
+    )
 
 
 if __name__ == "__main__":
-    main()
+    elec_fpath = sys.argv[6]
+
+    main(elec_fpath)

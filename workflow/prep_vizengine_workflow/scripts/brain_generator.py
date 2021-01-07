@@ -9,8 +9,8 @@ def main(mat_color_json_fpath):
     patientDir = os.environ.get("SUBJECTS_DIR")
     patientID = os.environ.get("SUBJECT")
 
-    print(f'Loading materialColors.json file from {mat_color_json_fpath}')
-    with open(mat_color_json_fpath, 'r', encoding='utf-8') as json_file:
+    print(f"Loading materialColors.json file from {mat_color_json_fpath}")
+    with open(mat_color_json_fpath, "r", encoding="utf-8") as json_file:
         data = json.load(json_file)
 
     scn = bpy.context.scene
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     # Extract arguments from parser
     # Note: that arguments for Python start at index 6. See the snakemake rule
     mat_colors_json_fpath = sys.argv[6]
-    if mat_colors_json_fpath == '':
+    if mat_colors_json_fpath == "":
         mat_colors_json_fpath = "/home/scripts/materialColors.json"
 
     main(mat_color_json_fpath=mat_colors_json_fpath)
