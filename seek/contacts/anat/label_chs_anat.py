@@ -5,7 +5,7 @@ import nibabel as nb
 import numpy as np
 import scipy.io
 
-from seek.utils import PatientBidsRoot
+from seek.utils import BidsRoot
 
 
 def _get_indices_to_exclude(label, indices):
@@ -615,7 +615,7 @@ def label_elecs(
         [nchans x 4] matrix of electrode labels. Columns include short name,
         long name, 'grid'/'depth'/'strip' label, and assigned anatomical label.
     """
-    BidsPatient = PatientBidsRoot(subject_id=subj, bids_root=bids_root)
+    BidsPatient = BidsRoot(subject_id=subj, bids_root=bids_root)
     elecs_dir = BidsPatient.elecs_dir
     mesh_dir = BidsPatient.mesh_dir
     gyri_labels_dir = BidsPatient.gyri_dir
