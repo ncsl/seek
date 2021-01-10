@@ -60,9 +60,10 @@ Note: For FSL, we use a 3rd party docker image.
 
 Documentation
 -------------
+To see the entire documentation, see http://neuroseek.azurewebsites.net/docs/seek/
 
 * For a detailed description of the overall SEEK workflow, see `workflow documentation <https://github.com/ncsl/seek/blob/master/workflow/documentation.md>`_.
-* For a detailed description of the SEEK workflow of contact localization, specifically localizing the 2 points per electrode, see `localization guide <https://github.com/ncsl/seek/master/tutorials/localization_guide.rst>`_
+* For a detailed description of the SEEK workflow of contact localization, specifically localizing the 2 points per electrode, see `localization guide <http://neuroseek.azurewebsites.net/docs/localize/>`_
 
 For a description of the visualization engine, see: https://github.com/cronelab/ReconstructionVisualizer
 
