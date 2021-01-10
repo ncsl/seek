@@ -1,5 +1,5 @@
 =======================================================
-SEEK Pipeline (Stereotactic ElectroEncephalography Kit)
+SEEK-Pipeline (Stereotactic ElectroEncephalography Kit)
 =======================================================
 
 .. image:: https://circleci.com/gh/ncsl/seek.svg?style=svg
