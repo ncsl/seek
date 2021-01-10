@@ -18,6 +18,10 @@ to each other.
 3. Run a full example through each.
 4. Link documentation to https://github.com/cronelab/ReconstructionVisualizer
 
+# Notes on Blender
+`startup.blend` gets rid of camera cube and light in the blender scene, which are default
+objects.
+
 
 ## Data Organization
 We attempt to adhere to the BIDS specification. Original raw source data is stored in 

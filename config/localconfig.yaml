@@ -1,8 +1,7 @@
 # home directory that every dataset sits in -> fileutils sets the BIDS structure
 bids_root:
-  "/home/adam2392/hdd/epilepsy_bids/"
-#  '/Users/adam2392/Dropbox/epilepsy_bids'
-#  '/Users/adam2392/Documents/seek-testing-data'
+#  "/home/adam2392/hdd/epilepsy_bids/"
+  '/Users/adam2392/Dropbox/epilepsy_bids'
 
 # session name to give all datasets; corresponds to the ``ses-`` BIDS entity
 session: "presurgery"
@@ -23,4 +22,5 @@ fsl_docker: 'docker://cbinyu/fsl6-core'
 freesurfer_docker: 'docker://neuroseek/freesurfer7-with-mrtrix3:1.2'
 blender_docker: 'docker://neuroseek/blender:2.82'
 
+# not used: extra parameters for snakemake
 params:

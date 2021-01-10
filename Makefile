@@ -42,9 +42,6 @@ prep-viz:
 	snakemake --cores $(cores) --use-singularity --singularity-args $(sing-args);
 
 ############################## DOCKER #########################
-build:
-	@docker-compose build;
-
 build-acpc:
 	docker build --rm -f ./dockerfiles/Dockerfile.acpcdetect -t $(dockerhub)/acpcdetect:$(acpcdetect_version)  ./dockerfiles
 
@@ -70,15 +67,17 @@ pull-all:
 	docker pull docker://cbinyu/fsl6-core
 
 ############################## UTILITY FOR SNAKEMAKE #########################
+outputpath := "./doc/_static"
+
 init:
 	pipenv shell
     export SEEKHOME = $(shell pwd)
 
 create_dags:
-	snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/recon_workflow.pdf;
-	snakemake --snakefile ./workflow/prep_localization_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/prep_localization_workflow.pdf;
-	snakemake --snakefile ./workflow/coregistration_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/coregistration_workflow.pdf;
-	snakemake --snakefile ./workflow/prep_vizengine_workflow/Snakefile --forceall --dag | dot -Tpdf > ./doc/_static/prep_viz_workflow.pdf;
+	snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/recon_workflow.pdf;
+	snakemake --snakefile ./workflow/prep_localization_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/prep_localization_workflow.pdf;
+	snakemake --snakefile ./workflow/coregistration_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/coregistration_workflow.pdf;
+	snakemake --snakefile ./workflow/prep_vizengine_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/prep_viz_workflow.pdf;
 
 ############################## UTILITY FOR PYTHON #########################
 clean-pyc:

@@ -1,0 +1,51 @@
+import os
+import sys
+from pathlib import Path
+
+import pandas as pd
+from snakemake.logging import logger
+from snakemake.utils import validate, min_version
+
+sys.path.append(os.getenv('SEEKHOME'))
+
+logger.debug(f'In reconstruction rule workflow with current working directory: {os.getcwd()}. '
+             f'SEEKHOME is {os.getenv("SEEKHOME")}.')
+from seek.utils.fileutils import _get_seek_config
+
+##### set minimum snakemake version #####
+min_version("5.27.4")
+
+##### load config and sample sheets #####
+
+configfile: _get_seek_config()
+schema_rel_path = "../schemas/config.schema.yaml"
+subjects_tsv_schema = "../schemas/subjects.schema.yaml"
+validate(config, schema=schema_rel_path)
+
+configpath = Path(_get_seek_config()).parent
+subject_df = pd.read_table(configpath / config["subjects"]).set_index("id", drop=False)
+
+logger.info(subject_df.to_dict(orient='index'))
+logger.info(config)
+
+# validate the `subjects.tsv` file
+for subject, subject_row in subject_df.to_dict(orient='index').items():
+    validate(subject_row, schema=subjects_tsv_schema)
+# expose the variable subjects for usage in downstream rules
+subjects = subject_df['id']
+centers = subject_df['center_id'].tolist()
+
+##### target rules #####
+
+"""
+snakemake --rulegraph | dot -Tpdf > dag.pdf
+"""
+rule all:
+    input: ['fig1.png', 'figreconstruct.png']
+
+##### setup report #####
+report: "../report/workflow.rst"
+
+##### load rules #####
+include: "rules/prep.smk"
+include: "rules/reconstruction.smk"

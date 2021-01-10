@@ -54,6 +54,7 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'numpydoc',
     'sphinx_copybutton',
+    'gh_substitutions',  # custom extension, see ./sphinxext/gh_substitutions.py
     # "seek.sphinxext.snakemakerule",
 ]
 
@@ -128,9 +129,8 @@ html_theme_options = {
         # here list header string to show, and the rst filename
         ('News', 'whats_new'),
         ('Install', 'installation'),
-        ('Tutorials', 'auto_examples/index'),
+        ('Use', 'use'),
         ("Pipeline Description", "pipeline_description"),
-        # ('Python API', 'api'),
         ("Contribute!", "contributing"),
         ("GitHub", "https://github.com/ncsl/seek", True),
     ]
