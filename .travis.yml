@@ -42,7 +42,6 @@ install:
 # command to run tests
 script:
   - pipenv run make check
-  - pipenv shell
   # run test dag
 #  - snakemake --config bids_root=./seek-testing-data subjects=testsubjects.tsv --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/recon_workflow.pdf;
 #  - snakemake --config bids_root=./seek-testing-data subjects=testsubjects.tsv --snakefile ./workflow/prep_localization_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/prep_localization_workflow.pdf;
