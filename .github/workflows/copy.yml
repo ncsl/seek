@@ -18,6 +18,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install sphinx sphinx_bootstrap_theme sphinx_gallery nibabel scipy pandas mne_bids mne natsort scikit-image scikit-learn dicom2nifti numpydoc
+          pip install snakemake
           sphinx-build -b html doc doc/build
       - name: Pushes to another repository
         uses: thebrainchain/copy-folder-action@master
