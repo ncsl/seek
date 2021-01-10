@@ -32,18 +32,18 @@ jobs:
           name: Clone testing data
           command: git clone --depth 1 https://github.com/adam2392/seek-testing-data.git
 
-      - run:
-          name: Run snakemake check
-          command: |
-            pipenv shell;
-            export SEEKHOME=$(cwd) && cd workflow/prep_localization/ && pipenv run snakemake --lint --config bids_root='./seek-testing-data' subjects=testsubjects.tsv;
-            cd $OLDPWD && cd workflow/coregistration/ && pipenv run snakemake --lint --config bids_root='./seek-testing-data' subjects=testsubjects.tsv;
-            cd $OLDPWD && cd workflow/prep_vizengine/ && pipenv run snakemake --lint --config bids_root='./seek-testing-data' subjects=testsubjects.tsv;
-            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/recon/Snakefile --forceall --dag | dot -Tpdf > ./recon.pdf;
-            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/prep_localization/Snakefile --forceall --dag | dot -Tpdf > ./prep_localization.pdf;
-            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/coregistration/Snakefile --forceall --dag | dot -Tpdf > ./coregistration.pdf;
-            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/prep_vizengine/Snakefile --forceall --dag | dot -Tpdf > ./prep_viz.pdf;
-            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/recon/Snakefile -n
+#      - run:
+#          name: Run snakemake check
+#          command: |
+#            pipenv shell;
+#            export SEEKHOME=$(cwd) && cd workflow/prep_localization/ && pipenv run snakemake --lint --config bids_root='./seek-testing-data' subjects=testsubjects.tsv;
+#            cd $OLDPWD && cd workflow/coregistration/ && pipenv run snakemake --lint --config bids_root='./seek-testing-data' subjects=testsubjects.tsv;
+#            cd $OLDPWD && cd workflow/prep_vizengine/ && pipenv run snakemake --lint --config bids_root='./seek-testing-data' subjects=testsubjects.tsv;
+#            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/recon/Snakefile --forceall --dag | dot -Tpdf > ./recon.pdf;
+#            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/prep_localization/Snakefile --forceall --dag | dot -Tpdf > ./prep_localization.pdf;
+#            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/coregistration/Snakefile --forceall --dag | dot -Tpdf > ./coregistration.pdf;
+#            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/prep_vizengine/Snakefile --forceall --dag | dot -Tpdf > ./prep_viz.pdf;
+#            pipenv run export SEEKHOME=$(pwd) && snakemake --config bids_root='./seek-testing-data' subjects=testsubjects.tsv --snakefile ./workflow/recon/Snakefile -n
 
       - save_cache:
           key: pip-packages-v1-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
