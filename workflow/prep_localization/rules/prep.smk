@@ -37,6 +37,7 @@ from seek.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
 configfile: _get_seek_config()
 
 freesurfer_dockerurl = config['freesurfer_docker']
+seek_dockerurl = config['seek_docker']
 
 # get the actual file path to the config
 configpath = Path(_get_seek_config()).parent
@@ -70,6 +71,8 @@ rule prep:
         bids_root=bids_root.bids_root,
     log:
         expand("logs/prep_localization.{subject}.log",subject=subjects),
+    container:
+        seek_dockerurl
     output:
         report=report('fig1.png',caption='report/figprep.rst',category='Prep')
     shell:

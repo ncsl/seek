@@ -27,6 +27,8 @@ configfile: _get_seek_config()
 freesurfer_dockerurl = config['freesurfer_docker']
 fsl_dockerurl = config['fsl_docker']
 blender_dockerurl = config['blender_docker']
+seek_dockerurl = config['seek_docker']
+blender_path = config.get('blender_path')  # noqa
 
 # get the freesurfer patient directory
 subject_wildcard = "{subject}"
@@ -61,7 +63,7 @@ LH_PIAL_ROI = os.path.join(FS_ROI_FOLDER,"lh.pial_roi")
 RH_PIAL_ROI = os.path.join(FS_ROI_FOLDER,"rh.pial_roi")
 
 # blender output file paths
-surface_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects", "brain.glb")
+surface_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","brain.glb")
 surface_fbx_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","brain.fbx")
 electrodes_scene_fpath = os.path.join(FSPATIENT_SUBJECT_FOLDER,"blender_objects","electrodes.glb")
 
@@ -97,26 +99,13 @@ rule generate_visualization_blender_meshes:
     # surface_fbx_file = os.path.join("./webserver/templates/static/", "reconstruction.fbx"),
     log:
         expand("logs/prep_vizengine.{subject}.log",subject=subjects)
+    container:
+        seek_dockerurl
     output:
         report=report('figviz.png',caption='report/figviz.rst',category='Visualization Prep')
     shell:
         "echo 'Done!';"
         "touch figviz.png {output};"
-
-"""Convert Ascii pial files to surface files."""
-
-rule convert_asc_to_srf:
-    input:
-        LH_PIAL_ASC=LH_PIAL_ASC,
-        RH_PIAL_ASC=RH_PIAL_ASC,
-    log:
-        "logs/prep_vizengine.{subject}.log"
-    output:
-        LH_PIAL_SRF=LH_PIAL_SRF,
-        RH_PIAL_SRF=RH_PIAL_SRF,
-    shell:
-        "cp {input.LH_PIAL_ASC} {output.LH_PIAL_SRF};"
-        "cp {input.RH_PIAL_ASC} {output.RH_PIAL_SRF};"
 
 """Convert annotation files to DPV files for Blender."""
 
@@ -138,14 +127,17 @@ rule convert_annot_to_dpv:
         "{params.scripts_dir}/octave/annot2dpv {input.LH_ANNOT_FILE} {output.LH_ANNOT_DPV};"
         "{params.scripts_dir}/octave/annot2dpv {input.RH_ANNOT_FILE} {output.RH_ANNOT_DPV};"
 
-"""Split surfaces into files per right/left hemisphere."""
-
 rule split_surfaces:
+    """Split surfaces into files per right/left hemisphere. 
+
+    First, convert Ascii pial files to surface files.
+    Second, call ``splitsrf`` to generate split surface files.
+    """
     input:
         LH_ANNOT_DPV=LH_ANNOT_DPV,
         RH_ANNOT_DPV=RH_ANNOT_DPV,
-        LH_PIAL_SRF=LH_PIAL_SRF,
-        RH_PIAL_SRF=RH_PIAL_SRF,
+        LH_PIAL_ASC=LH_PIAL_ASC,
+        RH_PIAL_ASC=RH_PIAL_ASC,
     log:
         "logs/prep_vizengine.{subject}.log"
     params:
@@ -156,13 +148,20 @@ rule split_surfaces:
     container:
         blender_dockerurl
     output:
+        LH_PIAL_SRF=LH_PIAL_SRF,
+        RH_PIAL_SRF=RH_PIAL_SRF,
         roi_flag_file=os.path.join(FSPATIENT_SUBJECT_FOLDER,"surfaces_roi_flag_success.txt")
     shell:
+        # copy ascii -> srf files
+        "cp {input.LH_PIAL_ASC} {output.LH_PIAL_SRF};"
+        "cp {input.RH_PIAL_ASC} {output.RH_PIAL_SRF};"
+
+        # split surface files
         "mkdir -p {params.FS_ROI_FOLDER};"
         "cd {params.scripts_dir}/octave/;"  # needed to have `srfread/srfwrite` in path
-        "echo '{params.scripts_dir}/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI}';"
-        "{params.scripts_dir}/octave/splitsrf {input.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
-        "{params.scripts_dir}/octave/splitsrf {input.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
+        "echo '{params.scripts_dir}/octave/splitsrf {output.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI}';"
+        "{params.scripts_dir}/octave/splitsrf {output.LH_PIAL_SRF} {input.LH_ANNOT_DPV} {params.LH_PIAL_ROI};"
+        "{params.scripts_dir}/octave/splitsrf {output.RH_PIAL_SRF} {input.RH_ANNOT_DPV} {params.RH_PIAL_ROI};"
         "touch {output.roi_flag_file};"
 
 """Convert Subcortical surface files to Blender object files."""
@@ -223,20 +222,21 @@ rule create_brain_glb_files:
         RH_PIAL_ROI=RH_PIAL_ROI,
         fsdir=FS_DIR,
         subject=subject_wildcard,
-        materialcolors_file=os.path.join(scripts_dir, "octave/materialColors.json"),
+        materialcolors_file=os.path.join(scripts_dir,"octave/materialColors.json"),
         scripts_dir=scripts_dir,
+        blender_path=blender_path,
     log:
         "logs/prep_vizengine.{subject}.log"
     container:
         blender_dockerurl
     output:
         surface_scene_file=surface_scene_fpath,
-        # surface_fbx_file=surface_fbx_fpath,
+    # surface_fbx_file=surface_fbx_fpath,
     shell:
         "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
         "export SUBJECT={params.subject};"
-        "/usr/local/blender/blender --background {params.scripts_dir}/startup.blend " \
+        "{params.blender_path} --background {params.scripts_dir}/startup.blend " \
         "--python {params.scripts_dir}/brain_generator.py " \
         "-- {params.materialcolors_file};"
 
@@ -249,7 +249,8 @@ rule create_electrode_glb_files:
     params:
         fsdir=FS_DIR,
         subject=subject_wildcard,
-        scripts_dir=scripts_dir
+        scripts_dir=scripts_dir,
+        blender_path=blender_path,
     log:
         "logs/prep_vizengine.{subject}.log"
     container:
@@ -260,6 +261,6 @@ rule create_electrode_glb_files:
         "echo 'Creating brain glb objects for rendering!';"
         "export SUBJECTS_DIR={params.fsdir};"
         "export SUBJECT={params.subject};"
-        "/usr/local/blender/blender --background {params.scripts_dir}/startup.blend " \
+        "{params.blender_path} --background {params.scripts_dir}/startup.blend " \
         "--python {params.scripts_dir}/electrode_generator.py " \
         "-- {input.electrode_fpath};"

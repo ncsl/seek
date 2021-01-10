@@ -45,12 +45,6 @@ rule all:
     input:
         ['figviz.png',]
 
-##### setup singularity #####
-
-# this container defines the underlying OS for each job when using the workflow
-# with --use-singularity
-# singularity: "docker://neuroseek/seek"
-
 ##### setup report #####
 
 report: "../report/workflow.rst"

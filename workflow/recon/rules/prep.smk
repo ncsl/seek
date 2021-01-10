@@ -63,6 +63,7 @@ bids_root = BidsRoot(subject_wildcard,BIDS_ROOT(config['bids_root']),
 freesurfer_dockerurl = config['freesurfer_docker']
 acpcdetect_dockerurl = config['acpcdetect_docker']
 fsl_dockerurl = config['fsl_docker']
+seek_dockerurl = config['seek_docker']
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
@@ -150,6 +151,8 @@ rule prep:
     params:
         bids_root=bids_root.bids_root,
     log: expand("logs/recon.{subject}.log", subject=subjects)
+    container:
+        seek_dockerurl
     output:
         report=report('fig1.png',caption='report/figprep.rst',category='Prep')
     shell:
@@ -265,9 +268,9 @@ rule coregistert1_ct_to_t1w:
     log: "logs/recon.{subject}.log"
     output:
         # mapped image from CT -> MRI
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER, ctint1_bids_fname + ".gz"),
+        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_bids_fname).with_suffix(".gz").as_posix(),
         # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_transform_fname),
+        MAPPING_FILE_ORIG=(FSOUT_CT_FOLDER / pre_to_post_transform_fname).as_posix(),
     shell:
         "flirt -in {input.CT_bids_fname} \
                             -ref {input.MRI_bids_fname} \
@@ -289,7 +292,7 @@ rule coregistert1_ct_to_t1wacpc:
     log: "logs/recon.{subject}.log"
     output:
         # mapped image from CT -> MRI
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER,ctint1_acpc_bids_fname + ".gz"),
+        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_acpc_bids_fname).with_suffix(".gz").as_posix(),
         # mapping matrix for post to pre in T1
         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_acpc_transform_fname),
     shell:
@@ -304,7 +307,7 @@ Rule for converting  .nii.gz -> .nii. for CT mapped to T1w images.
 
 rule convert_niigz_to_nii_ctont1w:
     input:
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER,ctint1_bids_fname + ".gz"),
+        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_bids_fname).with_suffix(".gz").as_posix(),
         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_transform_fname),
     container:
         freesurfer_dockerurl
@@ -322,7 +325,7 @@ Rule for converting  .nii.gz -> .nii. for CT mapped to ACPC aligned T1w images.
 
 rule convert_niigz_to_nii_ctonacpc:
     input:
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER,ctint1_acpc_bids_fname + ".gz"),
+        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_acpc_bids_fname).with_suffix(".gz").as_posix(),
         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_acpc_transform_fname),
     log: "logs/recon.{subject}.log"
     container:

@@ -16,11 +16,15 @@ subjects: 'subjects.tsv'
 
 site_id: 'clevelandnl'
 
+############# define container URLs and paths #############
 # define Docker urls to pull from for each software
 acpcdetect_docker: 'docker://neuroseek/acpcdetect:2.0'
 fsl_docker: 'docker://cbinyu/fsl6-core'
 freesurfer_docker: 'docker://neuroseek/freesurfer7-with-mrtrix3:1.2'
 blender_docker: 'docker://neuroseek/blender:2.82'
+seek_docker: 'docker://neuroseek/seek:1.0.0'
+
+blender_path: '/usr/local/blender/blender'
 
 # not used: extra parameters for snakemake
 params:

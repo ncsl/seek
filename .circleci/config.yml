@@ -36,6 +36,7 @@ jobs:
           name: Run snakemake check
           command: |
             pipenv shell
+            make snakelint
             snakemake --config bids_root=./seek-testing-data subjects=testsubjects.tsv --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/recon_workflow.pdf;
             snakemake --config bids_root=./seek-testing-data subjects=testsubjects.tsv --snakefile ./workflow/prep_localization_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/prep_localization_workflow.pdf;
             snakemake --config bids_root=./seek-testing-data subjects=testsubjects.tsv --snakefile ./workflow/coregistration_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/coregistration_workflow.pdf;

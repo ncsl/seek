@@ -33,6 +33,7 @@ logger.debug('In reconstruction workflow.')
 
 freesurfer_dockerurl = config['freesurfer_docker']
 fsl_dockerurl = config['fsl_docker']
+seek_dockerurl = config['seek_docker']
 
 # get the freesurfer patient directory
 subject_wildcard = "{subject}"
@@ -87,6 +88,8 @@ rule recon_all_output:
         rhpial=expand(rhpial_asc_fpath,subject=subjects),
         t1_fs=expand(t1_fs_fpath,subject=subjects)
     log: expand("logs/recon.{subject}.log",subject=subjects)
+    container:
+        seek_dockerurl
     output:
         report=report('figreconstruct.png',caption='report/figpost.rst',category='FreeSurfer')
     shell:

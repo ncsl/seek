@@ -23,6 +23,10 @@ from seek.utils.fileutils import (BidsRoot, BIDS_ROOT, DEFAULT_SESSION,
 
 configfile: _get_seek_config()
 
+freesurfer_dockerurl = config['freesurfer_docker']
+fsl_dockerurl = config['fsl_docker']
+seek_dockerurl = config['seek_docker']
+
 # get the freesurfer patient directory
 subject_wildcard = "{subject}"
 bids_root = BidsRoot(subject_wildcard,BIDS_ROOT(config['bids_root']),
@@ -81,6 +85,9 @@ rule label_electrode_anatomy:
             subject=subjects),
     params:
         bids_root=bids_root.bids_root,
+    log: expand("logs/label-contacts.{subject}.log",subject=subjects)
+    container:
+        seek_dockerurl
     output:
         report=report('figcontactsanat.png',caption='report/figcontacts.rst',category='Contact Localization')
     shell:
@@ -105,6 +112,9 @@ rule convert_gyri_annotations_to_labels:
         surf_atlas_suffix_destrieux='--a2009s',
         surf_atlas_suffix_dk='',
         FS_GYRI_DIR=FSOUT_GYRI_FOLDER,
+    log: "logs/label-contacts.{subject}.log",
+    container:
+        freesurfer_dockerurl
     shell:
         "mri_annotation2label " \
         "--subject {params.subject_id} " \
@@ -135,6 +145,9 @@ rule apply_anatomicalatlas_to_electrodes:
         mri_coordsystem_fpath=op.join(FSOUT_ELECS_FOLDER,seek_coordsystem_fname),
     params:
         FSPATIENT_DIR=str(FSPATIENT_SUBJECT_DIR),
+    log: "logs/label-contacts.{subject}.log",
+    container:
+        seek_dockerurl
     output:
         bids_electrodes_tsv_file=op.join(BIDS_PRESURG_IEEG_DIR,seek_electrodes_fname),
         bids_electrodes_json_file=op.join(BIDS_PRESURG_IEEG_DIR,seek_electrodes_json),
@@ -158,6 +171,9 @@ rule apply_anatomicalatlas_to_manual_electrodes:
         mri_coordsystem_fpath=op.join(FSOUT_ELECS_FOLDER,manual_coordsystem_fname),
     params:
         FSPATIENT_DIR=str(FSPATIENT_SUBJECT_DIR),
+    log: "logs/label-contacts.{subject}.log",
+    container:
+        seek_dockerurl
     output:
         bids_electrodes_tsv_file=op.join(BIDS_PRESURG_IEEG_DIR,manual_electrodes_fname),
         bids_electrodes_json_file=op.join(BIDS_PRESURG_IEEG_DIR,manual_electrodes_json),

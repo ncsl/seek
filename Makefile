@@ -51,6 +51,10 @@ build-blender:
 build-freesurfer:
 	docker build --rm -f ./dockerfiles/Dockerfile.freesurfer-with-mrtrix3 -t $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)  ./dockerfiles
 
+build-seek:
+	cp Pipfile ./dockerfiles/Pipfile
+	docker build --rm -f ./dockerfiles/Dockerfile.seek -t $(dockerhub)/seek:$(version)  ./dockerfiles
+
 push-acpc:
 	docker push $(dockerhub)/acpcdetect:$(acpcdetect_version)
 
@@ -59,6 +63,9 @@ push-blender:
 
 push-freesurfer:
 	docker push $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)
+
+push-seek:
+	docker push $(dockerhub)/seek:$(version)
 
 pull-all:
 	docker pull $(dockerhub)/acpcdetect:$(acpcdetect_version)
@@ -149,7 +156,10 @@ black:
 	@echo "black passed"
 
 snakelint:
-	snakemake --lint ./workflow
+	cd workflow/recon/ && snakemake --lint;
+	cd workflow/prep_localization/ && snakemake --lint;
+	cd workflow/coregistration/ && snakemake --lint;
+	cd workflow/prep_vizengine/ && snakemake --lint;
 
 check:
 	@$(MAKE) -k black pydocstyle codespell-error

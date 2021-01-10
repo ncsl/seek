@@ -26,6 +26,7 @@ configfile: _get_seek_config()
 
 freesurfer_dockerurl = config['freesurfer_docker']
 fsl_dockerurl = config['fsl_docker']
+seek_dockerurl = config['seek_docker']
 
 # get the freesurfer patient directory
 subject_wildcard = "{subject}"
@@ -95,6 +96,10 @@ rule coregister_ct_and_T1w_images:
             subject=subjects),
         ct_in_fs_img=expand(ct_tot1_fs_output,subject=subjects),
         ct_in_fs_map=expand(ct_tot1_fs_map,subject=subjects),
+    container:
+        seek_dockerurl
+    log:
+        expand("logs/coregistration.{subject}.log",subject=subjects)
     output:
         report=report('figct.png',caption='report/figprep.rst',category='Coregistration')
     shell:
@@ -104,8 +109,7 @@ rule coregister_ct_and_T1w_images:
 rule prep_ct_for_coregistration:
     input:
         CT_NIFTI_IMG=prep_localization_workflow(os.path.join(BIDS_PRESURG_CT_DIR,ct_bids_fname)),
-    params:
-        CTDIR=str(FSOUT_CT_FOLDER),
+    log: "logs/coregistration.{subject}.log"
     container:
         freesurfer_dockerurl
     output:
@@ -123,11 +127,12 @@ rule coregister_ct_to_t1wfs:
     input:
         PREMRI_NIFTI_IMG_MGZ=reconstruction_workflow(t1_fs_fpath),
         CT_NIFTI_IMG_MGZ=os.path.join(FSOUT_CT_FOLDER,ct_bids_fname),
+    log: "logs/coregistration.{subject}.log"
     container:
         fsl_dockerurl
     output:
         # mapped image from CT -> MRI
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER,ctint1_fs_bids_fname + ".gz"),
+        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_fs_bids_fname).with_suffix(".gz").as_posix(),
         # mapping matrix for post to pre in T1
         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,ct_to_t1wfs_transform_fname),
         ct_tot1_fs_map=ct_tot1_fs_map,
@@ -140,7 +145,8 @@ rule coregister_ct_to_t1wfs:
 
 rule convert_ctgz_to_nifti:
     input:
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=os.path.join(FSOUT_CT_FOLDER,ctint1_fs_bids_fname + ".gz"),
+        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_fs_bids_fname).with_suffix(".gz").as_posix(),
+    log: "logs/coregistration.{subject}.log"
     container:
         freesurfer_dockerurl
     output:
@@ -160,6 +166,7 @@ rule map_brainmask_to_ct:
         CT_NIFTI_IMG=os.path.join(FSOUT_CT_FOLDER,ct_bids_fname),
         # mapping matrix for post to pre in T1
         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,ct_to_t1wfs_transform_fname),
+    log: "logs/coregistration.{subject}.log"
     container:
         fsl_dockerurl
     output:
