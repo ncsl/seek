@@ -77,7 +77,6 @@ pull-all:
 outputpath := "./doc/_static"
 
 init:
-	pipenv shell
     export SEEKHOME = $(shell pwd)
 
 create_dags:
