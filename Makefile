@@ -25,21 +25,21 @@ sing-args := "--bind ~/hdd/epilepsy_bids/,/home/adam2392/Documents/seek/"
 
 recon:
 	cd workflow/recon_workflow && \
-	snakemake --cores $(cores) --use-singularity --singularity-args $(sing-args);
+	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 prep-localization:
 	cd workflow/prep_localization_workflow && \
-	snakemake --cores $(cores) --use-singularity --singularity-args $(sing-args);
+	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 coregistration:
 	cd workflow/coregistration_workflow && \
-	snakemake --cores $(cores) --use-singularity --singularity-args $(sing-args);
+	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 prep-viz:
 #	@read -p "Enter full absolute path to 'seek' repository:" path;
 #module_dir=./modules/$$module;
 	cd workflow/prep_vizengine_workflow && \
-	snakemake --cores $(cores) --use-singularity --singularity-args $(sing-args);
+	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 ############################## DOCKER #########################
 build-acpc:
