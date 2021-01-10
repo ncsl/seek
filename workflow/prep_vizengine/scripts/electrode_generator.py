@@ -41,7 +41,7 @@ def main(elec_fpath):
     for index, elecName in enumerate(elec_df["name"]):
         # if left hemisphere, then there will be a "'" character
         # else, right hemisphere
-        print(f'Creating blender object for {elecName}...')
+        print(f"Creating blender object for {elecName}...")
         if "'" in elecName:
             electrodeGroup = elecName.split("'")[0]
         else:

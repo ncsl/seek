@@ -181,13 +181,26 @@ if __name__ == "__main__":
     sourcepath = root / "sourcedata"
     SUBJECTS = [
         # 'la04', 'la06', 'la07',
-        'la05', 'la08', 'la22',
+        "la05",
+        "la08",
+        "la22",
         # 'la17', 'la20',  # no CT/T1 scans
         # 'la09', 'la10','la11', 'la12', 'la13', 'la15', 'la16',
         #  'la21', 'la23', 'la24',
         # 'la27', 'la28', 'la29', 'la31'
-        'nl01', 'nl04', 'nl05', 'nl07', 'nl08', 'nl12',
-        'nl13', 'nl14', 'nl15', 'nl16', 'nl18', 'nl19', 'nl20'
+        "nl01",
+        "nl04",
+        "nl05",
+        "nl07",
+        "nl08",
+        "nl12",
+        "nl13",
+        "nl14",
+        "nl15",
+        "nl16",
+        "nl18",
+        "nl19",
+        "nl20",
     ]
     for subject in SUBJECTS:
         space = "fs"
@@ -224,9 +237,9 @@ if __name__ == "__main__":
             required=False,
             help="The output datafile with all the electrode points clustered.",
             default=sourcepath
-                    / "electrodes localized"
-                    / "stolk"
-                    / f"{subject}_elec_acpc_f.mat",
+            / "electrodes localized"
+            / "stolk"
+            / f"{subject}_elec_acpc_f.mat",
         )
         parser.add_argument(
             "-output_bids_electrodes_file",
@@ -310,7 +323,7 @@ if __name__ == "__main__":
 
         # save sidecar electrodes json
         with open(
-                str(output_electrodes_tsv_fpath).replace(".tsv", ".json"), "w"
+            str(output_electrodes_tsv_fpath).replace(".tsv", ".json"), "w"
         ) as fout:
             json.dump(electrodes_json, fout, indent=4)
 
