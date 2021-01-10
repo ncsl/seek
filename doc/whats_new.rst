@@ -27,8 +27,9 @@ Version 0.1
 Changelog
 ~~~~~~~~~
 
-- Refactored semi-automated algorithm for localizing contacts on CT img, in :code:`seek/localizae_contacts/electrode_clustering` by `Chester Huynh`_ (`#16 <https://github.com/adam2392/neuroimg_pipeline/pull/16>`_)
-- Pipeline for group comparisons with the MNI152 atlas at :code:`seek/pipeline/07-group_analysis` by `Adam Li`_ (`#25 <https://github.com/ncsl/seek/pull/25>`_)
+- Refactored semi-automated algorithm for localizing contacts on CT img, in :code:`seek/localizae_contacts/electrode_clustering` by `Chester Huynh`_ (:gh:`16`)
+- Pipeline for group comparisons with the MNI152 atlas at :code:`seek/pipeline/07-group_analysis` by `Adam Li`_ (:gh:`25`)
+- Add full set of installation, and usage instructions for seek pipeline, and example DAG pdfs to documentation by `Adam Li`_ (:gh:`26`)
 
 Bug
 ~~~
@@ -36,7 +37,7 @@ Bug
 
 API
 ~~~
-- Added a Makefile recipe for running all the related SEEK workflows, by `Adam Li`_ (`#34 <https://github.com/ncsl/seek/pull/34>`_)
+- Added a Makefile recipe for running all the related SEEK workflows, by `Adam Li`_ (:gh:`34`)
 
 
 Authors

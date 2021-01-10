@@ -4,69 +4,90 @@
 
 INSTALLATION GUIDE
 ==================
-
-``seek`` uses open-source third-party software to run the various workflows. ``seek`` itself
-is a wrapper using snakemake_. The best way to install the 3rd party software for ``seek`` usage
+``seek`` uses open-source third-party software to run the various workflows (e.g. `Freesurfer`_).
+``seek`` itself is a wrapper using snakemake_. The best way to install the 3rd party software for ``seek`` usage
 is via a Docker installation.
 
 To fully install SEEK and run workflows, one will need to:
 
 #. install SEEK repository
-#. install Docker dependencies
-#. install Singularity
+#. pull Docker containers
 
 We outline some of these steps below. After you have set up everything (don't forget to
 format your data repository according to our necessary format), then you can easily run
-the snakemake workflows. For more information on running workflows, see
-`README <https://github.com/ncsl/seek>`_.
+the snakemake workflows. For more information on running workflows after
+installation, see :doc:`usage instructions <use>`.
+
+Prerequisites
+-------------
+Install the following if you do not already have it:
+
+    * `Docker`_
+    * `Singularity`_ v3+ (you will need to install `Go`_ as well here)
+
+If you decide to install things manually (without containers), we unfortunately
+cannot guarantee things will work.
 
 seek Installation
 -----------------
-First we can install seek. There are a few ways to do so:
-
-Through git
+There are a few ways to install seek itself.
 
 .. code-block:: bash
 
     # clone repository locally
     $ git clone https://github.com/ncsl/seek
+    $ python3.8 -m venv .venv
+    $ pipenv install
+
+Now to test that your installation worked, you can perform a dry-run of the first workflow.
+Say you only have T1 `.dicom` images so far collected and formatted into a structured directory
+as such:
+
+.. code-block::
+
+   {bids_root}/
+        /sourcedata/
+            /{subject}/
+                - premri/*.dcm
+                - postmri/*.dcm
+                - postct/*.dcm
+
+Next, you would want to modify the local configuration file as such to specify
+different subjects you would like to run.
+
+.. code-block::
 
     # modify config yaml
     $ cd seek/
     $ vim config/localconfig.yaml
 
+    # modify the subjects table
+    $ vim config/subjects.tsv
 
-Dependencies Docker Installation
---------------------------------
+Finally, you can do a dry-run of the `recon_workflow <https://github.com/ncsl/seek/tree/master/workflow/recon_workflow>`_
+by using snakemake.
 
-To run the SEEK pipeline in Docker, first follow instructions to install `Docker <https://docs.docker.com/get-docker/>`_.
+.. code-block::
 
-**NOTE: You will need approximately at least 8-9 GB free disc space to run the Docker container.**
+    $ cd workflow/recon_workflow/
+    $ snakemake -n
 
-To setup the container in your system, you will pull pre-built Docker images from
-neuroseek's `Docker Hub <https://hub.docker.com/orgs/neuroseek/repositories>`_.
+You can also create a set of DAGS for yourself to visualize locally by running from the ``seek`` root
+directory.
 
-.. code-block:: bash
+.. code-block::
 
-    $ make pull-all
+    $ snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./recon_workflow.pdf;
 
-This will now pull all Docker containers needed to run ``seek`` to your local machine.
-
-Now if you type in ``docker container ls``\,
-you should see the corresponding container.
-
-.. code-block:: bash
-
-   # turn recipe to image
-   docker build <image_container_name>
-
-   # turn image to containeer
-   docker run -v $PWD/Data:/data -it -e bids_root=/data -e derivatives_output_dir=/data/derivatives --rm neuroimg_pipeline_reconstruction bash
-
-:doc:`To better understand how we use Docker, see our Docker playbook <docker_playbook>`
+This will in turn generate a ``.pdf`` file, which has a visual DAG of all the rules that will be run for the
+subjects you specified in the ``subjects.tsv`` file.
 
 Singularity Installation (for Linux)
 ------------------------------------
+In order to run snakemake rules using Docker containers, you ``need`` Singularity.
+Although installations differ and may evolve, we highlight an installation sequence
+that worked for us locally. Otherwise, go to `Singularity`_'s installation page.
+
 To install Singularity, we tested on version 3.7.0, but it should work
 on any of the versions 3.5+.
 
@@ -188,3 +209,6 @@ Pipeline Installations (3rd Party Modules to Install)
 .. _SPM: https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
 .. _FieldTripToolbox: http://www.fieldtriptoolbox.org/download/
 .. _snakemake: https://snakemake.readthedocs.io/en/stable/
+.. _Docker: https://docs.docker.com/get-docker/
+.. _Singularity: https://sylabs.io/guides/3.0/user-guide/installation.html
+.. _Go: https://golang.org/doc/install

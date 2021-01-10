@@ -1,0 +1,19 @@
+name: seek
+channels:
+- defaults
+- conda-forge
+- bioconda
+dependencies:
+- python>3.6
+- pip>=20
+- numpy>=1.14
+- scipy>=0.18.1
+- matplotlib
+- snakemake>=5.30
+- dicom2nifti
+- pip:
+  - mne>=0.22
+  - mne-bids>=0.6
+  - nibabel>=2.2
+  - pybv>=0.5
+  - nilearn
