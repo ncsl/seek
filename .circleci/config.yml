@@ -100,12 +100,12 @@ workflows:
   commit:
     jobs:
       - docs-build
-      - docs-deploy:
-          requires:
-            - docs-build
-          filters:
-            branches:
-              only: master
+#      - docs-deploy:
+#          requires:
+#            - docs-build
+#          filters:
+#            branches:
+#              only: master
 
 #  scheduled:
 #    jobs:

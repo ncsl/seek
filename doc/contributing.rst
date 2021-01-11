@@ -74,4 +74,4 @@ in the `pipeline/config/` directory. Configuration files are checked against the
 Each corresponding sub-workflow is documented in a `.smk` Snakemake file, which can define things like `Prep`, which prepares
 raw dicom files from scratch to run through the SEEK workflow.
 
-To setup your testing environment, please see :doc:`testing guide <testing>`.
+To setup your testing environment, please see :doc:`testing guide <testing>`
