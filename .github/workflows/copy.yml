@@ -2,7 +2,7 @@ name: Node.js CI
 
 on:
   push:
-      branches: [master]
+    branches: [ master ]
 
 jobs:
   build:
@@ -10,16 +10,30 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+
       - name: install python
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
-      - name: Install dependencies
+
+      - name: Install pipenv
         run: |
           python -m pip install --upgrade pip
-          pip install sphinx sphinx_bootstrap_theme sphinx_gallery nibabel scipy pandas mne_bids mne natsort scikit-image scikit-learn dicom2nifti numpydoc
-          pip install snakemake
+          python -m pip install --upgrade pipenv wheel
+
+      - id: cache-pipenv
+        uses: actions/cache@v1
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-pipenv.outputs.cache-hit != 'true'
+        run: |
+          pipenv lock -r > requirements.txt
+          pip install -r requirements.txt
           sphinx-build -b html doc doc/build
+
       - name: Pushes to another repository
         uses: thebrainchain/copy-folder-action@master
         env:
