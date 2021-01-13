@@ -96,10 +96,33 @@ jobs:
           name: Deploy docs to gh-pages branch
           command: gh-pages --dotfiles --message "doc updates [skip ci]" --dist doc/_build/html --dest ./dev
 
+  test_docker_acpc:
+    machine:
+      # Ubuntu 16.04, docker 18.09.3, docker-compose 1.23.1
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run: make build-acpc
+
+  test_docker_seek:
+    machine:
+      # Ubuntu 16.04, docker 18.09.3, docker-compose 1.23.1
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run: make build-seek
+      # - run:
+      #     name: Smoke tests
+      #     command: |
+      #       docker run --rm -it -v $PWD/bids-validator/tests/data/valid_headers:/data bids/validator:latest /data --ignoreNiftiHeaders
+      #       docker run --rm -it -v $PWD/bids-validator/tests/data/valid_headers:/data bids/validator:latest /data --ignoreNiftiHeaders --json
+
 workflows:
   commit:
     jobs:
       - docs-build
+      - test_docker_acpc
+      - test_docker_seek
 #      - docs-deploy:
 #          requires:
 #            - docs-build

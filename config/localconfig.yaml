@@ -1,7 +1,7 @@
 # home directory that every dataset sits in -> fileutils sets the BIDS structure
 bids_root:
-#  "/home/adam2392/hdd/epilepsy_bids/"
-  '/Users/adam2392/Dropbox/epilepsy_bids'
+  "/home/adam2392/hdd/epilepsy_bids/"
+#  '/Users/adam2392/Dropbox/epilepsy_bids'
 
 # session name to give all datasets; corresponds to the ``ses-`` BIDS entity
 session: "presurgery"
@@ -21,7 +21,7 @@ site_id: 'clevelandnl'
 acpcdetect_docker: 'docker://neuroseek/acpcdetect:2.0'
 fsl_docker: 'docker://cbinyu/fsl6-core'
 freesurfer_docker: 'docker://neuroseek/freesurfer7-with-mrtrix3:1.2'
-blender_docker: 'docker://neuroseek/3d_reconstruction'
+blender_docker: 'docker://neuroseek/3d_reconstruction:latest'
 seek_docker: 'docker://neuroseek/seek:1.0.0'
 
 blender_path: '/usr/local/blender/blender'

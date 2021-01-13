@@ -11,7 +11,6 @@ version := 1.0.0
 dockerhub := neuroseek
 
 # docker containers
-blender_version := 2.82
 acpcdetect_version := 2.0
 freesurfer7-with-mrtrix3_version := 1.2
 
@@ -24,29 +23,26 @@ cores := 1
 sing-args := "--bind ~/hdd/epilepsy_bids/,/home/adam2392/Documents/seek/"
 
 recon:
-	cd workflow/recon_workflow && \
+	cd workflow/recon && \
 	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 prep-localization:
-	cd workflow/prep_localization_workflow && \
+	cd workflow/prep_localization && \
 	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 coregistration:
-	cd workflow/coregistration_workflow && \
+	cd workflow/coregistration && \
 	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 prep-viz:
 #	@read -p "Enter full absolute path to 'seek' repository:" path;
 #module_dir=./modules/$$module;
-	cd workflow/prep_vizengine_workflow && \
+	cd workflow/prep_vizengine && \
 	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 ############################## DOCKER #########################
 build-acpc:
 	docker build --rm -f ./dockerfiles/Dockerfile.acpcdetect -t $(dockerhub)/acpcdetect:$(acpcdetect_version)  ./dockerfiles
-
-build-blender:
-	docker build --rm -f ./dockerfiles/Dockerfile.meshgenerator -t $(dockerhub)/blender:$(blender_version)  ./dockerfiles
 
 build-freesurfer:
 	docker build --rm -f ./dockerfiles/Dockerfile.freesurfer-with-mrtrix3 -t $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)  ./dockerfiles
@@ -57,9 +53,6 @@ build-seek:
 
 push-acpc:
 	docker push $(dockerhub)/acpcdetect:$(acpcdetect_version)
-
-push-blender:
-	docker push $(dockerhub)/blender:$(blender_version)
 
 push-freesurfer:
 	docker push $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)

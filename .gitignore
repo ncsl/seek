@@ -14,6 +14,10 @@
 #!.test
 #!LICENSE
 .DS_Store
+.singularity
+.octave*
+.config
+workflow/**/*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -226,6 +226,7 @@ rule create_brain_glb_files:
         materialcolors_file=os.path.join(scripts_dir,"octave/materialColors.json"),
         scripts_dir=scripts_dir,
         blender_path=blender_path,
+        blender_output_path='blender_objects/brain.glb',
     log:
         "logs/prep_vizengine.{subject}.log"
     container:
@@ -239,7 +240,7 @@ rule create_brain_glb_files:
         "export SUBJECT={params.subject};"
         "{params.blender_path} --background {params.scripts_dir}/startup.blend " \
         "--python {params.scripts_dir}/brain_generator.py " \
-        "-- {params.materialcolors_file};"
+        "-- {params.materialcolors_file} {params.blender_output_path};"
 
 
 """Rule to create electrode in brain coordinate system ``.glb`` files."""
@@ -252,6 +253,7 @@ rule create_electrode_glb_files:
         subject=subject_wildcard,
         scripts_dir=scripts_dir,
         blender_path=blender_path,
+        blender_output_path='blender_objects/electrodes.glb',
     log:
         "logs/prep_vizengine.{subject}.log"
     container:
@@ -264,4 +266,4 @@ rule create_electrode_glb_files:
         "export SUBJECT={params.subject};"
         "{params.blender_path} --background {params.scripts_dir}/startup.blend " \
         "--python {params.scripts_dir}/electrode_generator.py " \
-        "-- {input.electrode_fpath};"
+        "-- {input.electrode_fpath} {params.blender_output_path};"
