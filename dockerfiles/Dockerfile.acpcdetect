@@ -9,7 +9,7 @@ ENV LANGUAGE en_US:en
 # acpc detect
 RUN mkdir /usr/local/art
 ENV ARTHOME /usr/local/art
-COPY .data/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz /usr/local/art
+COPY acpcdetect_v2.0_LinuxCentOS6.7.tar.gz /usr/local/art
 RUN tar -xvzf /usr/local/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz --no-same-owner -C $ARTHOME
 RUN rm /usr/local/art/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 # doesn't work yet cuz we need to wget from a login page... :(
