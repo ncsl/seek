@@ -34,6 +34,7 @@ jobs:
         run: |
           pipfile2req > requirements.txt
           pip install -r requirements.txt
+          pip install sphinx
           sphinx-build -b html doc doc/build
 
       - name: Pushes to another repository
