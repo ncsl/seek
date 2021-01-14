@@ -1,30 +1,83 @@
-% electrode_localization.m
+% [electrode_localization.m]
 %
-% Script that performs electrode localization using FieldTrip (ft) toolbox as described in:
+% Script that performs electrode localization using FieldTrip (ft) toolbox 
+% as described in [1].
 %
-% Stolk 2018 - Integrated analysis of anatomical and electrophysiological human intracranial data.pdf
+% All output should be quality-checked.
+%
+% Required Files
+% --------------
+% FieldTrip Toolbox     : 
+%   The toolbox from Fieldtrip.
+% T1w NIFTI file from FreeSurfer    :
+%   The T1w image corresponding to ``T1.mgz`` from FreeSurfer (6.0 or 7.x)
+%   in NIFTI format. 
+% CT NIFTI file 
+%   The CT image with iEEG implantations.
+% electrodes file
+%   Can be the ``*channels.tsv`` file, or a matlab struct with 
+%   ``elec_name`` field. 
+%
+% User Inputs
+% -----------
+% fieldtrip_toolbox_path    : path
+%   The path to the fieldtrip toolbox. Downloadable from FieldTrip website.
+% bids_root                 : path
+%   The path to the dataset organized according to BIDS. For information 
+%   on how to organize your data, see [2].
+% subjID                    : str
+%   The subject ID.
+% sessionID                 : str
+%   The session ID for the input/output files. Corresponds to ``session`` 
+%   entity defined in BIDS.
+% space                     : str
+%   The ``space`` entity corresponding to BIDS. Default is 'fs' for 
+%   subject-specific FreeSurfer space.
+% extension                 : str
+%   The file extension of the image files. Default is '.nii' for
+%   uncompressed Nifti files.
+% setup_elecs_fname         : path
+%   The path to the file that will contain the electrode names to be
+%   localized on the CT image. See ``electrodes file`` in ``Required
+%   Inputs``.
+% 
+% Outputs
+% -------
+% elec_acpc_f               : struct
+%   The corresponding matlab structure for the electrodes containing
+%   ``label``, ``chanpos`` fields for the channel names and xyz channel 
+%   positions (in mm) respectively.
+% out_ct_fname              : Nifti file
+%   The output CT image that is coregistered to the input T1 image. 
+%   Is named
+%   ``sub-<subjID>_ses-<sessionID>_space-<space>_proc-spm12_CT.nii`` where 
+%   a processing entity for ``spm12`` is attached to the filename to depict
+%   that coregistration used SPM12 algorithm [3].
+% 
+% Notes
+% -----
+% 
+% 
+% References
+% ----------
+% [1] Stolk 2018 - Integrated analysis of anatomical and 
+% electrophysiological human intracranial data.pdf
 % http://www.fieldtriptoolbox.org/tutorial/human_ecog/
-%
-%
+% [2] https://bids-specification.readthedocs.io/en/stable/
+% [3] SPM12: https://www.fil.ion.ucl.ac.uk/spm/software/spm12/
+% 
 % Macauley Breault, Adam Li, Kristin Gunnarsdottir
+% Christopher Coogan, Chester Huynh, Raphael Bechtold
 % Created:  10-09-2019
 clear; clc;
+
+%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ User specified inputs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% path to the FieldTrip toolbox
+fieldtrip_toolbox_path = fullfile(bids_root, 'sample_scripts', 'contact_localization', 'fieldtrip-20190129')
+
 % BIDS root of the data
 bids_root = 'C:\Users\vanik\Johns Hopkins\Adam Li - epilepsy_bids\';  % change this 
-deriv_path = fullfile(bids_root, 'derivatives');
-source_path = fullfile(bids_root, 'sourcedata');
 
-% add fieldtrip toolbox
-addpath(fullfile(bids_root, 'sample_scripts', 'contact_localization', 'fieldtrip-20190129'));
-run('initialize_fieldtrip.m')
-
-save_it  = 1; % Boolean to save results
-plot_it  = 1; % Boolean to plot
-place_it = 1; % Boolean to implement placement GUI
-align_mri = 0; % Boolean to manually align the MRI or not?
-
-%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Specification of subject ID ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-% Step 1
 % dataset BIDS entities
 subjID = 'la04';  % change this for all patients
 sessionID = 'presurgery';
@@ -32,6 +85,34 @@ space = 'fs';
 extension = '.nii';
 datatype = 'anat';
 
+% raw EEG filepath
+% setup_elecs_fname = fullfile(save_path,listing(cellfun(@(name) contains(name,'_Setup.mat'),{listing.name})).name);
+setup_elecs_fname = fullfile(source_path, 'electrodes localized', 'setup', ['sub-', subjID, '_setup.mat']);
+
+%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Specification of BIDS file paths ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% path to `derivatives` and `sourcedata` folder
+deriv_path = fullfile(bids_root, 'derivatives');
+source_path = fullfile(bids_root, 'sourcedata');
+
+% add fieldtrip toolbox
+addpath(fieldtrip_toolbox_path);
+
+% initializes fieldtrip
+if ~contains(path,'fieldtrip-20190129')
+    warning('Warning in %s: Replace my path to fieldtrip with your path here. I used fieldtrip-20191008',mfilename)
+    fthome = 'C:\Users\vanik\Johns Hopkins\Adam Li - epilepsy_bids\sample_scripts\contact_localization\fieldtrip-20190129';
+    path(path,fthome);
+    clear fthome;
+end
+ft_defaults
+
+save_it  = 1; % Boolean to save results
+plot_it  = 1; % Boolean to plot
+place_it = 1; % Boolean to implement placement GUI
+align_mri = 0; % Boolean to manually align the MRI or not?
+
+%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Specification of BIDS file paths ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% Step 1
 % setup the BIDS paths according to entities
 bids_sub = ['sub-', subjID];
 bids_ses = ['ses-', sessionID];
@@ -59,10 +140,6 @@ ct_fname = fullfile(ses_path, 'ct', ct_bids_basename);
 % the output filename for the CT file after transforming to ACPC
 % out_ct_fname = fullfile(save_path,'stolk',[subjID,'_CT_acpc_f']);
 out_ct_fname = fullfile(ses_path, 'ct', stolk_ct_bids_basename);
-
-% raw EEG filepath
-% setup_elecs_fname = fullfile(save_path,listing(cellfun(@(name) contains(name,'_Setup.mat'),{listing.name})).name);
-setup_elecs_fname = fullfile(source_path, 'electrodes localized', 'setup', ['sub-', subjID, '_setup.mat']);
 
 % output electrodes mat file
 elecs_mat_fpath = fullfile(source_path, 'electrodes localized', 'stolk', [subjID '_elec_acpc_f.mat']);
@@ -284,4 +361,34 @@ if plot_it
     pause
 end
 
+function exportTSV(elec, file)
+    % Creates a `.tsv` file from Fieldtrip `cfg.elec` data structure.
+    %
+    % Meant for saving data in `*electrodes.tsv` BIDS format.
+    %
+    % Inputs:
+    %   elec    : a struct with `label`, and `chanpos` fields.
+    %   file    : The filepath to save.
+
+    if ~contains(file, 'electrodes.tsv')
+        error(strcat('Filename should be of the form "*electrodes.tsv". ',
+        'The filename does not have electrodes.tsv substring inside.'));
+
+    % create separator
+    sep = regexp(elec.label,'\d');
+    
+    % get the vector of x, y, and z coordinates
+    xcoord = elec.chanpos(:,1);
+    ycoord = elec.chanpos(:,2);
+    zcoord = elec.chanpos(:,3);
+
+    % write file to 'name'
+    fid = fopen(file,'wt');
+    fprintf(fid,'name\tx\ty\tz\n');
+    for i = 1:length(elec.label)
+        elecName = strcat(elec.label{i}(1:sep{i}-1),"'",elec.label{i}((sep{i}:length(elec.label{i}))));
+        fprintf(fid, '%s\t%-.3f\t%-.3f\t%-.3f\n', elecName, xcoord(i), ycoord(i), zcoord(i));
+    end
+    fclose(fid)
+end
 

@@ -42,7 +42,9 @@ prep-viz:
 
 ############################## DOCKER #########################
 build-acpc:
+	cp ./data/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz ./dockerfiles/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 	docker build --rm -f ./dockerfiles/Dockerfile.acpcdetect -t $(dockerhub)/acpcdetect:$(acpcdetect_version)  ./dockerfiles
+	rm ./dockerfiles/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 
 build-freesurfer:
 	docker build --rm -f ./dockerfiles/Dockerfile.freesurfer-with-mrtrix3 -t $(dockerhub)/freesurfer7-with-mrtrix3:$(freesurfer7-with-mrtrix3_version)  ./dockerfiles
@@ -50,6 +52,7 @@ build-freesurfer:
 build-seek:
 	cp Pipfile ./dockerfiles/Pipfile
 	docker build --rm -f ./dockerfiles/Dockerfile.seek -t $(dockerhub)/seek:$(version)  ./dockerfiles
+	rm ./dockerfiles/Pipfile
 
 push-acpc:
 	docker push $(dockerhub)/acpcdetect:$(acpcdetect_version)
