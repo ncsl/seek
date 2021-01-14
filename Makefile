@@ -42,7 +42,7 @@ prep-viz:
 
 ############################## DOCKER #########################
 build-acpc:
-	cp ./data/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz ./dockerfiles/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
+	cp ./.data/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz ./dockerfiles/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 	docker build --rm -f ./dockerfiles/Dockerfile.acpcdetect -t $(dockerhub)/acpcdetect:$(acpcdetect_version)  ./dockerfiles
 	rm ./dockerfiles/acpcdetect_v2.0_LinuxCentOS6.7.tar.gz
 
