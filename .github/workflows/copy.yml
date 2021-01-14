@@ -35,6 +35,7 @@ jobs:
           pipfile2req > requirements.txt
           pip install -r requirements.txt
           pip install sphinx
+#          pip install sphinx sphinx_bootstrap_theme sphinx_gallery nibabel scipy pandas mne_bids mne natsort scikit-image scikit-learn dicom2nifti numpydoc
           sphinx-build -b html doc doc/build
 
       - name: Pushes to another repository
