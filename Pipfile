@@ -28,7 +28,7 @@ scikit-image = "*"
 snakemake = ">=5.27.4"
 dicom2nifti = "*"
 xlrd = "*"
-seek-localize = "*"
+seek-localize = "0.1.0"
 
 [requires]
 python_version = "3.8"
