@@ -47,6 +47,7 @@ REQUIRED_PACKAGES = [
     "mne-bids>=0.5",
     "pybv>=0.4.0",
     "pybids>=0.10",
+    "seek-localize"
 ]
 CLASSIFICATION_OF_PACKAGE = [
     # How mature is this project? Common values are

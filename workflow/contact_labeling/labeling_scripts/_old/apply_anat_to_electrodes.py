@@ -8,9 +8,11 @@ import nibabel as nb
 import numpy as np
 import numpy.linalg as npl
 import scipy.io
-from mne_bids import BIDSPath
+from mne_bids import BIDSPath, get_entities_from_fname
 from mne_bids.tsv_handler import _from_tsv, _to_tsv
 from nibabel.affines import apply_affine
+
+from seek_localize import read_dig_bids, label_elecs_anat, fs_lut_fpath
 
 sys.path.append("../../../")
 from seek.format.bids_conversion import _write_coordsystem_json
@@ -24,72 +26,33 @@ from seek.format.bids_conversion import (
 )
 
 
-def loadmat(filename):
-    """
-    this function should be called instead of direct spio.loadmat
-    as it cures the problem of not properly recovering python dictionaries
-    from mat files. It calls the function check keys to cure all entries
-    which are still mat-objects
-    """
-
-    def _check_keys(d):
-        """
-        checks if entries in dictionary are mat-objects. If yes
-        todict is called to change them to nested dictionaries
-        """
-        for key in d:
-            if isinstance(d[key], scipy.io.matlab.mio5_params.mat_struct):
-                d[key] = _todict(d[key])
-        return d
-
-    def _todict(matobj):
-        """
-        A recursive function which constructs from matobjects nested dictionaries
-        """
-        d = {}
-        for strg in matobj._fieldnames:
-            elem = matobj.__dict__[strg]
-            if isinstance(elem, scipy.io.matlab.mio5_params.mat_struct):
-                d[strg] = _todict(elem)
-            elif isinstance(elem, np.ndarray):
-                d[strg] = _tolist(elem)
-            else:
-                d[strg] = elem
-        return d
-
-    def _tolist(ndarray):
-        """
-        A recursive function which constructs lists from cellarrays
-        (which are loaded as numpy ndarrays), recursing into the elements
-        if they contain matobjects.
-        """
-        elem_list = []
-        for sub_elem in ndarray:
-            if isinstance(sub_elem, scipy.io.matlab.mio5_params.mat_struct):
-                elem_list.append(_todict(sub_elem))
-            elif isinstance(sub_elem, np.ndarray):
-                elem_list.append(_tolist(sub_elem))
-            else:
-                elem_list.append(sub_elem)
-        return elem_list
-
-    data = scipy.io.loadmat(filename, struct_as_record=False, squeeze_me=True)
-    return _check_keys(data)
+def save_bids_files(coordsystem_fpath, mri_img_fpath):
+    _write_coordsystem_json(fname=coordsystem_fpath, unit="mm", img_fname=mri_img_fpath)
 
 
-def read_label_coords(elecfilemat):
-    """Convert coords to 4 x C array."""
-    print("Reading ", elecfilemat)
-    elecmat = loadmat(elecfilemat)
-    elecxyz = elecmat["elec_acpc_f"]
-    electxt = {}
+def label_anatomy(root, elecs_fname, atlas_img_fname):
+    # get paths
+    entities = get_entities_from_fname(elecs_fname)
+    elecs_path = BIDSPath(**entities, root=root, extension=".tsv")
+    coordsystem_path = elecs_path.copy().update(suffix="coordsystem", extension=".json")
 
-    labels = elecxyz["label"]
-    positions = elecxyz["elecpos"]
-    for label, pos in zip(labels, positions):
-        electxt[str(label)] = list(map(float, pos))
+    # label anatomy
+    elecs_df = label_elecs_anat(
+        bids_path=elecs_path, img_fname=atlas_img_fname, fs_lut_fpath=fs_lut_fpath
+    )
 
-    return electxt
+    # save to disc
+    elecs_df.to_csv(elecs_path, sep="\t", index=None)
+
+    # create sidecar electrodes json file
+    electrodes_json_fpath = str(elecs_path).replace(".tsv", ".json")
+    json_dict = {
+        "destriuex": "Electrode annotation using Destriuex atlas with 196 brain regions.",
+        "desikan-killiany": "Electrode annotation using DK atlas with 86 brain regions.",
+    }
+    electrodes_json = _update_electrodes_json(electrodes_json_fpath, **json_dict)
+
+    return elecs_df, electrodes_json
 
 
 def apply_atlas(bids_root, electrodes_tsv_fpath, inv_affine, fspatdir, fs_lut_fpath):

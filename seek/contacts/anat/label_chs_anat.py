@@ -668,7 +668,7 @@ def label_elecs(
         elecmatrix, elecmontage
     )
     # # label grid and strip electrodes
-    # elec_labels = _label_grid_and_strips(elecmatrix, names, vert_label, cortex_verts)
+    elec_labels = _label_grid_and_strips(elecmatrix, names, vert_label, cortex_verts)
     # print("Saving electrode labels for surface electrodes.")
     # print(isnotdepth)
     # print(elec_labels)

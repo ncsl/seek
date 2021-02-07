@@ -53,10 +53,15 @@
 %   ``sub-<subjID>_ses-<sessionID>_space-<space>_proc-spm12_CT.nii`` where 
 %   a processing entity for ``spm12`` is attached to the filename to depict
 %   that coregistration used SPM12 algorithm [3].
+% out_elecs_tsv_fpath       : TSV file
+%   The output ``electrodes.tsv`` file.
+% out_coordsys_tsv_fpath    : JSON file
+%   The output ``coordinatesystem.json`` file.
 % 
 % Notes
 % -----
-% 
+% The electrodes.tsv and coordinatesystem.json files are saved to the 
+% FreeSurfer derivatives folder under the ``elecs`` sub-folder.
 % 
 % References
 % ----------
@@ -72,11 +77,16 @@
 clear; clc;
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ User specified inputs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-% path to the FieldTrip toolbox
-fieldtrip_toolbox_path = fullfile(bids_root, 'sample_scripts', 'contact_localization', 'fieldtrip-20190129')
-
 % BIDS root of the data
 bids_root = 'C:\Users\vanik\Johns Hopkins\Adam Li - epilepsy_bids\';  % change this 
+bids_root = '/Users/adam2392/Dropbox/epilepsy_bids/';
+
+% path to `derivatives` and `sourcedata` folder
+deriv_path = fullfile(bids_root, 'derivatives');
+source_path = fullfile(bids_root, 'sourcedata');
+
+% path to the FieldTrip toolbox
+fieldtrip_toolbox_path = fullfile(bids_root, 'sample_scripts', 'contact_localization', 'fieldtrip-20190129')
 
 % dataset BIDS entities
 subjID = 'la04';  % change this for all patients
@@ -90,10 +100,6 @@ datatype = 'anat';
 setup_elecs_fname = fullfile(source_path, 'electrodes localized', 'setup', ['sub-', subjID, '_setup.mat']);
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Specification of BIDS file paths ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-% path to `derivatives` and `sourcedata` folder
-deriv_path = fullfile(bids_root, 'derivatives');
-source_path = fullfile(bids_root, 'sourcedata');
-
 % add fieldtrip toolbox
 addpath(fieldtrip_toolbox_path);
 
@@ -111,6 +117,8 @@ plot_it  = 1; % Boolean to plot
 place_it = 1; % Boolean to implement placement GUI
 align_mri = 0; % Boolean to manually align the MRI or not?
 
+ft_prepare_mesh
+ft_electroderealign
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Specification of BIDS file paths ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 % Step 1
 % setup the BIDS paths according to entities
@@ -131,6 +139,14 @@ stolk_ct_bids_basename = [bids_sub , '_'  , ...
                 bids_ses , '_' , ...
                 'space-' , space , '_' , ... 
                 'proc-' , 'spm12' , '_' , 'CT' , extension];
+elecs_bids_basename = [bids_sub, '_', ...
+                bids_ses, '_', ...
+                'space-', space, '_', ...
+                'electrodes', '.tsv'];
+coordsystem_bids_basename = [bids_sub, '_', ...
+                bids_ses, '_', ...
+                'space-', space, '_', ...
+                'coordsystem', '.json'];
 
 % use this if you want the raw dicoms
 % mri_fname = fullfile(namePath(mfilename('fullpath'),fullfile(save_path,'premri')),'0000.dcm')
@@ -144,6 +160,10 @@ out_ct_fname = fullfile(ses_path, 'ct', stolk_ct_bids_basename);
 % output electrodes mat file
 elecs_mat_fpath = fullfile(source_path, 'electrodes localized', 'stolk', [subjID '_elec_acpc_f.mat']);
 %should I add this? save_path = namePath(mfilename('fullpath'),fullfile('electrode_localization','raw',subjID));
+
+% output electrodes.tsv file and coordsystem.json file
+out_elecs_tsv_fpath = fullfile(deriv_path, 'freesurfer', subjID, 'elecs', elecs_bids_basename);
+out_coordsys_json_fpath = fullfile(deriv_path, 'freesurfer', subjID, 'elecs', coordsystem_bids_basename);
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Preprocessing of the anatomical MRI ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %
@@ -354,6 +374,23 @@ end
 % Step 18
 load(elecs_mat_fpath, 'elec_acpc_f')
 
+% save electrodes localized to TSV file
+exportTSV(elec_acpc_f, out_elecs_tsv_fpath);
+
+% save coordinatesystem.json file
+coords_struct = struct(...
+    "IntendedFor", mri_bids_basename, ...
+    "iEEGCoordinateSystem", "Other", ...
+    "iEEGCoordinateUnits", "mm", ...
+    "iEEGCoordinateSystemDescription", "FreeSurfer Coordinate System derived from the CT, or T1 MRI scan.", ...
+    "iEEGCoordinateProcessingDescription", "SEEK-algorithm (thresholding, cylindrical clustering and post-processing), or manual labeling of contacts using FieldTrip Toolbox.", ...
+    "iEEGCoordinateProcessingReference", "See DOI: https://zenodo.org/record/3542307#.XoYF9tNKhZI" ...
+);
+fid = fopen(out_coordsys_json_fpath,'w') 
+encodedJSON = jsonencode(coords_struct); 
+fprintf(fid, encodedJSON); 
+fclose(fid);
+
 % Step 19
 if plot_it
     ft_plot_ortho(fsmri_acpc.anatomy, 'transform', fsmri_acpc.transform, 'style', 'intersect');
@@ -371,9 +408,10 @@ function exportTSV(elec, file)
     %   file    : The filepath to save.
 
     if ~contains(file, 'electrodes.tsv')
-        error(strcat('Filename should be of the form "*electrodes.tsv". ',
-        'The filename does not have electrodes.tsv substring inside.'));
-
+        error(strcat('Filename should be of the form "*electrodes.tsv". ',... 
+            'The filename does not have electrodes.tsv substring inside.'));
+    end
+    
     % create separator
     sep = regexp(elec.label,'\d');
     

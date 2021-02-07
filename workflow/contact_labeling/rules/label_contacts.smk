@@ -54,18 +54,24 @@ premri_fs_bids_fname = _get_bids_basename(subject_wildcard,session='presurgery',
 
 t1_fs_fpath = os.path.join(BIDS_PRESURG_ANAT_DIR,premri_fs_bids_fname)
 
-# path to the FreeSurfer Lookuptable: assumed to be in sourcedata/
-fs_lut_fpath = os.path.join(bids_root.bids_root,'sourcedata',"FreeSurferColorLUT.txt")
+# atlas image volumes to apply anatomical labels to
+atlas_img_fpaths = [
+    op.join(FSOUT_MRI_FOLDER, 'aparc+aseg.mgz'),
+    op.join(FSOUT_MRI_FOLDER, 'aparc.a2009s+aseg.mgz'),
+    op.join(FSOUT_MRI_FOLDER, 'wmparc.mgz'),
+]
 
 # the output electrode/coordsystem file(s)
 #################### Centroid coordinates ####################
 # manually labeled
 manual_coordsystem_fname = BIDSPath(
-    subject=subject_wildcard,session=DEFAULT_SESSION,processing='manual',
+    subject=subject_wildcard,session=DEFAULT_SESSION,
+    # processing='manual',
     space=coordframe_wildcard,
     suffix='coordsystem',extension='.json').basename
 manual_electrodes_fname = BIDSPath(
-    subject=subject_wildcard,session=DEFAULT_SESSION,processing='manual',
+    subject=subject_wildcard,session=DEFAULT_SESSION,
+    # processing='manual',
     space=coordframe_wildcard,
     suffix='electrodes',extension='.tsv').basename
 manual_electrodes_json = manual_electrodes_fname.replace('.tsv','.json')
@@ -134,15 +140,20 @@ rule convert_gyri_annotations_to_labels:
         "--outdir {FS_GYRI_DIR};"
 
 
-rule apply_anatomicalatlas_to_manual_electrodes:
+rule label_desikanatlas_anatomy_on_electrodes:
+    """Labels anatomy for electrodes.tsv files.
+    
+    Assumes electrodes are localized according to the
+    FreeSurfer ``T1.mgz`` file (i.e. FreeSurfer T1 space).
+    
+    """
     input:
-        fs_lut_fpath=fs_lut_fpath,
         mri_bids_electrodes_tsv_file=(
             op.join(FSOUT_ELECS_FOLDER,manual_electrodes_fname)),
-        T1_NIFTI_IMG=t1_fs_fpath,
         mri_coordsystem_fpath=op.join(FSOUT_ELECS_FOLDER,manual_coordsystem_fname),
+        atlas_img=expand('{image_fpath}', image_fpath=atlas_img_fpaths),
     params:
-        FSPATIENT_DIR=str(FSPATIENT_SUBJECT_DIR),
+        bids_root=str(bids_root.bids_root),
         coord_frame=coordframe_wildcard,
     log: "logs/label-contacts.{subject}.log",
     container:
@@ -150,13 +161,14 @@ rule apply_anatomicalatlas_to_manual_electrodes:
     output:
         bids_electrodes_tsv_file=op.join(BIDS_PRESURG_IEEG_DIR,manual_electrodes_fname),
         bids_electrodes_json_file=op.join(BIDS_PRESURG_IEEG_DIR,manual_electrodes_json),
-        mri_coordsystem_fpath=op.join(BIDS_PRESURG_IEEG_DIR,manual_coordsystem_fname),
+        bids_mri_coordsystem_fpath=op.join(BIDS_PRESURG_IEEG_DIR,manual_coordsystem_fname),
     shell:
         "echo 'Applying anatomical atlas to electrode points...';"
-        "python ./apply_anat_to_electrodes.py " \
-        "{input.mri_bids_electrodes_tsv_file} " \
-        "{output.bids_electrodes_tsv_file} " \
-        "{params.FSPATIENT_DIR} " \
-        "{input.fs_lut_fpath} " \
-        "{input.T1_NIFTI_IMG};"
-        "cp {input.mri_coordsystem_fpath} {output.mri_coordsystem_fpath};"
+        "cp {input.mri_coordsystem_fpath} {output.bids_mri_coordsystem_fpath};"
+        "python ./labeling_scripts/label_anatomy.py " \
+        "   {input.mri_bids_electrodes_tsv_file} " \
+        "   {input.atlas_img}"
+        "   {output.bids_electrodes_tsv_file} " \
+        "   {params.bids_root};"
+        "echo 'Copying coordsystem.json file from derivatives folder to BIDS root...';"
+
