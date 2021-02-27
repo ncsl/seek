@@ -73,7 +73,7 @@ pull-all:
 outputpath := "./doc/_static"
 
 init:
-    export SEEKHOME = $(shell pwd)
+    export SEEKHOME=$(shell pwd)
 
 create_dags:
 	snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/recon_workflow.pdf;
@@ -82,14 +82,6 @@ create_dags:
 	snakemake --snakefile ./workflow/prep_vizengine_workflow/Snakefile --forceall --dag | dot -Tpdf > $(outputpath)/prep_viz_workflow.pdf;
 
 ############################## UTILITY FOR PYTHON #########################
-clean-pyc:
-	find . -name "*.pyc" | xargs rm -f
-	find . -name "*.DS_Store" | xargs rm -f
-
-clean-so:
-	find . -name "*.so" | xargs rm -f
-	find . -name "*.pyd" | xargs rm -f
-
 clean-build:
 	rm -rf _build
 
@@ -99,7 +91,7 @@ clean-ctags:
 clean-cache:
 	find . -name "__pychache__" | xargs rm -rf
 
-clean: clean-build clean-pyc clean-so clean-ctags clean-cache
+clean: clean-build clean-ctags clean-cache
 
 codespell:  # running manually
 	@codespell -w -i 3 -q 3 -S $(CODESPELL_SKIPS) --ignore-words=ignore_words.txt $(CODESPELL_DIRS)

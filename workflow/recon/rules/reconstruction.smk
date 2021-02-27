@@ -39,6 +39,10 @@ seek_dockerurl = config['seek_docker']
 subject_wildcard = "{subject}"
 bids_root = BidsRoot(subject_wildcard,BIDS_ROOT(config['bids_root']))
 
+session = config['session']
+if session is None:
+    session = 'presurgery'
+
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
 FSPATIENT_SUBJECT_DIR = bids_root.get_freesurfer_patient_dir()
@@ -48,9 +52,11 @@ FSOUT_ELECS_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "elecs"
 FSOUT_ACPC_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "acpc"
 FSOUT_SURF_FOLDER = Path(FSPATIENT_SUBJECT_DIR) / "surf"
 
-BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root,subject_wildcard,session='presurgery')
-premri_bids_fname = _get_bids_basename(subject_wildcard,session='presurgery',
-    space='ACPC',imgtype='T1w',ext='nii')
+BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root,subject_wildcard,session=session)
+premri_bids_fname = _get_bids_basename(subject_wildcard,
+    session=session,
+    processing='acpcdetect',
+    imgtype='T1w',ext='nii')
 
 SCRIPTS_UTIL_DIR = Path(os.getenv('SEEKHOME')) / 'seek' / 'scripts'
 
@@ -69,7 +75,7 @@ rhpial_asc_fpath = os.path.join(FSOUT_SURF_FOLDER,"ascii","rh.pial.asc")
 lhpial_asc_fpath = os.path.join(FSOUT_SURF_FOLDER,"ascii","lh.pial.asc")
 brainmask_nii_fpath = os.path.join(FSOUT_MRI_FOLDER,"brainmask.nii.gz")
 
-premri_fs_bids_fname = _get_bids_basename(subject_wildcard,session='presurgery',
+premri_fs_bids_fname = _get_bids_basename(subject_wildcard,session=session,
     space='fs',imgtype='T1w',ext='nii')
 t1_fs_fpath = os.path.join(BIDS_PRESURG_ANAT_DIR,premri_fs_bids_fname)
 
@@ -125,7 +131,7 @@ rule prep_recon:
         "mkdir -p {params.elecsdir};"
         "mkdir -p {params.acpcdir};"
         # "mkdir -p {params.INPUT_FS_ORIG_DIR};"
-        "mkdir -p '$(dirname {output.MRI_MGZ_IMG}');"
+        "mkdir -p '$(dirname {output.MRI_MGZ_IMG})';"
         "mri_convert {input.MRI_NIFTI_IMG} {output.MRI_MGZ_IMG};"
 
 """

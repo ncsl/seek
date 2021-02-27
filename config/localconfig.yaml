@@ -1,10 +1,11 @@
 # home directory that every dataset sits in -> fileutils sets the BIDS structure
 bids_root:
-  "/home/adam2392/hdd/epilepsy_bids/"
+#  "/home/adam2392/hdd/epilepsy_bids/"
+  "/home/adam2392/hdd3/sickkids/"
 #  '/Users/adam2392/Dropbox/epilepsy_bids'
 
 # session name to give all datasets; corresponds to the ``ses-`` BIDS entity
-session: "presurgery"
+session: "extraoperative"
 
 # FreeSurfer variable for SUBJECTS_DIR
 # when 'n/a', this will be housed in the
@@ -14,7 +15,7 @@ SUBJECTS_DIR: "n/a"
 ############# define list of subjects to run this for #############
 subjects: 'subjects.tsv'
 
-site_id: 'clevelandnl'
+site_id: ''
 
 ############# define container URLs and paths #############
 # define Docker urls to pull from for each software

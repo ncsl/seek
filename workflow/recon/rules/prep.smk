@@ -57,6 +57,9 @@ configpath = Path(_get_seek_config()).parent
 
 # get the freesurfer patient directory
 subject_wildcard = "{subject}"
+session = config['session']
+if session is None:
+    session = 'presurgery'
 bids_root = BidsRoot(subject_wildcard,BIDS_ROOT(config['bids_root']),
     site_id=config['site_id'],subject_wildcard=subject_wildcard)
 
@@ -73,46 +76,48 @@ FSOUT_MRI_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "mri"
 FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "CT"
 FSOUT_ACPC_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "acpc"
 
-BIDS_PRESURG_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root,subject_wildcard,session='presurgery')
-BIDS_PRESURG_CT_DIR = _get_ct_bids_dir(bids_root.bids_root,subject_wildcard,session='presurgery')
+BIDS_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root,subject_wildcard,session=session)
+BIDS_CT_DIR = _get_ct_bids_dir(bids_root.bids_root,subject_wildcard,session=session)
 
 # original native files
 ct_native_bids_fname = _get_bids_basename(subject_wildcard,
-    session='presurgery',space='orig',
+    session=session,
+    # space='orig',
     imgtype='CT',ext='nii')
 premri_native_bids_fname = _get_bids_basename(subject_wildcard,
-    session='presurgery',
-    space='orig',
+    session=session,
+    # space='orig',
     imgtype='T1w',ext='nii')
 
 # robust fov file
 premri_robustfov_native_bids_fname = _get_bids_basename(subject_wildcard,
-    session='presurgery',
-    space='orig',
+    session=session,
+    # space='orig',
     processing='robustfov',
     imgtype='T1w',ext='nii')
 # after ACPC
 premri_bids_fname = _get_bids_basename(subject_wildcard,
-    session='presurgery',
-    space='ACPC',
+    session=session,
+    processing='acpcdetect',
     imgtype='T1w',ext='nii')
 
 # COregistration filenames
-ctint1_bids_fname = _get_bids_basename(subject_wildcard,session='presurgery',
-    space='T1w',
+ctint1_bids_fname = _get_bids_basename(subject_wildcard,
+    session=session,
+    processing='T1w',
     imgtype='CT',ext='nii')
 
 from_id = 'CT'  # post implant CT
 to_id = 'T1w'  # freesurfer's T1w
 kind = 'xfm'
 pre_to_post_transform_fname = BIDSPath(subject=subject_wildcard,
-    session='presurgery',
+    session=session,
     space='T1w').basename + \
                               f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # after ACPC
 ctint1_acpc_bids_fname = _get_bids_basename(subject_wildcard,
-    session='presurgery',
+    session=session,
     space='T1wACPC',
     imgtype='CT',ext='nii')
 
@@ -120,29 +125,29 @@ from_id = 'CT'  # post implant CT
 to_id = 'T1w'  # freesurfer's T1w
 kind = 'xfm'
 pre_to_post_acpc_transform_fname = BIDSPath(subject=subject_wildcard,
-    session='presurgery',
+    session=session,
     space='T1wACPC').basename + \
                                    f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # output files
 # raw T1/CT output
-ct_output = os.path.join(BIDS_PRESURG_CT_DIR,ct_native_bids_fname)
-t1_output = os.path.join(BIDS_PRESURG_ANAT_DIR,premri_bids_fname)
+ct_output = os.path.join(BIDS_CT_DIR,ct_native_bids_fname)
+t1_output = os.path.join(BIDS_ANAT_DIR,premri_bids_fname)
 
 # raw CT to T1 image and map
-ct_tot1_output = os.path.join(BIDS_PRESURG_CT_DIR,ctint1_bids_fname)
-ct_tot1_map = os.path.join(BIDS_PRESURG_CT_DIR,pre_to_post_transform_fname)
+ct_tot1_output = os.path.join(BIDS_CT_DIR,ctint1_bids_fname)
+ct_tot1_map = os.path.join(BIDS_CT_DIR,pre_to_post_transform_fname)
 
 # T1 acpc and CT to T1acpc image and map
-t1_acpc_output = os.path.join(BIDS_PRESURG_ANAT_DIR,premri_bids_fname)
-ct_tot1_acpc_output = os.path.join(BIDS_PRESURG_CT_DIR,ctint1_acpc_bids_fname)
-ct_tot1_acpc_map = os.path.join(BIDS_PRESURG_CT_DIR,pre_to_post_acpc_transform_fname)
+t1_acpc_output = os.path.join(BIDS_ANAT_DIR,premri_bids_fname)
+ct_tot1_acpc_output = os.path.join(BIDS_CT_DIR,ctint1_acpc_bids_fname)
+ct_tot1_acpc_map = os.path.join(BIDS_CT_DIR,pre_to_post_acpc_transform_fname)
 
 
 rule prep:
     input:
-        MRI_NIFTI_IMG=expand(t1_output,subject=subjects),
-        CT_bids_fname=expand(ct_output,subject=subjects),
+        # MRI_NIFTI_IMG=expand(t1_output,subject=subjects),
+        # CT_bids_fname=expand(ct_output,subject=subjects),
         t1_acpc_output=expand(t1_acpc_output,subject=subjects),
     # ct_tot1_output=expand(ct_tot1_output, subject=subjects),
     # ct_tot1_map=expand(ct_tot1_map, subject=subjects),
@@ -150,7 +155,7 @@ rule prep:
     # ct_tot1_acpc_map=expand(ct_tot1_acpc_map, subject=subjects),
     params:
         bids_root=bids_root.bids_root,
-    log: expand("logs/recon.{subject}.log", subject=subjects)
+    log: expand("logs/recon.{subject}.log",subject=subjects)
     container:
         seek_dockerurl
     output:
@@ -174,9 +179,15 @@ rule convert_dicom_to_nifti_mri:
     container:
         freesurfer_dockerurl
     output:
-        MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR,premri_native_bids_fname),
+        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_native_bids_fname),
     shell:
-        "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
+        r"""
+        # check that file doesn't already exist... then no need to convert dicoms
+        if test -f "${output.MRI_bids_fname}"; then
+            "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
+        fi
+        """
+
 
 """
 Rule for prepping fs_recon by converting dicoms -> NIFTI images.
@@ -192,7 +203,7 @@ rule convert_dicom_to_nifti_ct:
     container:
         freesurfer_dockerurl
     output:
-        CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR,ct_native_bids_fname),
+        CT_bids_fname=os.path.join(BIDS_CT_DIR,ct_native_bids_fname),
     shell:
         "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
 
@@ -202,7 +213,7 @@ Add comment.
 
 rule t1w_compute_robust_fov:
     input:
-        MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR,premri_native_bids_fname),
+        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_native_bids_fname),
     log: "logs/recon.{subject}.log"
     output:
         MRI_bids_fname_gz=os.path.join(FSOUT_ACPC_FOLDER,premri_robustfov_native_bids_fname) + '.gz',
@@ -217,7 +228,7 @@ rule convert_t1w_robust_fov_to_nifti:
         MRI_bids_fname_gz=os.path.join(FSOUT_ACPC_FOLDER,premri_robustfov_native_bids_fname) + '.gz',
     log: "logs/recon.{subject}.log"
     output:
-        MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR,premri_robustfov_native_bids_fname),
+        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_robustfov_native_bids_fname),
     container:
         freesurfer_dockerurl,
     shell:
@@ -232,25 +243,25 @@ aligned.
 
 rule t1w_automatic_acpc_alignment:
     input:
-        MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR,premri_robustfov_native_bids_fname),
+        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_robustfov_native_bids_fname),
     log: "logs/recon.{subject}.log"
     # params:
-        # anat_dir=str(BIDS_PRESURG_ANAT_DIR),
-        # acpc_fs_dir=str(FSOUT_ACPC_FOLDER),
-        # acpc_fs_dir =  lambda w, output: os.path.splitext(output[0])[0]
+    # anat_dir=str(BIDS_PRESURG_ANAT_DIR),
+    # acpc_fs_dir=str(FSOUT_ACPC_FOLDER),
+    # acpc_fs_dir =  lambda w, output: os.path.splitext(output[0])[0]
     container:
         acpcdetect_dockerurl
     output:
         MRI_bids_fname_fscopy=os.path.join(FSOUT_ACPC_FOLDER,premri_native_bids_fname),
-        MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR,premri_bids_fname),
+        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_bids_fname),
     shell:
         # create BIDS session directory and copy file there
         "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
         "echo {output.MRI_bids_fname};"
-        "mkdir -p '$(dirname {output.MRI_bids_fname_fscopy}');"
+        "mkdir -p '$(dirname {output.MRI_bids_fname_fscopy})';"
         "cp {input.MRI_bids_fname} {output.MRI_bids_fname_fscopy};"
         # run acpc auto detection
-        "acpcdetect -i {output.MRI_bids_fname_fscopy} -center-AC -output-orient RAS;"
+        "acpcdetect -i {output.MRI_bids_fname_fscopy} -center-AC -output-orient RAS -v -nopng;"
         "cp {output.MRI_bids_fname_fscopy} {output.MRI_bids_fname};"
 
 """
@@ -261,8 +272,8 @@ E.g. useful for CT, and DTI images to be coregistered
 
 rule coregistert1_ct_to_t1w:
     input:
-        MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR,premri_bids_fname),
-        CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR,ct_native_bids_fname),
+        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_bids_fname),
+        CT_bids_fname=os.path.join(BIDS_CT_DIR,ct_native_bids_fname),
     container:
         fsl_dockerurl
     log: "logs/recon.{subject}.log"
@@ -285,8 +296,8 @@ E.g. useful for CT, and DTI images to be coregistered
 
 rule coregistert1_ct_to_t1wacpc:
     input:
-        MRI_bids_fname=os.path.join(BIDS_PRESURG_ANAT_DIR,premri_bids_fname),
-        CT_bids_fname=os.path.join(BIDS_PRESURG_CT_DIR,ct_native_bids_fname),
+        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_bids_fname),
+        CT_bids_fname=os.path.join(BIDS_CT_DIR,ct_native_bids_fname),
     container:
         fsl_dockerurl
     log: "logs/recon.{subject}.log"
@@ -313,8 +324,8 @@ rule convert_niigz_to_nii_ctont1w:
         freesurfer_dockerurl
     log: "logs/recon.{subject}.log"
     output:
-        MAPPING_FILE_BIDS=os.path.join(BIDS_PRESURG_CT_DIR,pre_to_post_transform_fname),
-        CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_PRESURG_CT_DIR,ctint1_bids_fname),
+        MAPPING_FILE_BIDS=os.path.join(BIDS_CT_DIR,pre_to_post_transform_fname),
+        CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_CT_DIR,ctint1_bids_fname),
     shell:
         "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_BIDS};"
         "cp {output.MAPPING_FILE_ORIG} {output.MAPPING_FILE_BIDS};"
@@ -331,8 +342,8 @@ rule convert_niigz_to_nii_ctonacpc:
     container:
         freesurfer_dockerurl
     output:
-        MAPPING_FILE_BIDS=os.path.join(BIDS_PRESURG_CT_DIR,pre_to_post_acpc_transform_fname),
-        CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_PRESURG_CT_DIR,ctint1_acpc_bids_fname),
+        MAPPING_FILE_BIDS=os.path.join(BIDS_CT_DIR,pre_to_post_acpc_transform_fname),
+        CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_CT_DIR,ctint1_acpc_bids_fname),
     shell:
         "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_BIDS};"
         "cp {output.MAPPING_FILE_ORIG} {output.MAPPING_FILE_BIDS};"
