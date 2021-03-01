@@ -37,7 +37,7 @@ bids_root = BidsRoot(subject_wildcard,BIDS_ROOT(config['bids_root']),
 
 SEEKHOME = _get_seek_path()
 # scripts_dir = os.path.join(SEEKHOME,'workflow','prep_vizengine','scripts')
-scripts_dir = '/home/scripts'  # location of scripts within Docker container
+scripts_dir = '/home/scripts'  # location of scripts within Docker container  # noqa
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir

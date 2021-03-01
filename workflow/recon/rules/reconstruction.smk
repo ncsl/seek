@@ -156,13 +156,12 @@ rule reconstruction:
     shell:
         "export SUBJECTS_DIR={params.SUBJECTS_DIR};" \
         "SUBJECTS_DIR={params.SUBJECTS_DIR};"
-        # "recon-all " \
+        "recon-all " \
         # "-cw256 " \
-        #     # "-i {input.MRI_MGZ_IMG} " \
-        # "-subject {params.patient} " \
-        # "-all " \
-        # "-parallel -openmp $(nproc); " \
-        # "--bids-out;"
+        #     "-i {input.MRI_MGZ_IMG} " \
+        "-subject {params.patient} " \
+        "-all " \
+        "-parallel -openmp $(nproc); " \
         "touch {output.outsuccess_file}"
 
 """
@@ -257,6 +256,8 @@ References:
 - http://freesurfer.net/fswiki/ThalamicNuclei
 - http://freesurfer.net/fswiki/HippocampalSubfieldsAndNucleiOfAmygdala
 - http://freesurfer.net/fswiki/BrainstemSubstructures
+
+Currently not implemented due to bugs still present.
 """
 
 rule create_subcortical_segmentations:
