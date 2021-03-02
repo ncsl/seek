@@ -30,7 +30,7 @@ seek_dockerurl = config['seek_docker']
 # get the freesurfer patient directory
 subject_wildcard = "{subject}"
 coordframe_wildcard = "{coord_frame}"
-coord_frames = ['image', 'tkRAS', 'voxel']
+coord_frames = ['mni', 'tkras']
 
 bids_root = BidsRoot(subject_wildcard,BIDS_ROOT(config['bids_root']),
     site_id=config['site_id'],subject_wildcard=subject_wildcard)
@@ -56,9 +56,9 @@ t1_fs_fpath = os.path.join(BIDS_PRESURG_ANAT_DIR,premri_fs_bids_fname)
 
 # atlas image volumes to apply anatomical labels to
 atlas_img_fpaths = [
-    op.join(FSOUT_MRI_FOLDER, 'aparc+aseg.mgz'),
-    op.join(FSOUT_MRI_FOLDER, 'aparc.a2009s+aseg.mgz'),
-    op.join(FSOUT_MRI_FOLDER, 'wmparc.mgz'),
+    op.join(FSOUT_MRI_FOLDER,'aparc+aseg.mgz'),
+    op.join(FSOUT_MRI_FOLDER,'aparc.a2009s+aseg.mgz'),
+    op.join(FSOUT_MRI_FOLDER,'wmparc.mgz'),
 ]
 
 # the output electrode/coordsystem file(s)
@@ -67,15 +67,26 @@ atlas_img_fpaths = [
 manual_coordsystem_fname = BIDSPath(
     subject=subject_wildcard,session=DEFAULT_SESSION,
     # processing='manual',
-    space=coordframe_wildcard,
+    space='mri',
     suffix='coordsystem',extension='.json').basename
 manual_electrodes_fname = BIDSPath(
     subject=subject_wildcard,session=DEFAULT_SESSION,
     # processing='manual',
-    space=coordframe_wildcard,
+    space='mri',
     suffix='electrodes',extension='.tsv').basename
 manual_electrodes_json = manual_electrodes_fname.replace('.tsv','.json')
 
+# mni, tkras
+other_coordsystem_fname = BIDSPath(
+    subject=subject_wildcard,session=DEFAULT_SESSION,
+    # processing='manual',
+    space=coordframe_wildcard,
+    suffix='coordsystem',extension='.json').basename
+other_electrodes_fname = BIDSPath(
+    subject=subject_wildcard,session=DEFAULT_SESSION,
+    # processing='manual',
+    space=coordframe_wildcard,
+    suffix='electrodes',extension='.tsv').basename
 
 rule label_electrode_anatomy:
     input:
@@ -84,6 +95,10 @@ rule label_electrode_anatomy:
         manual_bids_electrodes_file=expand(op.join(BIDS_PRESURG_IEEG_DIR,manual_electrodes_fname),
             subject=subjects,coord_frame=coord_frames),
         manual_bids_electrodes_json_file=expand(op.join(BIDS_PRESURG_IEEG_DIR,manual_electrodes_json),
+            subject=subjects,coord_frame=coord_frames),
+        other_coordsystem_fpath=expand(op.join(BIDS_PRESURG_IEEG_DIR,other_coordsystem_fname),
+            subject=subjects,coord_frame=coord_frames),
+        other_electrodes_tsv_file=expand(op.join(BIDS_PRESURG_IEEG_DIR,other_electrodes_fname),
             subject=subjects,coord_frame=coord_frames),
     params:
         bids_root=bids_root.bids_root,
@@ -151,10 +166,9 @@ rule label_desikanatlas_anatomy_on_electrodes:
         mri_bids_electrodes_tsv_file=(
             op.join(FSOUT_ELECS_FOLDER,manual_electrodes_fname)),
         mri_coordsystem_fpath=op.join(FSOUT_ELECS_FOLDER,manual_coordsystem_fname),
-        atlas_img=expand('{image_fpath}', image_fpath=atlas_img_fpaths),
+        atlas_img=expand('{image_fpath}',image_fpath=atlas_img_fpaths),
     params:
         bids_root=str(bids_root.bids_root),
-        coord_frame=coordframe_wildcard,
     log: "logs/label-contacts.{subject}.log",
     container:
         seek_dockerurl
@@ -172,3 +186,26 @@ rule label_desikanatlas_anatomy_on_electrodes:
         "   {params.bids_root};"
         "echo 'Copying coordsystem.json file from derivatives folder to BIDS root...';"
 
+
+rule save_mni_coordinates_electrodes:
+    input:
+        bids_electrodes_tsv_file=op.join(BIDS_PRESURG_IEEG_DIR,manual_electrodes_fname),
+        bids_electrodes_json_file=op.join(BIDS_PRESURG_IEEG_DIR,manual_electrodes_json),
+        bids_mri_coordsystem_fpath=op.join(BIDS_PRESURG_IEEG_DIR,manual_coordsystem_fname),
+    params:
+        bids_root=str(bids_root.bids_root),
+        coord_frame=coordframe_wildcard,
+    log: "logs/label-contacts.{subject}.log",
+    container:
+        seek_dockerurl
+    output:
+        other_coordsystem_fpath=op.join(BIDS_PRESURG_IEEG_DIR,other_coordsystem_fname),
+        other_electrodes_tsv_file=op.join(BIDS_PRESURG_IEEG_DIR,other_electrodes_fname),
+    shell:
+        "echo 'Converting coordinate systems of electrode points...';"
+        "cp {input.mri_coordsystem_fpath} {output.bids_mri_coordsystem_fpath};"
+        "python ./labeling_scripts/convert_coordsystem.py " \
+        "   {input.mri_bids_electrodes_tsv_file} " \
+        "   {input.atlas_img}"
+        "   {output.bids_electrodes_tsv_file} " \
+        "   {params.bids_root};"

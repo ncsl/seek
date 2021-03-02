@@ -2,7 +2,6 @@ import os
 import sys
 from distutils.core import setup
 
-import numpy
 from setuptools import find_packages
 
 """
@@ -91,7 +90,6 @@ setup(
         "Source": URL,
         "Tracker": URL + "issues",
     },
-    include_dirs=[numpy.get_include()],
     install_requires=REQUIRED_PACKAGES,
     include_package_data=True,
     classifiers=CLASSIFICATION_OF_PACKAGE,
