@@ -30,10 +30,6 @@ SEEK-Pipeline (Stereotactic ElectroEncephalography Kit)
    :target: https://snakemake.readthedocs.io
    :alt: Snakemake
 
-.. image:: https://badges.gitter.im/ncsl/seek.svg
-   :target: https://gitter.im/ncsl/seek?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-   :alt: Gitter
-
 Stereotactic EEG Kit Pipeline (SEEK-Pipeline) is a `Snakemake`_ pipeline workflow for running T1w reconstruction (via `FreeSurfer`_),
 CT -> T1w coregistration, BIDS-formatting and mesh generation (via `Blender`_).
 
@@ -83,16 +79,19 @@ For detailed setup, installation and usage instructions, see documentation.
 Installation
 ------------
 
-See `INSTALLATION GUIDE <https://github.com/ncsl/seek/blob/master/doc/installation.rst>`_ for full instructions. SEEK uses the Snakemake_
-workflow management system to create different workflows. We chose this because
-it is easy to run individual workflows, as well as an entire workflow from the command line.
-The full repository is set up similar to the `cookiecutter` Snakemake file: `cookiecutter gh:snakemake-workflows/cookiecutter-snakemake-workflow`.
+SEEK uses the Snakemake_ workflow management system to create different workflows. We chose this because
+it is easy to run individual workflows, as well as an entire workflow from the command line. To install the 
+pipeline from github:
 
-The workflows start from ``dicom`` files for the T1 MRI image and CT image with the implanted electrodes.
-The snakemake workflows then automate the naming and computations to get to anatomically labeled electrodes
-that also can be fed into a `visualization engine <https://github.com/cronelab/ReconstructionVisualizer>`_.
+.. code-block:: bash
 
-The recommended installation is via Docker_. See here for instructions on running workflows in the container are shown here below:
+    # clone repository locally
+    git clone https://github.com/ncsl/seek
+    python3.8 -m venv .venv
+    pipenv install
+
+You will also need Docker_ and Singularity_ and some configuration setup to be able to successfully run the workflows. 
+See documentation for full instructions. 
 
 Running workflows using Docker and Snakemake
 --------------------------------------------
@@ -120,9 +119,7 @@ Development
 
 Seek was created and is maintained by `Adam Li <https://adam2392.github.io>`_. It is also maintained and contributed by
 `Christopher Coogan <https://github.com/TheBrainChain>`_ and other researchers in the NCSL and Crone lab. Contributions are more than welcome so feel free to contact me, open an issue or submit a pull request! See the
-:doc:`contribution guide <./doc/contributing>`.
-
-To report a bug, please visit the `GitHub repository <https://github.com/ncsl/seek/issues/>`_.
+:doc:`contribution guide <./doc/contributing>`. To report a bug, please visit the `GitHub repository <https://github.com/ncsl/seek/issues/>`_.
 
 Note that this program is provided with NO WARRANTY OF ANY KIND. If you can, always double check the results with a human researcher, or clinician.
 
@@ -151,10 +148,3 @@ Several functions of Seek essentially make use of existing software packages for
 FAQ
 ===
 1. For incorporation of DTI data, see `ndmeg <https://github.com/neurodata/ndmg>`_.
-
-Developer Note: Creating persistent volumes in Docker
------------------------------------------------------
-
-If one wants to make a persistent data volume that reflects changes in the Docker container running Snakemake workflows,
-then one can just make a ``data/`` directory inside this repository. Then add in sourcedata. This
-directory serves as the BIDS root of the workflows.

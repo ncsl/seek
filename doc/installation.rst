@@ -61,9 +61,9 @@ repository to run locally on your machine. There are a few ways to do so:
 .. code-block:: bash
 
     # clone repository locally
-    $ git clone https://github.com/ncsl/seek
-    $ python3.8 -m venv .venv
-    $ pipenv install
+    git clone https://github.com/ncsl/seek
+    python3.8 -m venv .venv
+    pipenv install
 
 This will setup a Python3.8 virtual environment and install necessary dependencies
 inside this virtual environment listed in the ``Pipfile``.
