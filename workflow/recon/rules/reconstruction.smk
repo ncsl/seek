@@ -23,9 +23,9 @@ import sys
 from pathlib import Path
 
 sys.path.append("../../../")
-from seek.utils.fileutils import (BidsRoot, BIDS_ROOT,
-                                  _get_seek_config,
-                                  _get_anat_bids_dir, _get_bids_basename)
+from seek.fileutils import (BidsRoot, BIDS_ROOT,
+                            _get_seek_config,
+                            _get_anat_bids_dir, _get_bids_basename)
 
 configfile: _get_seek_config()
 

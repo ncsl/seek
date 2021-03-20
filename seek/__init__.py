@@ -3,5 +3,5 @@
 __name__ = "seek"
 __version__ = "0.1.0"
 
-from .format import bids_validate, convert_img_to_bids
-from .utils import BidsRoot, FREESURFER_HOME
+from .fileutils import BidsRoot, FREESURFER_HOME
+seek_snakemake_version = "5.27.4"

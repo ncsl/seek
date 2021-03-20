@@ -11,7 +11,7 @@ sys.path.append(os.getenv('SEEKHOME'))
 logger.debug(f'In reconstruction rule workflow with current working directory: {os.getcwd()}. '
              f'SEEKHOME is {os.getenv("SEEKHOME")}.')
 logger.info(f'Got seekhome: {os.getenv("SEEKHOME")}.')
-from seek.utils.fileutils import _get_seek_config
+from seek.fileutils import _get_seek_config
 
 ##### set minimum snakemake version #####
 min_version("5.27.4")

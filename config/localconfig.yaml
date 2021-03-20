@@ -1,3 +1,15 @@
+#####################################################################
+#  Converts neuroimages to BIDS, runs FreeSurfer reconstruction, 
+#   coregistration, BIDS-derivative handling, estimation of 
+#   fiducial landmarks and more.
+#
+# - bids_root: The root of the BIDS dataset.
+# - session: The session name for datasets (see BIDS session naming).
+# - SUBJECTS_DIR: The Freesurfer ``SUBJECTS_DIR`` environment variable 
+#   corresponding to where results are output.
+# - subjects: Where to read list of subjects in from.
+#
+######################################################################
 # home directory that every dataset sits in -> fileutils sets the BIDS structure
 bids_root:
 #  "/home/adam2392/hdd/epilepsy_bids/"
@@ -15,9 +27,10 @@ SUBJECTS_DIR: "n/a"
 ############# define list of subjects to run this for #############
 subjects: 'subjects.tsv'
 
+# not used
 site_id: ''
 
-############# define container URLs and paths #############
+############# For developers: define container URLs and paths #############
 # define Docker urls to pull from for each software
 acpcdetect_docker: 'docker://neuroseek/acpcdetect:2.0'
 fsl_docker: 'docker://cbinyu/fsl6-core'

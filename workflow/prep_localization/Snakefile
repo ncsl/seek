@@ -11,7 +11,7 @@ sys.path.append(os.getenv('SEEKHOME'))
 logger.debug(f'In prep localization workflow with current '
              f'working directory: {os.getcwd()}.')
 
-from seek.utils.fileutils import _get_seek_config
+from seek.fileutils import _get_seek_config
 
 ##### set minimum snakemake version #####
 min_version("5.27.4")

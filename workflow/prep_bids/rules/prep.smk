@@ -44,9 +44,9 @@ from mne_bids import BIDSPath
 
 # hack to run from this file folder
 sys.path.append("../../../")
-from seek.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                  _get_anat_bids_dir, _get_ct_bids_dir,
-                                  _get_bids_basename)
+from seek.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
+                            _get_anat_bids_dir, _get_ct_bids_dir,
+                            _get_bids_basename)
 
 configfile: _get_seek_config()
 
@@ -178,6 +178,7 @@ rule convert_dicom_to_nifti_mri:
         bids_root=bids_root.bids_root,
         subject=subject_wildcard,
         session=session,
+        BIDS_ANAT_DIR=BIDS_ANAT_DIR,
     log: "logs/recon.{subject}.log"
     container:
         freesurfer_dockerurl
@@ -191,10 +192,10 @@ rule convert_dicom_to_nifti_mri:
         # fi
         # """
         #
-        "heudiconv -d {params.MRI_FOLDER}/*.dcm "\
-        "-o ./heudi/ -f convertall "\
-        "-s {params.subject} -ss {params.session} "\
-        "-c none --overwrite;"
+        "heudiconv -d {params.MRI_FOLDER}/*.dcm -o {params.BIDS_ANAT_DIR} "\
+        "-f ./heuristic.py "\
+        "-s {subject} -ss {session} "\
+        "-c dcm2niix -b --overwrite --grouping accession_number;"
 
 
 """

@@ -2,7 +2,7 @@
 
 .. _installation:
 
-INSTALLATION GUIDE
+Installation Guide
 ==================
 ``seek`` uses open-source third-party software to run the various workflows (e.g. `Freesurfer`_).
 ``seek`` itself is a wrapper using snakemake_. The best way to install the 3rd party software for ``seek`` usage
@@ -15,8 +15,28 @@ To fully install SEEK and run workflows, one will need to:
 
 We outline some of these steps below. After you have set up everything (don't forget to
 format your data repository according to our necessary format), then you can easily run
-the snakemake workflows. For more information on running workflows after
-installation, see :doc:`usage instructions <use>`.
+the snakemake workflows. 
+
+.. _data_organization:
+
+Data Organization
+-----------------
+
+We assume data is organized in BIDS. If your data is not in BIDS, then ``seek-pipeline`` will not work for you.
+See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
+
+Before data is converted to BIDS in ``seek/pipeline/01-prep`` pipeline,
+then ``sourcedata/`` should contain a semi-structured format of the neuroimaging data that will
+be used in the ``snakemake`` workflows.
+
+.. code-block::
+
+    <bids root>/
+        sourcedata/
+            {subject}/
+            - premri/*.dcm
+            - posmri/*.dcm
+            - postct/*.dcm
 
 Prerequisites
 -------------
@@ -25,12 +45,18 @@ Install the following if you do not already have it:
     * `Docker`_
     * `Singularity`_ v3+ (you will need to install `Go`_ as well here)
 
-If you decide to install things manually (without containers), we unfortunately
-cannot guarantee things will work.
+We recommend following the official documentation, but if you have trouble, 
+we used a specific set of instructions that might work for you. See :ref:`singularity_help`.
 
-seek Installation
------------------
-There are a few ways to install seek itself.
+If you decide to install things manually (without containers), we unfortunately
+cannot guarantee things will work due to the fact that running pipelines on data 
+require installing a variety of different softwares with different versions.
+
+Installation: seek-pipeline
+---------------------------
+
+Once you have Docker_ and Singularity_ installed, you can install the ``seek-pipeline`` 
+repository to run locally on your machine. There are a few ways to do so:
 
 .. code-block:: bash
 
@@ -39,18 +65,15 @@ There are a few ways to install seek itself.
     $ python3.8 -m venv .venv
     $ pipenv install
 
+This will setup a Python3.8 virtual environment and install necessary dependencies
+inside this virtual environment listed in the ``Pipfile``.
+
+Setup configuration file
+------------------------
+
 Now to test that your installation worked, you can perform a dry-run of the first workflow.
-Say you only have T1 `.dicom` images so far collected and formatted into a structured directory
-as such:
-
-.. code-block::
-
-   {bids_root}/
-        /sourcedata/
-            /{subject}/
-                - premri/*.dcm
-                - postmri/*.dcm
-                - postct/*.dcm
+Say you only have T1 `.dicom` images so far collected and formatted into a structured directory 
+as specified in :ref:`data_organization`.
 
 Next, you would want to modify the local configuration file as such to specify
 different subjects you would like to run.
@@ -58,29 +81,43 @@ different subjects you would like to run.
 .. code-block::
 
     # modify config yaml
-    $ cd seek/
-    $ vim config/localconfig.yaml
+    cd seek/
+    vim config/localconfig.yaml
 
     # modify the subjects table
-    $ vim config/subjects.tsv
+    vim config/subjects.tsv
+
+Dry-run and test configuration
+------------------------------
 
 Finally, you can do a dry-run of the `recon_workflow <https://github.com/ncsl/seek/tree/master/workflow/recon_workflow>`_
 by using snakemake.
 
 .. code-block::
 
-    $ cd workflow/recon_workflow/
-    $ snakemake -n
+    cd workflow/recon_workflow/
+    snakemake -n
 
 You can also create a set of DAGS for yourself to visualize locally by running from the ``seek`` root
 directory.
 
 .. code-block::
 
-    $ snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./recon_workflow.pdf;
+    snakemake --snakefile ./workflow/recon_workflow/Snakefile --forceall --dag | dot -Tpdf > ./recon_workflow.pdf;
 
 This will in turn generate a ``.pdf`` file, which has a visual DAG of all the rules that will be run for the
-subjects you specified in the ``subjects.tsv`` file.
+subjects you specified in the ``subjects.tsv`` file. An example would look like the following for one 
+subject with identifier ``la02``:
+
+.. image:: /_static/recon_workflow.png
+    :width: 400
+    :alt: Reconstruction workflow
+
+Now that you have successfully installed ``seek-pipeline``, head on over to 
+our :doc:`usage documentation <use>` to see how to run various workflows and 
+add add additional configurations, such as parallelization.
+
+.. _singularity_help:
 
 Singularity Installation (for Linux)
 ------------------------------------
@@ -126,80 +163,6 @@ Now install singularity
     ./mconfig && \
     make -C ./builddir && \
     sudo make -C ./builddir install
-
-Manual Installation (Not Recommended; See Docker)
--------------------------------------------------
-
-For purposes of documentation and transparency to users, we outline here the manual installation process SEEK can take.
-To install the SEEK pipeline manually, one must install the necessary python runtimes, as well as the necessary 3rd party
-software.
-
-Python Installations
-^^^^^^^^^^^^^^^^^^^^
-
-There are a couple of tools that you need to install in your system before everything is working. You ar recommended to use a Linux based OS. 
-Follow links and tutorials on each respective tool to install. Preferably this is done via Docker, or Singularity, but if not, then:
-
-Anaconda and Python3.6+: Conda (https://docs.anaconda.com/anaconda/install/)
-
-This is mainly necessary to run snakemake, and any Python wrapper code.
-
-.. code-block::
-
-    conda env create -f environment.yml --name=seek
-    source activate seek
-    conda install sphinx sphinx-gallery sphinx_bootstrap_theme numpydoc black pytest pytest-cov coverage codespell pydocstyle
-    pip install coverage-badge anybadge
-    # dev versions of mne-python, mne-bids
-    pip install --upgrade --no-deps https://api.github.com/repos/mne-tools/mne-python/zipball/master
-    pip install --upgrade https://api.github.com/repos/mne-tools/mne-bids/zipball/master
-
-
-Pipeline Installations (3rd Party Modules to Install)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-#. Octave
-
-    Runs open-source MATLAB-like functions. This runs various scripts for converting output files to object files for rendering visualizations.
-    Follow: https://www.gnu.org/software/octave/#install
-
-    .. code-block::
-
-       brew install octave
-
-#. Gawk_
-
-    Runs command line tools.
-
-#. Blender_
-
-    Allows nice 3D mesh creations
-
-#. Reconstruction (Freesurfer_)
-
-    This step is necessary to generate a parcellation and surface reconstruction of the patient's brain.
-    The general requirements is just a Linux, or OSX computer with enough RAM.
-    Currently, this repo is designed to work with FreeSurfer.
-
-#. Coregistration (`FSL Flirt`_)
-
-    This step is necessary to map different imaging sessions together. Specifically, for this pipeline, we need it to map CT images to T1 MRI
-    Note that as of 2019, installation still requires Python2, which should come in any Linux distribution.
-
-     .. code-block::
-
-          python2 <run_installer>
-
-#. Utility (MRTrix3_)
-
-#. SPM_ (preferably 12):
-
-#. Contact-Localization Software (FieldTripToolbox, Img_Pipe, MATLAB)
-
-   * FieldTripToolbox_
-
-#. `ACPC Auto Detection (V2) <https://www.nitrc.org/projects/art/>`:
-
 
 .. _Gawk: https://brewinstall.org/Install-gawk-on-Mac-with-Brew/
 .. _Blender: https://www.blender.org/download/Blender2.81/blender-2.81-linux-glibc217-x86_64.tar.bz2/

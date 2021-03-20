@@ -75,3 +75,9 @@ Each corresponding sub-workflow is documented in a `.smk` Snakemake file, which 
 raw dicom files from scratch to run through the SEEK workflow.
 
 To setup your testing environment, please see :doc:`testing guide <testing>`
+
+Manual Installation - Optional
+------------------------------
+
+In some cases, contributors might want to perform a manual installation, rather then 
+go through Docker. Then, they can follow :doc:`manual installation guide <manual_installation>`

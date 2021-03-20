@@ -34,41 +34,54 @@ SEEK-Pipeline (Stereotactic ElectroEncephalography Kit)
    :target: https://gitter.im/ncsl/seek?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
    :alt: Gitter
 
-This repo describes efforts to pipeline explicitly a neuroimaging data workflow that involves T1 MRI, CT,
-and iEEG data (ECoG, or SEEG). For ECoG data, we do not explicitly have a process outlined, but these are significantly easier since grids can
-be easily interpolated. See `Fieldtrip Toolbox`_.
+Stereotactic EEG Kit Pipeline (SEEK-Pipeline) is a `Snakemake`_ pipeline workflow for running T1w reconstruction (via `FreeSurfer`_),
+CT -> T1w coregistration, BIDS-formatting and mesh generation (via `Blender`_).
 
+A few notes
+-----------
+
+- Although we primarily focus on sEEG implantations, this pipeline can hypothetically work well with ECoG data.
+- Although the pipeline is mostly automated via a `config file <https://github.com/ncsl/seek/blob/master/config/localconfig.yaml>`_, the actual contact localization of the iEEG electrodes on a CT/T1w image requires a GUI. We currently use `Fieldtrip Toolbox`_.
+
+Pipeline containerization
+-------------------------
+
+In order to create a 100% reproducible workflow that also limits the need to install various complex software
+on your systems, we utilize Docker and Singularity that just "works" on snakemake.
 We build and keep up-to-date a number of Dockerfiles to run various workflows:
 
-- acpcdetect:
-.. image:: https://img.shields.io/docker/image-size/neuroseek/acpcdetect
+- acpcdetect: |acpcdetect|
+- blender: |blender|
+- FreeSurfer7+ with MRTrix3: |freesurfer|
+
+.. |acpcdetect| image:: https://img.shields.io/docker/image-size/neuroseek/acpcdetect
     :target: https://hub.docker.com/repository/docker/neuroseek/acpcdetect
     :alt: Docker Image Size (tag)
-
-- blender:
-.. image:: https://img.shields.io/docker/image-size/neuroseek/blender
+.. |blender| image:: https://img.shields.io/docker/image-size/neuroseek/blender
     :target: https://hub.docker.com/repository/docker/neuroseek/blender
     :alt: Docker Image Size (tag)
-
-- FreeSurfer7+ with MRTrix3:
-.. image:: https://img.shields.io/docker/image-size/neuroseek/freesurfer7-with-mrtrix3
+.. |freesurfer| image:: https://img.shields.io/docker/image-size/neuroseek/freesurfer7-with-mrtrix3
     :target: https://hub.docker.com/repository/docker/neuroseek/freesurfer7-with-mrtrix3
     :alt: Docker Image Size (tag)
-
 
 Note: For FSL, we use a 3rd party docker image.
 
 Documentation
 -------------
+SEEK is comprised of more then just a pipeline. We also have more explicit documentation for exactly
+how to localize electrodes using the localization GUI we recommend. We also have a 3D web-based visualization
+engine that can render dynamic 3/4-D visualizations of the sEEG data.
+
 To see the entire documentation, see http://neuroseek.azurewebsites.net/docs/seek/
 
 * For a detailed description of the overall SEEK workflow, see `workflow documentation <https://github.com/ncsl/seek/blob/master/workflow/documentation.md>`_.
 * For a detailed description of the SEEK workflow of contact localization, specifically localizing the 2 points per electrode, see `localization guide <http://neuroseek.azurewebsites.net/docs/localize/>`_
+* For the visualization engine, see: https://github.com/cronelab/ReconstructionVisualizer
 
-For a description of the visualization engine, see: https://github.com/cronelab/ReconstructionVisualizer
+For detailed setup, installation and usage instructions, see documentation.
 
-Setup and Installation
-----------------------
+Installation
+------------
 
 See `INSTALLATION GUIDE <https://github.com/ncsl/seek/blob/master/doc/installation.rst>`_ for full instructions. SEEK uses the Snakemake_
 workflow management system to create different workflows. We chose this because
@@ -80,24 +93,6 @@ The snakemake workflows then automate the naming and computations to get to anat
 that also can be fed into a `visualization engine <https://github.com/cronelab/ReconstructionVisualizer>`_.
 
 The recommended installation is via Docker_. See here for instructions on running workflows in the container are shown here below:
-
-Data Organization
------------------
-
-We use BIDS. See https://github.com/bids-standard/bids-starter-kit/wiki/The-BIDS-folder-hierarchy
-
-Before data is converted to BIDS in ``seek/pipeline/01-prep`` pipeline,
-then ``sourcedata/`` should contain a semi-structured format of the neuroimaging data that will
-be put through the workflow.
-
-**sourcedata/**
-
-.. code-block::
-
-   /{subject}/
-       - premri/*.dcm
-       - posmri/*.dcm
-       - postct/*.dcm
 
 Running workflows using Docker and Snakemake
 --------------------------------------------
@@ -146,7 +141,8 @@ Several functions of Seek essentially make use of existing software packages for
 - `MRTrix3 <http://www.mrtrix.org/>`_
 - `Snakemake <https://snakemake.readthedocs.io/en/stable/>`_
 
-
+.. _FreeSurfer: https://surfer.nmr.mgh.harvard.edu/
+.. _Blender: https://www.blender.org/
 .. _Docker: https://www.docker.com/
 .. _Docker Hub: https://hub.docker.com/
 .. _FieldTrip Toolbox: http://www.fieldtriptoolbox.org/tutorial/human_ecog/

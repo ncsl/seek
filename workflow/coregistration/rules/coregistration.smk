@@ -18,9 +18,9 @@ from pathlib import Path
 from mne_bids import BIDSPath
 
 sys.path.append("../../../")
-from seek.utils.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
-                                  _get_bids_basename, _get_ct_bids_dir,
-                                  _get_anat_bids_dir)
+from seek.fileutils import (BidsRoot, BIDS_ROOT, _get_seek_config,
+                            _get_bids_basename, _get_ct_bids_dir,
+                            _get_anat_bids_dir)
 
 configfile: _get_seek_config()
 
