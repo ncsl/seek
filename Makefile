@@ -20,14 +20,25 @@ snakemake-all: recon coregistration prep_viz
 
 # snakemake command line optional arguments
 cores := 1
-sing-args := "--bind ~/hdd/epilepsy_bids/,/home/adam2392/Documents/seek/"
+#dry_run := "-n"
+# sing-args := "--bind ~/hdd/epilepsy_bids/,/home/adam2392/Documents/seek/"
+sing-args := "--bind ~/Dropbox/seek_test,/Users/adam2392/Documents/seek/workflow/,/Users/adam2392/Documents/seek/seek/"
+
+bids:
+	cd workflow/convert_dcm_bids && \
+	snakemake --cores $(cores) --use-conda; 
+	#--use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 recon:
 	cd workflow/recon && \
-	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
+	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args) --verbose;
 
 prep-localization:
 	cd workflow/prep_localization && \
+	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
+
+contact_labeling:
+	cd workflow/contact_labeling && \
 	snakemake --cores $(cores) --use-singularity --singularity-prefix ../.singularity/ --singularity-args $(sing-args);
 
 coregistration:

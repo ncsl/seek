@@ -2,7 +2,7 @@
 
 .. _use:
 
-SEEK-PIPELINE USAGE GUIDE
+SEEK-Pipeline Usage Guide
 =========================
 Using seek requires some minimal working knowledge of the command line, snakemake_ and
 Docker_. If you have ever manually ran FreeSurfer, coregistered CT images to T1 images,
@@ -12,27 +12,7 @@ we generate useful Blender_ objects that can be used in our downstream
 `visualization platform <https://github.com/cronelab/ReconstructionVisualizer>`_.
 
 If you have not followed installation instructions yet, please visit :doc:`installation page <installation>`
-to fully setup SEEK for usage.
-
-Data Setup
-----------
-To run SEEK workflows, we require you to initially setup your working directory
-as a structured BIDS ``sourcedata/`` folder. We follow BIDS_ (Brain Imaging Data Specification)
-so that output is usable, documented and easily portable across research teams.
-
-.. code-block::
-
-   {bids_root}/
-        /sourcedata/
-            /{subject}/
-                - premri/*.dcm
-                - postmri/*.dcm
-                - postct/*.dcm
-
-Here, ``premri/`` stores the dicoms for the T1 images before surgical implantation of
-iEEG electrodes. ``postct/`` stores the dicoms for the CT images after surgical
-implantation. You should then be able to see artifacts on the CT image corresponding to
-each iEEG channel.
+to fully setup for usage.
 
 Configuration Setup
 -------------------
@@ -63,16 +43,17 @@ want to run workflows on.
     $ vim config/subjects.tsv
 
 Running workflows
------------------
+=================
 Now that you have setup everything, you are ready to
-run the workflows.
-
-Calling directly snakemake `commands <https://snakemake.readthedocs.io/en/stable/executing/cli.html>`_
-can be done from each of the workflow's directories. Otherwise, each workflow has a
+run the workflows. You can directly call snakemake `commands <https://snakemake.readthedocs.io/en/stable/executing/cli.html>`_
+from each of the workflow's directories. Otherwise, each workflow has a
 `Makefile` recipe command that can be called.
 
 The workflows can be ran in sequence as described below.
 For more detailed description of the pipelines themselves, that are automated, see :doc:`pipeline description <pipeline_description>`
+
+Multiple cores can be used to basically run multiple rules at once. Snakemake will handle 
+underneath the hood the rule dependencies.
 
 Setting Environment
 -------------------
@@ -83,13 +64,49 @@ one should run
 
 .. code-block::
 
-    make init
+    # activate your virtual environment (here we assume pipenv)
+    pipenv shell
+    export SEEKHOME=<path_to_seek_repo>
 
-Reconstruction (recon)
--------------------------------
+
+.. _dicom_to_bids
+
+1. Converting Dicoms to Nifti as BIDS
+-------------------------------------
+
+If you already have Nifti files BIDS-formatted, then you can skip to :ref:`t1w_process`.
+
+The raw form of imaging data comes in the form of Dicoms, which must be organized according 
+to the :doc:`data setup instructions in installation <installation>`. This step 
+would use a containerized and conda environment to run ``heudiconv`` underneath the hood 
+to convert ``*.dcm`` files into ``*.nii.gz`` files that are BIDS-compliant. Initially your data 
+might look something like this:
+
+.. image:: /_static/dicom_start.png
+    :width: 400
+    :alt: Starting sourcedata directory
+
+The following command will run this pipeline.
+
+.. code-block::
+
+    make bids
+
+and afterwards your dataset will look something like this:
+
+.. image:: /_static/nifti_bids.png
+    :width: 400
+    :alt: After BIDS conversion
+
+.. _t1w_process
+
+2. Processing T1w images (FOV Crop, ACPC alignment, Reconstruction)
+-------------------------------------------------------------------
 This will abstract away FreeSurfer reconstruction commands and various other
-commands that will organize FreeSurfer output into the ``<bids_root>/derivatives/freesurfer/<subject_id>``
-folders.
+commands.
+
+This will organize FreeSurfer output into the ``<bids_root>/derivatives/freesurfer/<subject_id>``
+folders and also generate other derivatives.
 
 .. code-block::
 

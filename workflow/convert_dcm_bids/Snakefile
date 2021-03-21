@@ -34,9 +34,9 @@ logger.info(config)
 # validate the `subjects.tsv` file
 for subject, subject_row in subject_df.to_dict(orient='index').items():
     validate(subject_row, schema=subjects_tsv_schema)
+
 # expose the variable subjects for usage in downstream rules
 subjects = subject_df['id']
-centers = subject_df['center_id'].tolist()
 
 ##### target rules #####
 
@@ -44,11 +44,10 @@ centers = subject_df['center_id'].tolist()
 snakemake --rulegraph | dot -Tpdf > dag.pdf
 """
 rule all:
-    input: ['fig1.png', 'figreconstruct.png']
+    input: ['figbids.png']
 
 ##### setup report #####
 report: "../report/workflow.rst"
 
 ##### load rules #####
 include: "rules/prep.smk"
-include: "rules/reconstruction.smk"

@@ -17,12 +17,11 @@ def infotodict(seqinfo):
     seqitem: run number during scanning
     subindex: sub index within group
     """
-
     # heuristic key for T1w data
-    t1w = create_key('sub-{subject}/{session}/anat/sub-{subject}_ses-{session}_run{item:02d}_T1w')
+    t1w = create_key('sub-{subject}/{session}/anat/sub-{subject}_{session}_run-{item:02d}_T1w')
 
     # heuristic key for CT data
-    ct = create_key('sub-{subject}/{session}/ct/sub-{subject}_ses-{session}_run{item:02d}_CT')
+    ct = create_key('sub-{subject}/{session}/ct/sub-{subject}_{session}_run-{item:02d}_CT')
 
     info = {t1w: [], ct: []}
 

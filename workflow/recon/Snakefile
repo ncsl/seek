@@ -11,10 +11,11 @@ sys.path.append(os.getenv('SEEKHOME'))
 logger.debug(f'In reconstruction rule workflow with current working directory: {os.getcwd()}. '
              f'SEEKHOME is {os.getenv("SEEKHOME")}.')
 logger.info(f'Got seekhome: {os.getenv("SEEKHOME")}.')
+from seek import seek_snakemake_version
 from seek.fileutils import _get_seek_config
 
 ##### set minimum snakemake version #####
-min_version("5.27.4")
+min_version(seek_snakemake_version)
 
 ##### load config and sample sheets #####
 
@@ -34,7 +35,6 @@ for subject, subject_row in subject_df.to_dict(orient='index').items():
     validate(subject_row, schema=subjects_tsv_schema)
 # expose the variable subjects for usage in downstream rules
 subjects = subject_df['id']
-centers = subject_df['center_id'].tolist()
 
 ##### target rules #####
 
@@ -42,7 +42,7 @@ centers = subject_df['center_id'].tolist()
 snakemake --rulegraph | dot -Tpdf > dag.pdf
 """
 rule all:
-    input: ['fig1.png', 'figreconstruct.png']
+    input: ['fig1.png']
 
 ##### setup report #####
 report: "../report/workflow.rst"

@@ -70,38 +70,57 @@ seek_dockerurl = config['seek_docker']
 
 # initialize directories that we access in this snakemake
 FS_DIR = bids_root.freesurfer_dir
-RAW_CT_FOLDER = bids_root.get_rawct_dir()
-RAW_MRI_FOLDER = bids_root.get_premri_dir()
 FSOUT_MRI_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "mri"
-FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "CT"
-FSOUT_ACPC_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "acpc"
+FSOUT_CT_FOLDER = Path(bids_root.get_freesurfer_patient_dir()) / "ct"
 
 BIDS_ANAT_DIR = _get_anat_bids_dir(bids_root.bids_root,subject_wildcard,session=session)
 BIDS_CT_DIR = _get_ct_bids_dir(bids_root.bids_root,subject_wildcard,session=session)
 
-# original native files
-ct_native_bids_fname = _get_bids_basename(subject_wildcard,
+# 0. original native files - from convert_dcm_bids pipeline
+ct_native_bids_fname = BIDSPath(
+    subject=subject_wildcard,
     session=session,
-    # space='orig',
-    imgtype='CT',ext='nii')
-premri_native_bids_fname = _get_bids_basename(subject_wildcard,
-    session=session,
-    # space='orig',
-    imgtype='T1w',ext='nii')
+    run='01',
+    suffix='CT',
+    extension='.nii.gz', check=False
+).basename
+ct_native_bids_fname = os.path.join(bids_root.bids_root, f'sub-{subject_wildcard}', f'ses-{session}', 'ct', ct_native_bids_fname)
 
-# robust fov file
-premri_robustfov_native_bids_fname = _get_bids_basename(subject_wildcard,
+premri_native_bids_fname = BIDSPath(
+    root=bids_root.bids_root,
+    subject=subject_wildcard,
     session=session,
-    # space='orig',
+    run='01',
+    suffix='T1w',
+    datatype='anat',
+    extension='.nii.gz', check=False
+).fpath.as_posix()
+
+# 1. robust fov file
+premri_robustfov_native_bids_fname = BIDSPath(
+    root=bids_root.acpc_dir,
+    subject=subject_wildcard,
+    session=session,
+    run='01',
+    suffix='T1w',
+    datatype='anat',
     processing='robustfov',
-    imgtype='T1w',ext='nii')
-# after ACPC
-premri_bids_fname = _get_bids_basename(subject_wildcard,
-    session=session,
-    processing='acpcdetect',
-    imgtype='T1w',ext='nii')
+    extension='.nii', check=False
+).fpath.as_posix()
 
-# COregistration filenames
+# 2. acpcdetect file
+premri_acpc_bids_fname = BIDSPath(
+    root=bids_root.acpc_dir,
+    subject=subject_wildcard,
+    session=session,
+    run='01',
+    suffix='T1w',
+    datatype='anat',
+    processing='acpcdetect',
+    extension='.nii', check=False
+).fpath.as_posix()
+
+# Coregistration filenames
 ctint1_bids_fname = _get_bids_basename(subject_wildcard,
     session=session,
     processing='T1w',
@@ -112,7 +131,8 @@ to_id = 'T1w'  # freesurfer's T1w
 kind = 'xfm'
 pre_to_post_transform_fname = BIDSPath(subject=subject_wildcard,
     session=session,
-    space='T1w').basename + \
+    # space='T1w'
+    ).basename + \
                               f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # after ACPC
@@ -126,29 +146,28 @@ to_id = 'T1w'  # freesurfer's T1w
 kind = 'xfm'
 pre_to_post_acpc_transform_fname = BIDSPath(subject=subject_wildcard,
     session=session,
-    space='T1wACPC').basename + \
+    # space='T1wACPC'
+    ).basename + \
                                    f"_from-{from_id}_to-{to_id}_mode-image_{kind}.mat"
 
 # output files
 # raw T1/CT output
 ct_output = os.path.join(BIDS_CT_DIR,ct_native_bids_fname)
-t1_output = os.path.join(BIDS_ANAT_DIR,premri_bids_fname)
 
 # raw CT to T1 image and map
 ct_tot1_output = os.path.join(BIDS_CT_DIR,ctint1_bids_fname)
 ct_tot1_map = os.path.join(BIDS_CT_DIR,pre_to_post_transform_fname)
 
 # T1 acpc and CT to T1acpc image and map
-t1_acpc_output = os.path.join(BIDS_ANAT_DIR,premri_bids_fname)
 ct_tot1_acpc_output = os.path.join(BIDS_CT_DIR,ctint1_acpc_bids_fname)
 ct_tot1_acpc_map = os.path.join(BIDS_CT_DIR,pre_to_post_acpc_transform_fname)
 
-
+print(premri_acpc_bids_fname)
 rule prep:
     input:
         # MRI_NIFTI_IMG=expand(t1_output,subject=subjects),
         # CT_bids_fname=expand(ct_output,subject=subjects),
-        t1_acpc_output=expand(t1_acpc_output,subject=subjects),
+        t1_acpc_output=expand(premri_acpc_bids_fname,subject=subjects),
     # ct_tot1_output=expand(ct_tot1_output, subject=subjects),
     # ct_tot1_map=expand(ct_tot1_map, subject=subjects),
     # ct_tot1_acpc_output=expand(ct_tot1_acpc_output, subject=subjects),
@@ -165,70 +184,33 @@ rule prep:
         "bids-validator {params.bids_root};"
         "touch fig1.png {output};"
 
-"""
-Rule for prepping fs_recon by converting dicoms -> NIFTI images.
-
-For more information, see BIDS specification.
-"""
-
-rule convert_dicom_to_nifti_mri:
-    params:
-        MRI_FOLDER=RAW_MRI_FOLDER,
-        bids_root=bids_root.bids_root,
-    log: "logs/recon.{subject}.log"
-    container:
-        freesurfer_dockerurl
-    output:
-        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_native_bids_fname),
-    shell:
-        r"""
-        # check that file doesn't already exist... then no need to convert dicoms
-        if test -f "${output.MRI_bids_fname}"; then
-            "mrconvert {params.MRI_FOLDER} {output.MRI_bids_fname};"
-        fi
-        """
-
 
 """
-Rule for prepping fs_recon by converting dicoms -> NIFTI images.
-
-For more information, see BIDS specification.
+Computes a robust FOV with FSL on the T1w image. This helps in the acpcdetect command, where 
+certain scans might have a very large FOV.
 """
-
-rule convert_dicom_to_nifti_ct:
-    params:
-        CT_FOLDER=RAW_CT_FOLDER,
-        bids_root=bids_root.bids_root,
-    log: "logs/recon.{subject}.log"
-    container:
-        freesurfer_dockerurl
-    output:
-        CT_bids_fname=os.path.join(BIDS_CT_DIR,ct_native_bids_fname),
-    shell:
-        "mrconvert {params.CT_FOLDER} {output.CT_bids_fname};"
-
-"""
-Add comment.
-"""
-
 rule t1w_compute_robust_fov:
     input:
-        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_native_bids_fname),
+        MRI_bids_fname=premri_native_bids_fname,
     log: "logs/recon.{subject}.log"
     output:
-        MRI_bids_fname_gz=os.path.join(FSOUT_ACPC_FOLDER,premri_robustfov_native_bids_fname) + '.gz',
+        MRI_bids_fname_gz=premri_robustfov_native_bids_fname + '.gz',
     container:
         fsl_dockerurl,
     shell:
         "echo 'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz}';"
         'robustfov -i {input.MRI_bids_fname} -r {output.MRI_bids_fname_gz};'  # -m roi2full.mat
 
+
+"""
+Converts ``robustfov`` output into uncompressed Nifti file format for acpcdetect compliance.
+"""
 rule convert_t1w_robust_fov_to_nifti:
     input:
-        MRI_bids_fname_gz=os.path.join(FSOUT_ACPC_FOLDER,premri_robustfov_native_bids_fname) + '.gz',
+        MRI_bids_fname_gz=premri_robustfov_native_bids_fname + '.gz',
     log: "logs/recon.{subject}.log"
     output:
-        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_robustfov_native_bids_fname),
+        MRI_bids_fname=premri_robustfov_native_bids_fname,
     container:
         freesurfer_dockerurl,
     shell:
@@ -243,26 +225,21 @@ aligned.
 
 rule t1w_automatic_acpc_alignment:
     input:
-        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_robustfov_native_bids_fname),
+        MRI_bids_fname=premri_robustfov_native_bids_fname,
     log: "logs/recon.{subject}.log"
-    # params:
-    # anat_dir=str(BIDS_PRESURG_ANAT_DIR),
-    # acpc_fs_dir=str(FSOUT_ACPC_FOLDER),
-    # acpc_fs_dir =  lambda w, output: os.path.splitext(output[0])[0]
     container:
         acpcdetect_dockerurl
     output:
-        MRI_bids_fname_fscopy=os.path.join(FSOUT_ACPC_FOLDER,premri_native_bids_fname),
-        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_bids_fname),
+        MRI_bids_fname=premri_acpc_bids_fname,
     shell:
         # create BIDS session directory and copy file there
         "echo 'acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS;'"
         "echo {output.MRI_bids_fname};"
-        "mkdir -p '$(dirname {output.MRI_bids_fname_fscopy})';"
-        "cp {input.MRI_bids_fname} {output.MRI_bids_fname_fscopy};"
+        # "mkdir -p '$(dirname {output.MRI_bids_fname_fscopy})';"
+        # "cp {input.MRI_bids_fname} {output.MRI_bids_fname_fscopy};"
         # run acpc auto detection
-        "acpcdetect -i {output.MRI_bids_fname_fscopy} -center-AC -output-orient RAS -v -nopng;"
-        "cp {output.MRI_bids_fname_fscopy} {output.MRI_bids_fname};"
+        "acpcdetect -i {input.MRI_bids_fname} -center-AC -output-orient RAS -v -nopng;"
+        # "cp {output.MRI_bids_fname_fscopy} {output.MRI_bids_fname};"
 
 """
 Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
@@ -270,23 +247,23 @@ Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
 E.g. useful for CT, and DTI images to be coregistered
 """
 
-rule coregistert1_ct_to_t1w:
-    input:
-        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_bids_fname),
-        CT_bids_fname=os.path.join(BIDS_CT_DIR,ct_native_bids_fname),
-    container:
-        fsl_dockerurl
-    log: "logs/recon.{subject}.log"
-    output:
-        # mapped image from CT -> MRI
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_bids_fname).with_suffix(".gz").as_posix(),
-        # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG=(FSOUT_CT_FOLDER / pre_to_post_transform_fname).as_posix(),
-    shell:
-        "flirt -in {input.CT_bids_fname} \
-                            -ref {input.MRI_bids_fname} \
-                            -omat {output.MAPPING_FILE_ORIG} \
-                            -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
+# rule coregistert1_ct_to_t1w:
+#     input:
+#         MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_native_bids_fname),
+#         CT_bids_fname=os.path.join(BIDS_CT_DIR,ct_native_bids_fname),
+#     container:
+#         fsl_dockerurl
+#     log: "logs/recon.{subject}.log"
+#     output:
+#         # mapped image from CT -> MRI
+#         CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_bids_fname).with_suffix(".gz").as_posix(),
+#         # mapping matrix for post to pre in T1
+#         MAPPING_FILE_ORIG=(FSOUT_CT_FOLDER / pre_to_post_transform_fname).as_posix(),
+#     shell:
+#         "flirt -in {input.CT_bids_fname} \
+#                             -ref {input.MRI_bids_fname} \
+#                             -omat {output.MAPPING_FILE_ORIG} \
+#                             -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
 
 """
 Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
@@ -294,59 +271,59 @@ Rule for coregistering .nifit images -> .nifti for T1 space using Flirt in FSL.
 E.g. useful for CT, and DTI images to be coregistered
 """
 
-rule coregistert1_ct_to_t1wacpc:
-    input:
-        MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_bids_fname),
-        CT_bids_fname=os.path.join(BIDS_CT_DIR,ct_native_bids_fname),
-    container:
-        fsl_dockerurl
-    log: "logs/recon.{subject}.log"
-    output:
-        # mapped image from CT -> MRI
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_acpc_bids_fname).with_suffix(".gz").as_posix(),
-        # mapping matrix for post to pre in T1
-        MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_acpc_transform_fname),
-    shell:
-        "flirt -in {input.CT_bids_fname} \
-                            -ref {input.MRI_bids_fname} \
-                            -omat {output.MAPPING_FILE_ORIG} \
-                            -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
+# rule coregistert1_ct_to_t1wacpc:
+#     input:
+#         MRI_bids_fname=os.path.join(BIDS_ANAT_DIR,premri_acpc_bids_fname),
+#         CT_bids_fname=os.path.join(BIDS_CT_DIR,ct_native_bids_fname),
+#     container:
+#         fsl_dockerurl
+#     log: "logs/recon.{subject}.log"
+#     output:
+#         # mapped image from CT -> MRI
+#         CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_acpc_bids_fname).with_suffix(".gz").as_posix(),
+#         # mapping matrix for post to pre in T1
+#         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_acpc_transform_fname),
+#     shell:
+#         "flirt -in {input.CT_bids_fname} \
+#                             -ref {input.MRI_bids_fname} \
+#                             -omat {output.MAPPING_FILE_ORIG} \
+#                             -out {output.CT_IN_PRE_NIFTI_IMG_ORIGgz};"
 
 """
 Rule for converting  .nii.gz -> .nii. for CT mapped to T1w images.
 """
 
-rule convert_niigz_to_nii_ctont1w:
-    input:
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_bids_fname).with_suffix(".gz").as_posix(),
-        MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_transform_fname),
-    container:
-        freesurfer_dockerurl
-    log: "logs/recon.{subject}.log"
-    output:
-        MAPPING_FILE_BIDS=os.path.join(BIDS_CT_DIR,pre_to_post_transform_fname),
-        CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_CT_DIR,ctint1_bids_fname),
-    shell:
-        "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_BIDS};"
-        "cp {output.MAPPING_FILE_ORIG} {output.MAPPING_FILE_BIDS};"
+# rule convert_niigz_to_nii_ctont1w:
+#     input:
+#         CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_bids_fname).with_suffix(".gz").as_posix(),
+#         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_transform_fname),
+#     container:
+#         freesurfer_dockerurl
+#     log: "logs/recon.{subject}.log"
+#     output:
+#         MAPPING_FILE_BIDS=os.path.join(BIDS_CT_DIR,pre_to_post_transform_fname),
+#         CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_CT_DIR,ctint1_bids_fname),
+#     shell:
+#         "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_BIDS};"
+#         "cp {output.MAPPING_FILE_ORIG} {output.MAPPING_FILE_BIDS};"
 
 """
 Rule for converting  .nii.gz -> .nii. for CT mapped to ACPC aligned T1w images.
 """
 
-rule convert_niigz_to_nii_ctonacpc:
-    input:
-        CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_acpc_bids_fname).with_suffix(".gz").as_posix(),
-        MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_acpc_transform_fname),
-    log: "logs/recon.{subject}.log"
-    container:
-        freesurfer_dockerurl
-    output:
-        MAPPING_FILE_BIDS=os.path.join(BIDS_CT_DIR,pre_to_post_acpc_transform_fname),
-        CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_CT_DIR,ctint1_acpc_bids_fname),
-    shell:
-        "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_BIDS};"
-        "cp {output.MAPPING_FILE_ORIG} {output.MAPPING_FILE_BIDS};"
+# rule convert_niigz_to_nii_ctonacpc:
+#     input:
+#         CT_IN_PRE_NIFTI_IMG_ORIGgz=(FSOUT_CT_FOLDER / ctint1_acpc_bids_fname).with_suffix(".gz").as_posix(),
+#         MAPPING_FILE_ORIG=os.path.join(FSOUT_CT_FOLDER,pre_to_post_acpc_transform_fname),
+#     log: "logs/recon.{subject}.log"
+#     container:
+#         freesurfer_dockerurl
+#     output:
+#         MAPPING_FILE_BIDS=os.path.join(BIDS_CT_DIR,pre_to_post_acpc_transform_fname),
+#         CT_IN_PRE_NIFTI_BIDS=os.path.join(BIDS_CT_DIR,ctint1_acpc_bids_fname),
+#     shell:
+#         "mrconvert {output.CT_IN_PRE_NIFTI_IMG_ORIGgz} {output.CT_IN_PRE_NIFTI_BIDS};"
+#         "cp {output.MAPPING_FILE_ORIG} {output.MAPPING_FILE_BIDS};"
 
 """
 Use mne.coregistration

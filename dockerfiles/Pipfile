@@ -29,7 +29,6 @@ snakemake = ">=5.27.4"
 dicom2nifti = "*"
 xlrd = "*"
 seek-localize = "0.2.0"
-pydeface = "*"
 
 [requires]
 python_version = "3.8"

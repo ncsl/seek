@@ -62,16 +62,16 @@ if __name__ == "__main__":
         "-elecs_fpath",
         required=True,
         help="The input BIDS `*electrodes.tsv` file with all "
-        "the electrode contacts labeled and localized. "
-        "A corresponding `*coordsystem.json` file must "
-        "also accompany it.",
+             "the electrode contacts labeled and localized. "
+             "A corresponding `*coordsystem.json` file must "
+             "also accompany it.",
     )
     parser.add_argument(
         "-img_fpath",
         required=True,
         help="The atlas image filepath that contains the annotated "
-        "voxel points according to an atlas like Desikan-Killiany, "
-        "or Destrieux."
+             "voxel points according to an atlas like Desikan-Killiany, "
+             "or Destrieux."
         # help="The input BIDS image file (e.g. `*T1w.nii) corresponding "
         #      "to the image that contacts were localized in. "
         #      "Must be a Nifti file and must be BIDS-compliant. "

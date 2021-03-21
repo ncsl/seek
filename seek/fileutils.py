@@ -153,6 +153,14 @@ class BidsRoot:
         return self.bids_root
 
     @property
+    def acpc_dir(self):
+        return Path(self.derivatives_dir) / 'acpcdetect'
+
+    @property
+    def fslfov_dir(self):
+        return Path(self.derivatives_dir) / 'fslfov'
+
+    @property
     def freesurfer_dir(self):
         return Path(self.derivatives_dir / "freesurfer")
 
