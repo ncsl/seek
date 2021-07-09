@@ -22,20 +22,21 @@ def create_elec_labels_subject(bids_path, output_fpath):
 
 if __name__ == "__main__":
     # change this path to BIDS root
-    root = Path("/Users/adam2392/Dropbox/epilepsy_bids/")
+    root = Path("/Users/adam2392/OneDrive - Johns Hopkins/sickkids")
 
     # get the runs for this subject
     subjects = get_entity_vals(root, "subject")
-    session = "presurgery"
+    session = "preresection"
     extension = ".vhdr"
 
     output_path = root / "sourcedata" / "electrodes localized" / "setup"
 
     for subject in subjects:
-        if not any([x in subject for x in ["la", "nl", "tvb"]]):
+        # if not any([x in subject for x in ["la", "nl", "tvb"]]):
+        #     continue
+        if subject in ["la00", 'E1', 'E3', 'E4', 'E5']:
             continue
-        if subject in ["la00"]:
-            continue
+
 
         # create the BIDS path
         bids_path = BIDSPath(

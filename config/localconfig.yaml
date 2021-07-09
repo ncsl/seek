@@ -14,10 +14,11 @@
 bids_root:
 #  "/home/adam2392/hdd/epilepsy_bids/"
 #  "/home/adam2392/hdd3/sickkids/"
-  '/Users/adam2392/Dropbox/seek_test'
+  '/Users/adam2392/OneDrive - Johns Hopkins/sickkids/'
+#  '/Users/adam2392/Dropbox/seek_test'
 
 # session name to give all datasets; corresponds to the ``ses-`` BIDS entity
-session: "presurgery"
+session: "extraoperative"
 
 # FreeSurfer variable for SUBJECTS_DIR
 # when 'n/a', this will be housed in the

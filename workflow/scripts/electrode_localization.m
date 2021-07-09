@@ -80,20 +80,21 @@ clear; clc;
 % BIDS root of the data
 bids_root = 'C:\Users\vanik\Johns Hopkins\Adam Li - epilepsy_bids\';  % change this 
 bids_root = '/Users/adam2392/Dropbox/epilepsy_bids/';
-
-% path to `derivatives` and `sourcedata` folder
-deriv_path = fullfile(bids_root, 'derivatives');
-source_path = fullfile(bids_root, 'sourcedata');
+bids_root = '/Users/adam2392/OneDrive - Johns Hopkins/sickkids/';
 
 % path to the FieldTrip toolbox
 fieldtrip_toolbox_path = fullfile(bids_root, 'sample_scripts', 'contact_localization', 'fieldtrip-20190129')
 
 % dataset BIDS entities
-subjID = 'la04';  % change this for all patients
-sessionID = 'presurgery';
+subjID = 'E1';  % change this for all patients
+sessionID = 'extraoperative';  % change this depending on which "session" directory the anat/CT files are
 space = 'fs';
 extension = '.nii';
 datatype = 'anat';
+
+% path to `derivatives` and `sourcedata` folder
+deriv_path = fullfile(bids_root, 'derivatives');
+source_path = fullfile(bids_root, 'sourcedata');
 
 % raw EEG filepath
 % setup_elecs_fname = fullfile(save_path,listing(cellfun(@(name) contains(name,'_Setup.mat'),{listing.name})).name);
@@ -130,11 +131,9 @@ ses_path = fullfile(bids_root, bids_sub, bids_ses);
 
 % setup file names for the different images
 mri_bids_basename = [bids_sub, '_', ...
-                bids_ses, '_', ...
-                'space-' , space , '_' , 'T1w' , extension];
+                bids_ses, '_', 'T1w' , extension];
 ct_bids_basename = [bids_sub , '_'  , ...
-                bids_ses , '_' , ...
-                'space-' , 'orig' , '_' , 'CT' , extension];
+                bids_ses , '_', 'CT' , extension];
 stolk_ct_bids_basename = [bids_sub , '_'  , ...
                 bids_ses , '_' , ...
                 'space-' , space , '_' , ... 
